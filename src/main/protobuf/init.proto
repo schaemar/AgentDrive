@@ -1,0 +1,16 @@
+package aebctu;
+
+option java_package = "cz.agents.highway.protobuf.generated";
+option java_outer_classname = "InitMessage";
+
+message Init {
+  repeated Init_Message init = 1;
+
+}
+message Init_Message{
+  required double highway_X = 1;
+  required double highway_Y = 2;
+  required double number_of_lanes = 3;
+
+}
+

@@ -1,0 +1,19 @@
+package simplan;
+
+import "simplan/sim2planner.proto";
+import "simplan/planner2sim.proto";
+import "simplan/highway_init.proto";
+
+option java_package = "cz.agents.highway.protobuf.generated.simplan";
+option java_outer_classname = "MessageContainer";
+
+message Header{
+required fixed32 size = 1;
+}
+
+message Message {
+  // One of the following  will be filled in.
+  optional Update update = 1;
+  optional Plans plans = 2;
+  optional Init init = 3;
+}

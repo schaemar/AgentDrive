@@ -1,0 +1,20 @@
+package simplan;
+
+import "simplan/vector.proto";
+
+option java_package = "cz.agents.highway.protobuf.generated.simplan";
+option java_outer_classname = "UpdateMessage";
+
+message Update {
+  required double updateTime = 1;
+  repeated Vehicle_update updates = 2;
+
+}
+message Vehicle_update{
+ required int32 vehicleId = 1;
+ required Vector position = 2;
+ required Vector velocity = 3;
+
+ optional int32 lane = 8;      // number of lane from right to left
+ optional double acceleration = 9; // meters per second^2
+}

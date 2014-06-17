@@ -1,0 +1,19 @@
+package aebctudlr;
+
+option java_package = "cz.agents.highway.protobuf.generated.dlr";
+option java_outer_classname = "DLR_UpdateMessage";
+
+message Update {
+  required double updateTime = 1;
+  repeated Vehicle_update updates = 2;
+}
+message Vehicle_update{
+ required int32 vehicleId = 1;
+ required double posX = 2;     // X vehicle-coordinate (meters)
+ required double posY = 3;     // Y vehicle-coordinate (meters)
+ required double posZ = 4;     // Z vehicle-coordinate (meters)
+ required int32 lane = 5;      // number of lane from right to left
+ required double velocityX = 6;   // meters per second
+ required double velocityY = 7; // meters per second^2
+}
+

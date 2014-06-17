@@ -1,0 +1,19 @@
+package simplan;
+
+option java_package = "cz.agents.highway.protobuf.generated.simplan";
+option java_outer_classname = "VectorProto";
+
+message Vector {
+	required double x = 1;
+	required double y = 2;
+	required double z = 3;
+}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,22 @@
+package aebctu;
+
+option java_package = "cz.agents.highway.protobuf.generated";
+option java_outer_classname = "UpdateMessage";
+
+message Update {
+  required double updateTime = 1;
+  repeated Vehicle_update updates = 2;
+
+}
+message Vehicle_update{
+ required int32 vehicleId = 1;
+ required double posX = 2;     // X vehicle-coordinate (meters)
+ required double posY = 3;     // Y vehicle-coordinate (meters)
+ required double highwayX = 4; // X highway-coordinate (calculated between second and third lane, meters)
+ required double highwayY = 5; // Y highway-coordinate (calculated between second and third lane, meters)
+ required int32 lane = 6;      // number of lane from right to left
+ required double speed = 7;    // meters per second
+ optional double acceleration = 8; // meters per second^2
+ optional double velocityX = 9;
+ optional double velocityY = 10;
+}
