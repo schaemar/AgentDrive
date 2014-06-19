@@ -27,8 +27,8 @@ highway {
 	}
     protobuf {
     	isOn = true;
-    	inURI = "socket://192.168.0.100:2222"; //"socket://147.32.83.240:2222";         //"socket://localhost:2222";
-         outURI = "socket://192.168.0.100:2223"; //"socket://147.32.83.240:2223";       //"socket://localhost:2223";
+    	inURI = "socket://localhost:2222";//"socket://192.168.0.100:2222"; //"socket://147.32.83.240:2222";
+         outURI = "socket://localhost:2223";//"socket://192.168.0.100:2223"; //"socket://147.32.83.240:2223";
         
     }
      rvo{ 
