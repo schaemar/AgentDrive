@@ -1,4 +1,4 @@
-syntax glob
+syntax: glob
 
 .classpath
 .project
@@ -10,7 +10,9 @@ output
 out
 log
 .settings
-highway2013.iml
+*.iml
+*.log
+*.so
 
-syntax regexp
+syntax: regexp
 
