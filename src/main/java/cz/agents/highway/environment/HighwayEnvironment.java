@@ -1,9 +1,12 @@
 package cz.agents.highway.environment;
 
 import java.io.IOException;
+import java.net.URI;
 
 import javax.vecmath.Vector3d;
 
+import cz.agents.alite.protobuf.communicator.ClientCommunicator;
+import cz.agents.alite.protobuf.communicator.ServerCommunicator;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.entity.Entity;
@@ -170,10 +173,15 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
     private void initProtoCommunicator() {
         TransportLayerInterface transportInterface = new SocketTransportLayer();
+        String uri = Configurator.getParamString("highway.protobuf.uri",
+                "socket://localhost:2222");
 
-        // initializing protobuf communicator sending by a thread, but not receiveing by thread (cannot addEvent to EventQUeue from different threads)
-        comm = new Communicator<Header, Message>(Header.getDefaultInstance(),
-                Message.getDefaultInstance(), Communicator.Mode.SERVER, transportInterface,false,true);
+        // initializing protobuf communicator sending by a thread, but not receiveing by thread
+        // (cannot addEvent to EventQUeue from different threads)
+        boolean isSendThread = true;
+        boolean isReceiveThread = false;
+        comm = new ServerCommunicator<Header, Message>(URI.create(uri).getPort(), Header.getDefaultInstance(),
+                Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
         
         
         // factoryInit = new InitFactory();
@@ -199,18 +207,6 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 //        InitIn fakeInit = new InitIn(points);
 //        storage.updateInit(fakeInit);
         
-        try {
-            String inURI = Configurator.getParamString("highway.protobuf.inURI",
-                    "socket://localhost:2222");
-            String outURI = Configurator.getParamString("highway.protobuf.outURI",
-                    "socket://localhost:2223");
-
-            logger.info("Connecting inUri: " + inURI + " outURI: " + outURI);
-            comm.connect(inURI, outURI);
-
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
         // comm.registerInFactory(factoryInit);
         // comm.registerInFactory(factoryUpdate);
         try {

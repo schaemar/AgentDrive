@@ -4,6 +4,7 @@ import java.awt.Color;
 
 import javax.vecmath.Point2d;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -48,6 +49,7 @@ public class DefaultCreator implements Creator {
         
         logger.info("Configuration loaded from: " + configfile);
         logger.info("log4j logger properties loaded from: " + logfile);
+        logger.setLevel(Level.INFO);
 
     }
 
