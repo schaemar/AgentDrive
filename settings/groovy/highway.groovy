@@ -27,9 +27,8 @@ highway {
 	}
     protobuf {
     	isOn = true;
-    	inURI = "socket://localhost:2222";//"socket://192.168.0.100:2222"; //"socket://147.32.83.240:2222";
-         outURI = "socket://localhost:2223";//"socket://192.168.0.100:2223"; //"socket://147.32.83.240:2223";
-        
+    	uri = "socket://localhost:2222";//"socket://192.168.0.100:2222"; //"socket://147.32.83.240:2222";
+
     }
      rvo{ 
       visibilityGraphRadius = 1000;
@@ -54,6 +53,6 @@ highway {
     }
     
     vis {               //visualization
-    	isOn = true;
+    	isOn = false;
     }
 }
