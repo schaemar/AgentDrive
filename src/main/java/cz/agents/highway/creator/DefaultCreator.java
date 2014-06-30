@@ -26,6 +26,7 @@ import cz.agents.highway.vis.SimulationControlLayer;
 
 public class DefaultCreator implements Creator {
     protected Simulation simulation = null;
+    protected DashBoardController dashBoard = null;
     protected HighwayEnvironment highwayEnvironment = null;
 
     private final Logger logger = Logger.getLogger(DefaultCreator.class);
@@ -65,7 +66,8 @@ public class DefaultCreator implements Creator {
         simulation = new Simulation(simulationDuration);
 
         logger.info("\n>>> ENVIRONMENT CREATION\n");
-        highwayEnvironment = new HighwayEnvironment(simulation);
+        dashBoard = new DashBoardController(simulation);
+        highwayEnvironment = new HighwayEnvironment(simulation, dashBoard.getCommunicator());
 
         if (Configurator.getParamBool("highway.vis.isOn", false)) {
             logger.info("\n>>> VISUALISATION CREATION\n");
@@ -77,7 +79,8 @@ public class DefaultCreator implements Creator {
  
     }
     void runSimulation(){
-         simulation.run();
+        dashBoard.startSimulation();
+         //simulation.run();
 
     }
 

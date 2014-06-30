@@ -35,6 +35,7 @@ import cz.agents.highway.storage.plan.PlansOut;
  * public class {@link HighwayEnvironment} provides {@link CarStorage}, {@link HighwayStorage},
  * {@link HighwayEnvironmentHandler}
  */
+@SuppressWarnings("JavadocReference")
 public class HighwayEnvironment extends EventBasedEnvironment {
 
     private final Logger logger = Logger.getLogger(HighwayEnvironment.class);
@@ -46,7 +47,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
     private final static double ENVIRONMENT_DEPTH  = 15000.0;
     private final HighwayEnvironmentHandler handler;
 
-    private Communicator<Header, Message> comm;
+    private final Communicator<Header, Message> comm;
     private HighwayStorage storage;
 
     // [DEBUG]
@@ -60,8 +61,9 @@ public class HighwayEnvironment extends EventBasedEnvironment {
     //--------
     protected long timestep;
 
-    public HighwayEnvironment(final EventProcessor eventProcessor) {
+    public HighwayEnvironment(final EventProcessor eventProcessor, final Communicator<Header, Message> comm) {
         super(eventProcessor);
+        this.comm = comm;
         RandomProvider.init(this);
 
         timestep = Configurator.getParamInt("highway.timestep", 100);
@@ -69,15 +71,13 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
         handler = new HighwayEnvironmentHandler();
         
-        
-
         storage = new HighwayStorage(this);
         logger.info("Initialized handler and storages");
 
-         final PlansOut plans = new PlansOut();
+        final PlansOut plans = new PlansOut();
 
-         
-        
+        initProtoCommunicator();
+
         eventProcessor.addEventHandler(new EventHandler() {
             public void handleEvent(Event event) {
                 if (event.isType(HighwayEventType.TIMESTEP)) {
@@ -85,9 +85,9 @@ public class HighwayEnvironment extends EventBasedEnvironment {
                    //long timeout = timestep - (getEventProcessor().getCurrentTime()-(lastTick+timestep));
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
                 } else if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
-                    if(isProtobufOn){
-                        initProtoCommunicator();
-                    }
+//                    if(isProtobufOn){
+//                        initProtoCommunicator();
+//                    }
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
                 } else if (event.isType(HighwayEventType.NEW_PLAN)) {
                     try {
@@ -172,16 +172,16 @@ public class HighwayEnvironment extends EventBasedEnvironment {
     }
 
     private void initProtoCommunicator() {
-        TransportLayerInterface transportInterface = new SocketTransportLayer();
-        String uri = Configurator.getParamString("highway.protobuf.uri",
-                "socket://localhost:2222");
-
-        // initializing protobuf communicator sending by a thread, but not receiveing by thread
-        // (cannot addEvent to EventQUeue from different threads)
-        boolean isSendThread = true;
-        boolean isReceiveThread = false;
-        comm = new ServerCommunicator<Header, Message>(URI.create(uri).getPort(), Header.getDefaultInstance(),
-                Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
+//        TransportLayerInterface transportInterface = new SocketTransportLayer();
+//        String uri = Configurator.getParamString("highway.protobuf.uri",
+//                "socket://localhost:2222");
+//
+//        // initializing protobuf communicator sending by a thread, but not receiveing by thread
+//        // (cannot addEvent to EventQUeue from different threads)
+//        boolean isSendThread = true;
+//        boolean isReceiveThread = false;
+//        comm = new ServerCommunicator<Header, Message>(URI.create(uri).getPort(), Header.getDefaultInstance(),
+//                Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
         
         
         // factoryInit = new InitFactory();

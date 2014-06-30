@@ -3,7 +3,7 @@ highway {
 	simulationDuration = 1000000;      // not relevant - should be enought not to end earlier then a run test
 	simulationSpeed = 1.0;             //not relevant
 	timestep = 10; //ms               //not relevant
-	
+
 	safeDistanceAgent {
 		safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
 		narrowingModeActive = false;
@@ -54,5 +54,18 @@ highway {
     
     vis {               //visualization
     	isOn = false;
+    }
+
+    // Dashboard configuration
+    dashboard {
+        simulators {
+            OpenDS {
+                launch = "/home/wmatex/Projects/Agents/highway/out/artifacts/simulator_jar/run_simulator.sh";
+            }
+        }
+
+        simulatorsToRun = [
+                "OpenDS"
+        ]
     }
 }
