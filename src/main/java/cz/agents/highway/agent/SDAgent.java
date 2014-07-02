@@ -27,23 +27,21 @@ import cz.agents.highway.storage.plan.ManeuverAction;
 public class SDAgent extends Agent {
 
 	private static final Logger logger = Logger.getLogger(SDAgent.class);
-	
+
     private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
     private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance",   4.0  );
     private final static double MAX_SPEED               = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 20.0  );
     private final static double MAX_SPEED_VARIANCE      = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.1 );
-  
+
     private final static double LANE_SPEED_RATIO        = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio",            0.1);
     private final static long   PLANNING_TIME           = 1000;
     private static final int    NUM_OF_LANES            =    2;
-    
+
     private CarManeuver currentManeuver = null;
-    
+
     // maximal speed after variance application
     private final double initialMaximalSpeed = (RandomProvider.getRandom().nextDouble() - 0.5) * 2 *MAX_SPEED_VARIANCE * MAX_SPEED  + MAX_SPEED;
     private double maximalSpeed = initialMaximalSpeed;
-    
-    private int queen ;
 
     public Action agentReact() {
         return man2Action(plan());
@@ -55,11 +53,6 @@ public class SDAgent extends Agent {
 
     public SDAgent(int id) {
         super(id);
-        if(id==0){
-            queen = id;
-        }else{
-            queen = 0;
-        }
     }
 
     public void addSensor(final VehicleSensor sensor) {
@@ -83,19 +76,17 @@ public class SDAgent extends Agent {
     public CarManeuver plan() {
         CarManeuver maneuver = null;
         RoadObject currState = sensor.senseCurrentState();
-        
-        
+
+
         logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
         logger.debug("Situation: " + situationPrediction);
 
-        adaptMaximalSpeed(); // if queen is set, adapt speed to keep the swarm
-        
         int lane = currState.getLane();
         double velocity = currState.getVelocity().length();
         double distance = transGeoToDistance(currState.getPosition());
         long updateTime = (long) (currState.getUpdateTime() * 1000);
-        
+
         CarManeuver acc   = new AccelerationManeuver  (lane, velocity, distance, updateTime);
         CarManeuver str   = new StraightManeuver      (lane, velocity, distance, updateTime);
         CarManeuver left  = new LaneLeftManeuver      (lane, velocity, distance, updateTime);
@@ -130,12 +121,12 @@ public class SDAgent extends Agent {
             }
             else if(currentManeuver !=null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
                 maneuver = right;
-            }             
+            }
             else{
-          
+
                 if (isSafeMan(currState, right, situationPrediction)) {
                     maneuver = right;
-                } 
+                }
                 else if (isSafeMan(currState, acc, situationPrediction)) {
                     maneuver = acc;
                 } else if (isSafeMan(currState, str, situationPrediction)) {
@@ -153,34 +144,6 @@ public class SDAgent extends Agent {
         logger.info("Planned maneuver: "+maneuver);
         currentManeuver = maneuver;
         return maneuver;
-    }
-
-    private void adaptMaximalSpeed() {
-        if(queen  != id){
-        RoadObject ego = sensor.senseCar(queen);
-        double egoDistance = ego.getPosition().y;
-        double egoSpeed = ego.getVelocity().length();
-        
-        double myDist = sensor.senseCurrentState().getPosition().y;
-        double radius1 = 30;
-        double radius2 = 80;
-        double radius3 = 100;
-        if(myDist < egoDistance - radius3){
-            maximalSpeed = initialMaximalSpeed * 1.25f;            
-        }else if(myDist > egoDistance + radius3){
-            maximalSpeed = initialMaximalSpeed * 0.75f;
-        }else if(myDist < egoDistance - radius2){
-            maximalSpeed = initialMaximalSpeed * 1.15f;            
-        }else if(myDist > egoDistance + radius2){
-            maximalSpeed = initialMaximalSpeed * 0.85f;
-        }else if(myDist < egoDistance - radius1){
-            maximalSpeed = initialMaximalSpeed * 1.05f;            
-        }else if(myDist > egoDistance + radius1){
-            maximalSpeed = initialMaximalSpeed * 0.95f;       
-        }
-        }
-            
-            
     }
 
     private double transGeoToDistance(double x, double y) {
@@ -211,7 +174,7 @@ public class SDAgent extends Agent {
 
     private boolean isNarrowingMode(RoadObject state) {
         if(Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", false).equals(false)) return false;
-        
+
         int lane = state.getLane();
         double distance = getDistance(state);
 
@@ -430,7 +393,7 @@ public class SDAgent extends Agent {
         return ret;
 
     }
-    
+
     private boolean laneChange(CarManeuver carManeuver){
     	return carManeuver.getClass().equals(LaneLeftManeuver.class) || carManeuver.getClass().equals(LaneRightManeuver.class);
     }
@@ -442,16 +405,16 @@ public class SDAgent extends Agent {
                 return true;
             }
         }
-        
-        
-            // TODO check - observed that StraightManeuver accelerates vehicle 
+
+
+            // TODO check - observed that StraightManeuver accelerates vehicle
         //if(carManeuver.getClass().equals(AccelerationManeuver.class) || carManeuver.getClass().equals(StraManeuver.class)){
     		double laneMaxSpeed = maximalSpeed + carManeuver.getLaneIn() * LANE_SPEED_RATIO * maximalSpeed;
     		logger.info("laneMasSpeed= "+laneMaxSpeed +" maximalSpeed="+maximalSpeed+" speedVariance="+MAX_SPEED_VARIANCE+ " MAX_SPEED conf = "+MAX_SPEED);
     		return carManeuver.getVelocityOut() > laneMaxSpeed;
-    	
+
 //    	boolean ret = false;
-       
+
         // what does this mean??
 //        else if (carManeuver.getClass().equals(AccelerationManeuver.class)
 //                && carManeuver.getVelocityIn() < 10.0) {
