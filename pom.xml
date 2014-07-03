@@ -5,7 +5,11 @@
 	<artifactId>agentdrive</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<name>AgentDrive</name>
-
+    <parent>
+        <groupId>cz.agents</groupId>
+        <artifactId>atgparent</artifactId>
+        <version>1.0.1</version>
+    </parent>
 	<dependencies>
 
 		<dependency>
