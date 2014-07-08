@@ -7,8 +7,12 @@ import javax.vecmath.Vector3d;
 
 import cz.agents.alite.protobuf.communicator.ClientCommunicator;
 import cz.agents.alite.protobuf.communicator.ServerCommunicator;
+import cz.agents.alite.vis.VisManager;
+import cz.agents.alite.vis.layer.GroupLayer;
+import cz.agents.alite.vis.layer.terminal.LineLayer;
 import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
+import cz.agents.highway.vis.NetLayer;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.entity.Entity;
@@ -76,6 +80,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
         XMLReader.getInstrance().read(Configurator.getParamString("highway.net.file","nets/junction-big/junction-big.net.xml"));
         roadNetwork = Network.getInstance();
+
         storage = new HighwayStorage(this);
         logger.info("Initialized handler and storages");
 
@@ -147,6 +152,10 @@ public class HighwayEnvironment extends EventBasedEnvironment {
     @Override
     public HighwayEnvironmentHandler handler() {
         return handler;
+    }
+
+    public Network getRoadNetwork() {
+        return roadNetwork;
     }
 
     /**

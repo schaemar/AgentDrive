@@ -4,6 +4,7 @@ import java.awt.Color;
 
 import javax.vecmath.Point2d;
 
+import cz.agents.highway.vis.NetLayer;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -72,6 +73,7 @@ public class DefaultCreator implements Creator {
         if (Configurator.getParamBool("highway.vis.isOn", false)) {
             logger.info("\n>>> VISUALISATION CREATION\n");
             createVisualization();
+            VisManager.registerLayer(new NetLayer(highwayEnvironment.getRoadNetwork()));
             VisManager.registerLayer(ProtobufVisLayer.create(highwayEnvironment.getStorage()));
             VisManager.registerLayer(SimulationControlLayer.create(simulation));
         }
@@ -92,7 +94,7 @@ public class DefaultCreator implements Creator {
 
             @Override
             public Point2d getDefaultLookAt() {
-                return new Point2d(24300, 0);
+                return new Point2d(0, 0);
             }
 
             @Override
