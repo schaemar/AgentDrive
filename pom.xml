@@ -18,6 +18,13 @@
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
+        <!-- road network-->
+        <dependency>
+            <groupId>ags.utils.dataStructures</groupId>
+            <artifactId>kdtreerednaxela</artifactId>
+            <version>3.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- communication/protobuf-->
 		<dependency>
 			<groupId>cz.agents.agentdrive</groupId>
@@ -38,7 +45,7 @@
         <dependency>
             <groupId>cz.agents.alite</groupId>
             <artifactId>configreader</artifactId>
-            <version>3.0-SNAPSHOT</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
 			<groupId>junit</groupId>

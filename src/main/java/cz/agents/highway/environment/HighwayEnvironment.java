@@ -7,6 +7,8 @@ import javax.vecmath.Vector3d;
 
 import cz.agents.alite.protobuf.communicator.ClientCommunicator;
 import cz.agents.alite.protobuf.communicator.ServerCommunicator;
+import cz.agents.highway.environment.roadnet.Network;
+import cz.agents.highway.environment.roadnet.XMLReader;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.entity.Entity;
@@ -49,6 +51,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
     private final Communicator<Header, Message> comm;
     private HighwayStorage storage;
+    private Network roadNetwork;
 
     // [DEBUG]
     int counter = 0;
@@ -70,7 +73,9 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         final boolean isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
 
         handler = new HighwayEnvironmentHandler();
-        
+
+        XMLReader.getInstrance().read(Configurator.getParamString("highway.net.file","nets/junction-big/junction-big.net.xml"));
+        roadNetwork = Network.getInstance();
         storage = new HighwayStorage(this);
         logger.info("Initialized handler and storages");
 
