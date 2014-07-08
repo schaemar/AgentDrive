@@ -108,4 +108,12 @@ public class Lane {
     public void addIncomingLane(Lane lane) {
         incomingLanes.add(lane);
     }
+
+    public ArrayList<Lane> getIncomingLanes() {
+        return incomingLanes;
+    }
+
+    public ArrayList<Lane> getOutgoingLanes() {
+        return outgoingLanes;
+    }
 }

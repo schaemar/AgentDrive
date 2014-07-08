@@ -24,9 +24,22 @@ import java.awt.geom.Rectangle2D;
 public class NetLayer extends GroupLayer implements VisLayer {
 
     private Network net;
+    private Dimension dim = Vis.getDrawingDimension();
+    private Rectangle2D drawingRectangle = new Rectangle(dim);
 
     public NetLayer(Network roadNetwork) {
         net = roadNetwork;
+    }
+
+    void paintLine(Graphics2D canvas, Point2f p1, Point2f p2){
+        int x = Vis.transX(p1.x);
+        int y = Vis.transY(p1.y);
+        int xTo = Vis.transX(p2.x);
+        int yTo = Vis.transY(p2.y);
+        Line2D line2d = new Line2D.Double(x, y, xTo, yTo);
+        if (line2d.intersects(drawingRectangle)) {
+            canvas.draw(line2d);
+        }
     }
 
     @Override
@@ -35,24 +48,18 @@ public class NetLayer extends GroupLayer implements VisLayer {
         int radius = 10;
         canvas.setColor(Color.black);
         canvas.setStroke(new BasicStroke(10));
-        Dimension dim = Vis.getDrawingDimension();
-        Rectangle2D drawingRectangle = new Rectangle(dim);
+
 
         for (Lane lane : net.getLanes().values()) {
             Point2f prev = lane.getShape().get(0);
             for (Point2f point : lane.getShape()) {
-
-                int x = Vis.transX(prev.x);
-                int y = Vis.transY(prev.y);
-                int xTo = Vis.transX(point.x);
-                int yTo = Vis.transY(point.y);
-                Line2D line2d = new Line2D.Double(x, y, xTo, yTo);
-                if (line2d.intersects(drawingRectangle)) {
-                    canvas.draw(line2d);
-                }
+                paintLine(canvas,point,prev);
                 prev = point;
             }
-            lane.
+            for (Lane outgoingLane : lane.getOutgoingLanes()) {
+                Point2f point = outgoingLane.getShape().get(0);
+                paintLine(canvas,prev,point);
+            }
 
 
         }
@@ -62,15 +69,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
             if(edge.getShape().isEmpty())continue;
             Point2f prev = edge.getShape().get(0);
             for (Point2f point : edge.getShape()) {
-
-                int x = Vis.transX(prev.x);
-                int y = Vis.transY(prev.y);
-                int xTo = Vis.transX(point.x);
-                int yTo = Vis.transY(point.y);
-                Line2D line2d = new Line2D.Double(x, y, xTo, yTo);
-                if (line2d.intersects(drawingRectangle)) {
-                    canvas.draw(line2d);
-                }
+                paintLine(canvas,point,prev);
                 prev = point;
             }
 
@@ -83,19 +82,14 @@ public class NetLayer extends GroupLayer implements VisLayer {
         for (Junction junction : net.getJunctions().values()) {
 
             if(junction.getShape().isEmpty())continue;
-            Point2f prev = junction.getShape().get(0);
+            //
+            int size = junction.getShape().size();
+            Point2f prev = junction.getShape().get(size-1);
             for (Point2f point : junction.getShape()) {
-
-                int x = Vis.transX(prev.x);
-                int y = Vis.transY(prev.y);
-                int xTo = Vis.transX(point.x);
-                int yTo = Vis.transY(point.y);
-                Line2D line2d = new Line2D.Double(x, y, xTo, yTo);
-                if (line2d.intersects(drawingRectangle)) {
-                    canvas.draw(line2d);
-                }
+                paintLine(canvas,point,prev);
                 prev = point;
             }
+
 
 
         }
