@@ -6,6 +6,7 @@ import ags.utils.dataStructures.utils.MaxHeap;
 
 
 import javax.vecmath.Point2f;
+import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
@@ -126,7 +127,7 @@ public class Network {
      * @param position
      * @return
      */
-    public Lane getLane(Vector2f position) {
+    public Lane getLane(Point2f position) {
         double[] point = new double[2];
         point[0] = position.x;
         point[1] = position.y;
@@ -141,8 +142,8 @@ public class Network {
      * @param position
      * @return
      */
-    public Lane getLane(Vector3f position) {
-        Vector2f pos2d = new Vector2f(position.x, -position.z);
+    public Lane getLane(Point3f position) {
+        Point2f pos2d = new Point2f(position.x, -position.z);
         return getLane(pos2d);
     }
 
