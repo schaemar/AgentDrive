@@ -106,8 +106,9 @@ public class DefaultCreator implements Creator {
         VisManager.init();
 
         // Overlay
-        VisManager.registerLayer(VisInfoLayer.create());
+
         VisManager.registerLayer(ColorLayer.create(Color.LIGHT_GRAY));
+        VisManager.registerLayer(VisInfoLayer.create());
         VisManager.registerLayer(FpsLayer.create());
         VisManager.registerLayer(LogoLayer.create(Utils.getResourceUrl("img/atg_blue.png")));
         VisManager.registerLayer(HelpLayer.create());
@@ -116,7 +117,7 @@ public class DefaultCreator implements Creator {
 
     @Deprecated
     public static void main(String[] args) {
-        System.out.print("RUNNING Highway2013 DefaultCreator.java");
+        System.out.print("RUNNING Highway DefaultCreator.java");
         for (int i = 0; i < args.length; i++) {
             System.out.print(" " + args[0]);
         }

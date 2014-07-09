@@ -18,9 +18,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * XMLReader reads a .net.xml file and creates a street network.
@@ -37,7 +35,7 @@ public class XMLReader {
     private ArrayList<String> bridges = new ArrayList<String>();
 
     private final static Logger log = Logger.getLogger(XMLReader.class);
-
+    private HashMap<Integer, List<String>> routes;
 
 
     private XMLReader() {
@@ -51,10 +49,10 @@ public class XMLReader {
         return instance;
     }
 
-    public void read(String networkFileName) {
+    public void read(String networkFolder) {
         log.info("PARSING NETWORK");
         try {
-            File fXmlFile = new File(networkFileName);
+            File fXmlFile = new File(getFile(networkFolder,".net.xml"));
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = null;
 
@@ -146,6 +144,7 @@ public class XMLReader {
             }
 
             parseMultilevelJunctions();
+            routes =  parseRoutes(getFile(networkFolder,".rou.xml"));
 
             Network.getInstance().init(edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
             log.info("NETWORK PARSED");
@@ -181,6 +180,46 @@ public class XMLReader {
         }
 
         return ret;
+    }
+
+    private HashMap<Integer, List<String>> parseRoutes(String networkFileName) {
+        HashMap<Integer,List<String>> plans = new HashMap<Integer, List<String>>();
+        log.info("PARSING ROUTES");
+        try {
+            File fXmlFile = new File(networkFileName);
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = null;
+
+            dBuilder = dbFactory.newDocumentBuilder();
+
+            Document doc = dBuilder.parse(fXmlFile);
+
+            NodeList edgeNodeList = doc.getElementsByTagName("vehicle");
+            for (int temp = 0; temp < edgeNodeList.getLength(); temp++) {
+
+                Node lNode = edgeNodeList.item(temp);
+
+                if (lNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                    Element l = (Element) lNode;
+                    int id = Integer.parseInt(l.getAttribute("id"));
+                    float depart = Float.valueOf(l.getAttribute("depart"));
+                    Element route = (Element)l.getElementsByTagName("route").item(0);
+                    ArrayList<String> plan = separateStrings(route.getAttribute("edges"));
+                    plans.put(id,plan);
+                }
+            }
+            return plans;
+
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private ArrayList<String> separateStrings(String inputString) {
@@ -291,6 +330,13 @@ public class XMLReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+      * @return map from vehicleID to its route
+     */
+    public HashMap<Integer, List<String>> getRoutes() {
+        return routes;
     }
 
     private String getFile(String folderPath, String suffix) {
