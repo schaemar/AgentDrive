@@ -81,7 +81,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
         handler = new HighwayEnvironmentHandler();
 
-        XMLReader.getInstrance().read(Configurator.getParamString("highway.net.file","nets/junction-big/junction-big.net.xml"));
+        XMLReader.getInstrance().read(Configurator.getParamString("highway.net.folder","nets/junction-big/"));
         roadNetwork = Network.getInstance();
 
         storage = new HighwayStorage(this);

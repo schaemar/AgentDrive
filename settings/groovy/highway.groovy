@@ -6,7 +6,6 @@ highway {
 
     net{
         folder = "src/main/resources/nets/junction-big/";
-        file = "src/main/resources/nets/junction-big/junction-big6.net.xml";
     }
 	safeDistanceAgent {
 		safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
