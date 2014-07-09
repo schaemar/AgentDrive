@@ -7,11 +7,14 @@ import javax.vecmath.Vector3d;
 
 import cz.agents.alite.protobuf.communicator.ClientCommunicator;
 import cz.agents.alite.protobuf.communicator.ServerCommunicator;
+import cz.agents.alite.protobuf.factory.FactoryInterface;
 import cz.agents.alite.vis.VisManager;
 import cz.agents.alite.vis.layer.GroupLayer;
 import cz.agents.alite.vis.layer.terminal.LineLayer;
 import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
+import cz.agents.highway.protobuf.factory.simplan.PlansFactory;
+import cz.agents.highway.protobuf.factory.simplan.UpdateFactory;
 import cz.agents.highway.vis.NetLayer;
 import org.apache.log4j.Logger;
 
@@ -199,19 +202,18 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         
         
         // factoryInit = new InitFactory();
-        DLR_UpdateFactory factoryUpdate = null;
-        DLR_PlansFactory factoryPlans = null;
+        FactoryInterface factoryUpdate = null;
+        FactoryInterface factoryPlans = null;
         
         String protocol = Configurator.getParamString("highway.protobuf.protocol", "DLR");
         if(protocol.equals("DLR")){
-             factoryUpdate = new DLR_UpdateFactory();
-             factoryPlans = new DLR_PlansFactory();
-            
+            factoryUpdate = new DLR_UpdateFactory();
+            factoryPlans = new DLR_PlansFactory();
+
         }else if(protocol.equals("simplan")){
 //TODO general protocol choice
-//             factoryInit = new InitFactory();
-//             factoryUpdate = new UpdateFactory();
-//             factoryPlans = new PlansFactory();
+            factoryUpdate = new UpdateFactory();
+            factoryPlans = new PlansFactory();
         }
         
 //        ArrayList<Point3d> points = new ArrayList<>();

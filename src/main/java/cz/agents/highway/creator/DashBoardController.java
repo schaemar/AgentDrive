@@ -16,7 +16,7 @@ import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.alite.transport.SocketTransportLayer;
 import cz.agents.alite.transport.TransportLayerInterface;
 import cz.agents.highway.environment.HighwayEnvironment;
-import cz.agents.highway.protobuf.generated.MessageContainer;
+import cz.agents.highway.protobuf.generated.simplan.MessageContainer;
 import cz.agents.highway.protobuf.generated.dlr.DLR_MessageContainer;
 import org.apache.log4j.Logger;
 
@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
  */
 public class DashBoardController implements EventHandler {
     private final EventProcessor eventProcessor;
-    private Communicator<DLR_MessageContainer.Header, DLR_MessageContainer.Message> communicator;
+    private Communicator communicator;
     private final Logger logger = Logger.getLogger(HighwayEnvironment.class);
 
     /// Map of all running simulator processes
@@ -49,9 +49,18 @@ public class DashBoardController implements EventHandler {
         // (cannot addEvent to EventQUeue from different threads)
         boolean isSendThread = true;
         boolean isReceiveThread = false;
-        communicator = new ServerCommunicator<DLR_MessageContainer.Header, DLR_MessageContainer.Message>(
-                URI.create(uri).getPort(), DLR_MessageContainer.Header.getDefaultInstance(),
-                DLR_MessageContainer.Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
+        String protocolType = Configurator.getParamString("highway.protobuf.protocol", "DLR");
+        int port = URI.create(uri).getPort();
+        if (protocolType.equals("DLR")) {
+            communicator = new ServerCommunicator<DLR_MessageContainer.Header, DLR_MessageContainer.Message>(
+                    port, DLR_MessageContainer.Header.getDefaultInstance(),
+                    DLR_MessageContainer.Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
+        } else if (protocolType.equals("simplan")) {
+            communicator = new ServerCommunicator<MessageContainer.Header, MessageContainer.Message>(
+                    port, MessageContainer.Header.getDefaultInstance(), MessageContainer.Message.getDefaultInstance(),
+                    transportInterface, isSendThread, isReceiveThread
+            );
+        }
     }
 
     public Communicator getCommunicator() {

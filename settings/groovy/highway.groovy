@@ -32,6 +32,7 @@ highway {
     protobuf {
     	isOn = true;
     	uri = "socket://localhost:2222";//"socket://192.168.0.100:2222"; //"socket://147.32.83.240:2222";
+        protocol = "simplan";
 
     }
      rvo{ 
