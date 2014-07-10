@@ -25,7 +25,7 @@ public class RouteAgent extends Agent {
     private int nextEdge = 0;
     private List<Edge> route;
     ///
-    private static final float CHANGE_RADIUS = 2.0f;
+    private static final float CHANGE_RADIUS = 5.0f;
 
     public RouteAgent(int id) {
         super(id);
@@ -33,13 +33,17 @@ public class RouteAgent extends Agent {
         initRoute(id);
     }
 
+    /**
+     * Generate list of edges from route definition
+     * @param id Id of the vehicle
+     */
     private void initRoute(int id) {
         Network network = Network.getInstance();
         XMLReader reader = XMLReader.getInstrance();
         Map<Integer, List<String>> routes = reader.getRoutes();
-        System.out.println("AGENT ID: "+id);
         Map<String, Edge> edges = network.getEdges();
         route = new LinkedList<Edge>();
+
         for (String edge: routes.get(id)) {
             route.add(edges.get(edge));
         }
@@ -68,7 +72,8 @@ public class RouteAgent extends Agent {
         // FIXME!!
         Lane lane = route.get(nextEdge).getLanes().get(String.format("%s_%d", route.get(nextEdge).getId(), me.getLane()));
 
-        if (lane.getInnerPoints().get(nextPoint).distance(position2D) < CHANGE_RADIUS) {
+        // If the next waypoint is too close, go to the next in route
+        while (lane.getInnerPoints().get(nextPoint).distance(position2D) < CHANGE_RADIUS) {
             //TODO: do some check when lane ends
             if (nextPoint >= lane.getInnerPoints().size()-1) {
                 nextPoint = 0;
@@ -80,6 +85,7 @@ public class RouteAgent extends Agent {
             } else {
                 nextPoint++;
             }
+            lane = route.get(nextEdge).getLanes().get(String.format("%s_%d", route.get(nextEdge).getId(), me.getLane()));
         }
 
         Point2f waypoint = lane.getInnerPoints().get(nextPoint);
