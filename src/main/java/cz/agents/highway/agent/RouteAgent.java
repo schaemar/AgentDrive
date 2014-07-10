@@ -25,7 +25,7 @@ public class RouteAgent extends Agent {
     private int nextEdge = 0;
     private List<Edge> route;
     ///
-    private static final float CHANGE_RADIUS = 0.5f;
+    private static final float CHANGE_RADIUS = 2.0f;
 
     public RouteAgent(int id) {
         super(id);
