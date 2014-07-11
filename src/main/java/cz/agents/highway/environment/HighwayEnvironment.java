@@ -5,19 +5,17 @@ import java.net.URI;
 
 import javax.vecmath.Vector3d;
 
-import cz.agents.alite.protobuf.communicator.ClientCommunicator;
+import cz.agents.alite.protobuf.communicator.Communicator;
 import cz.agents.alite.protobuf.communicator.ServerCommunicator;
 import cz.agents.alite.protobuf.factory.FactoryInterface;
-import cz.agents.alite.vis.VisManager;
-import cz.agents.alite.vis.layer.GroupLayer;
-import cz.agents.alite.vis.layer.terminal.LineLayer;
+import cz.agents.alite.transport.SocketTransportLayer;
+import cz.agents.alite.transport.TransportLayerInterface;
 import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.protobuf.factory.simplan.PlansFactory;
 import cz.agents.highway.protobuf.factory.simplan.UpdateFactory;
 import cz.agents.highway.protobuf.generated.dlr.DLR_MessageContainer;
 import cz.agents.highway.protobuf.generated.simplan.MessageContainer;
-import cz.agents.highway.vis.NetLayer;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.entity.Entity;
@@ -28,11 +26,8 @@ import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.environment.Action;
 import cz.agents.alite.environment.Sensor;
 import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
-import cz.agents.alite.protobuf.communicator.Communicator;
 import cz.agents.alite.protobuf.factory.ProtobufFactory.ProtobufMessageHandler;
 import cz.agents.alite.simulation.SimulationEventType;
-import cz.agents.alite.transport.SocketTransportLayer;
-import cz.agents.alite.transport.TransportLayerInterface;
 import cz.agents.highway.protobuf.factory.dlr.DLR_PlansFactory;
 import cz.agents.highway.protobuf.factory.dlr.DLR_UpdateFactory;
 import cz.agents.highway.protobuf.generated.dlr.DLR_MessageContainer.Header;
@@ -81,7 +76,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         handler = new HighwayEnvironmentHandler();
 
         // Initialize Network from given xml
-        XMLReader.getInstrance().read(Configurator.getParamString("highway.net.folder","nets/junction-big/"));
+        XMLReader.getInstance().read(Configurator.getParamString("highway.net.folder","nets/junction-big/"));
         roadNetwork = Network.getInstance();
 
         storage = new HighwayStorage(this);
@@ -203,7 +198,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
         String protocol = Configurator.getParamString("highway.protobuf.protocol", "DLR");
         if (protocol.equals("DLR")) {
-            communicator = new ServerCommunicator<DLR_MessageContainer.Header, DLR_MessageContainer.Message>(
+            communicator = new ServerCommunicator<Header, Message>(
                     port, DLR_MessageContainer.Header.getDefaultInstance(),
                     DLR_MessageContainer.Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
             factoryUpdate = new DLR_UpdateFactory();
