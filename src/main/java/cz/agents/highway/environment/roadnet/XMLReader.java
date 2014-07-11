@@ -10,7 +10,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.vecmath.Point2f;
-import javax.vecmath.Vector2f;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -21,9 +20,10 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * XMLReader reads a .net.xml file and creates a street network.
+ * XMLReader reads a .net.xml, .rou.xml file and creates a street network.
  * Note: connections are not parsed
  * Created by pavel on 19.6.14.
+ * Modified by martin on 11.7.14
  */
 public class XMLReader {
     private static XMLReader instance = null;
@@ -42,21 +42,24 @@ public class XMLReader {
 
     }
 
-    public static synchronized XMLReader getInstrance() {
+    public static synchronized XMLReader getInstance() {
         if (instance == null) {
             instance = new XMLReader();
         }
         return instance;
     }
 
+    /**
+     * Parse all the network ( Lanes, Edges, Junctions, Routes
+     *
+     * @param networkFolder where *.net.xml, *.rou.xml (optionally bridges and tunnels) files are stored
+     */
     public void read(String networkFolder) {
         log.info("PARSING NETWORK");
         try {
-            File fXmlFile = new File(getFile(networkFolder,".net.xml"));
+            File fXmlFile = new File(getFile(networkFolder, ".net.xml"));
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = null;
-
-            dBuilder = dbFactory.newDocumentBuilder();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
             Document doc = dBuilder.parse(fXmlFile);
 
@@ -77,7 +80,6 @@ public class XMLReader {
                     String type = e.getAttribute("type");
                     String shapeStr1 = e.getAttribute("shape");
 
-                    ArrayList<Lane> edgeLanes = new ArrayList<Lane>();
                     Edge edge = new Edge(id, from, to, priority, type, getShape(shapeStr1));
                     NodeList laneNodeList = e.getElementsByTagName("lane");
                     HashMap<String, Lane> lanes = parseLanes(laneNodeList);
@@ -101,7 +103,7 @@ public class XMLReader {
                     String type = j.getAttribute("type");
                     float x = Float.valueOf(j.getAttribute("x"));
                     float y = Float.valueOf(j.getAttribute("y"));
-                    Point2f center = new Point2f(x, y);
+                    Point2f center = transSUMO2Alite(x, y);
                     String incLanesStr = j.getAttribute("incLanes");
 
                     String intLanesStr = j.getAttribute("incLanes");
@@ -111,7 +113,6 @@ public class XMLReader {
                     ArrayList<Request> requestList = new ArrayList<Request>();
                     for (int requestIndex = 0; requestIndex < requestNodeList.getLength(); requestIndex++) {
 
-                        Node requestNode = requestNodeList.item(requestIndex);
                         String index = j.getAttribute("index");
                         String response = j.getAttribute("response");
                         String foes = j.getAttribute("foes");
@@ -144,7 +145,7 @@ public class XMLReader {
             }
 
             parseMultilevelJunctions();
-            routes =  parseRoutes(getFile(networkFolder,".rou.xml"));
+            routes = parseRoutes(getFile(networkFolder, ".rou.xml"));
 
             Network.getInstance().init(edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
             log.info("NETWORK PARSED");
@@ -158,6 +159,10 @@ public class XMLReader {
         }
     }
 
+    /**
+     * @param lanesNodeList nodeList of lanes
+     * @return map LaneID (String) -> Lane
+     */
     private HashMap<String, Lane> parseLanes(NodeList lanesNodeList) {
         HashMap<String, Lane> ret = new HashMap<String, Lane>();
         for (int temp = 0; temp < lanesNodeList.getLength(); temp++) {
@@ -182,15 +187,19 @@ public class XMLReader {
         return ret;
     }
 
-    private HashMap<Integer, List<String>> parseRoutes(String networkFileName) {
-        HashMap<Integer,List<String>> plans = new HashMap<Integer, List<String>>();
+    /**
+     * Parses routes (vehicles and routes)
+     *
+     * @param routesFileName .rou.xml file
+     * @return map vehicleID -> it's route (list of edge IDs)
+     */
+    private HashMap<Integer, List<String>> parseRoutes(String routesFileName) {
+        HashMap<Integer, List<String>> plans = new HashMap<Integer, List<String>>();
         log.info("PARSING ROUTES");
         try {
-            File fXmlFile = new File(networkFileName);
+            File fXmlFile = new File(routesFileName);
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = null;
-
-            dBuilder = dbFactory.newDocumentBuilder();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
             Document doc = dBuilder.parse(fXmlFile);
 
@@ -204,9 +213,9 @@ public class XMLReader {
                     Element l = (Element) lNode;
                     int id = Integer.parseInt(l.getAttribute("id"));
                     float depart = Float.valueOf(l.getAttribute("depart"));
-                    Element route = (Element)l.getElementsByTagName("route").item(0);
+                    Element route = (Element) l.getElementsByTagName("route").item(0);
                     ArrayList<String> plan = separateStrings(route.getAttribute("edges"));
-                    plans.put(id,plan);
+                    plans.put(id, plan);
                 }
             }
             return plans;
@@ -231,6 +240,12 @@ public class XMLReader {
         return ret;
     }
 
+    /**
+     * Parse shape String to a list of Points
+     *
+     * @param shapeString shape points separated by spaces
+     * @return list of shape points
+     */
     private ArrayList<Point2f> getShape(String shapeString) {
         StringTokenizer st = new StringTokenizer(shapeString);
         ArrayList<Point2f> shape = new ArrayList<Point2f>();
@@ -240,48 +255,44 @@ public class XMLReader {
             float x = Float.valueOf(st2.nextToken());
             float y = Float.valueOf(st2.nextToken());
 
-            Point2f point = new Point2f(x, y);
+            Point2f point = transSUMO2Alite(x, y);
             shape.add(point);
         }
         return shape;
     }
+
 
     private void parseMultilevelJunctions() {
         try {
             String folderPath = Configurator.getParamString("net.folder", "src/main/resources/nets/junction-big");
             String tunnelsFilePath = getFile(folderPath, "." + MultilevelJunctionEdge.tunnels.toString());
             String bridgesFilePath = getFile(folderPath, "." + MultilevelJunctionEdge.bridges.toString());
-            if(tunnelsFilePath != null && bridgesFilePath != null){
+            if (tunnelsFilePath != null && bridgesFilePath != null) {
                 File tunnelsFile = new File(tunnelsFilePath);
                 BufferedReader br = new BufferedReader(new FileReader(tunnelsFile));
                 String line;
-                while((line = br.readLine()) != null){
+                while ((line = br.readLine()) != null) {
                     tunnels.add(line);
                 }
 
                 File bridgesFile = new File(bridgesFilePath);
                 BufferedReader br2 = new BufferedReader(new FileReader(bridgesFile));
                 String line2;
-                while((line2 = br2.readLine()) != null){
+                while ((line2 = br2.readLine()) != null) {
                     bridges.add(line2);
                 }
-            }
-            else {
-                if(tunnelsFilePath == null){
+            } else {
+                if (tunnelsFilePath == null) {
                     log.error("tunnels file not found, parsing osm file");
                 }
-                if(bridgesFilePath == null){
+                if (bridgesFilePath == null) {
                     log.error("bridges file not found, parsing osm file");
                 }
                 String osmFilePath = getFile(folderPath, ".osm");
                 if (osmFilePath != null) {
                     File fXmlFile = new File(osmFilePath);
                     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder dBuilder = null;
-
-
-                    dBuilder = dbFactory.newDocumentBuilder();
-
+                    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
                     Document doc = dBuilder.parse(fXmlFile);
 
@@ -333,7 +344,7 @@ public class XMLReader {
     }
 
     /**
-      * @return map from vehicleID to its route
+     * @return map from vehicleID to its route
      */
     public HashMap<Integer, List<String>> getRoutes() {
         return routes;
@@ -341,7 +352,7 @@ public class XMLReader {
 
     private String getFile(String folderPath, String suffix) {
         File folder = new File(folderPath);
-        if(folder.isDirectory()) {
+        if (folder.isDirectory()) {
             File[] files = folder.listFiles();
             for (File f : files) {
                 if (f.getName().endsWith(suffix)) {
@@ -352,7 +363,19 @@ public class XMLReader {
         return null;
     }
 
-    private enum MultilevelJunctionEdge{
+    /**
+     * Transformation of SUMO to ALite coordinates
+     *
+     * @param x x in SUMO coordinates
+     * @param y y in SUMO coordinates
+     * @return coordinates in Alite coordinates (x,-y)
+     */
+    private Point2f transSUMO2Alite(float x, float y) {
+        return new Point2f(x, -y);
+    }
+
+
+    private enum MultilevelJunctionEdge {
         tunnels, bridges
     }
 }

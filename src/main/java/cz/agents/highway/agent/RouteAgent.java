@@ -39,7 +39,7 @@ public class RouteAgent extends Agent {
      */
     private void initRoute(int id) {
         Network network = Network.getInstance();
-        XMLReader reader = XMLReader.getInstrance();
+        XMLReader reader = XMLReader.getInstance();
         Map<Integer, List<String>> routes = reader.getRoutes();
         Map<String, Edge> edges = network.getEdges();
         route = new LinkedList<Edge>();
