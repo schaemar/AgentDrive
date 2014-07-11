@@ -15,6 +15,8 @@ import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.protobuf.factory.simplan.PlansFactory;
 import cz.agents.highway.protobuf.factory.simplan.UpdateFactory;
+import cz.agents.highway.protobuf.generated.dlr.DLR_MessageContainer;
+import cz.agents.highway.protobuf.generated.simplan.MessageContainer;
 import cz.agents.highway.vis.NetLayer;
 import org.apache.log4j.Logger;
 
@@ -49,14 +51,12 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
     private final Logger logger = Logger.getLogger(HighwayEnvironment.class);
     
-//    static Point2f refpoint = new Point2f(396.0755f, 746.78f);
-
     private final static double ENVIRONMENT_WIDTH  = 10000.0;
     private final static double ENVIRONMENT_HEIGHT = 10000.0;
     private final static double ENVIRONMENT_DEPTH  = 15000.0;
     private final HighwayEnvironmentHandler handler;
 
-    private final Communicator<Header, Message> comm;
+    private Communicator communicator;
     private HighwayStorage storage;
     private Network roadNetwork;
 
@@ -71,9 +71,8 @@ public class HighwayEnvironment extends EventBasedEnvironment {
     //--------
     protected long timestep;
 
-    public HighwayEnvironment(final EventProcessor eventProcessor, final Communicator<Header, Message> comm) {
+    public HighwayEnvironment(final EventProcessor eventProcessor) {
         super(eventProcessor);
-        this.comm = comm;
         RandomProvider.init(this);
 
         timestep = Configurator.getParamInt("highway.timestep", 100);
@@ -81,6 +80,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
         handler = new HighwayEnvironmentHandler();
 
+        // Initialize Network from given xml
         XMLReader.getInstrance().read(Configurator.getParamString("highway.net.folder","nets/junction-big/"));
         roadNetwork = Network.getInstance();
 
@@ -94,7 +94,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         eventProcessor.addEventHandler(new EventHandler() {
             public void handleEvent(Event event) {
                 if (event.isType(HighwayEventType.TIMESTEP)) {
-                    comm.run(); //should use this, to avoid adding events to EventProcessor from different thread
+                    communicator.run(); //should use this, to avoid adding events to EventProcessor from different thread
                    //long timeout = timestep - (getEventProcessor().getCurrentTime()-(lastTick+timestep));
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
                 } else if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
@@ -102,42 +102,42 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 //                        initProtoCommunicator();
 //                    }
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
-                } else if (event.isType(HighwayEventType.NEW_PLAN)) {
-                    try {
-                        plans.addAction((cz.agents.highway.storage.plan.Action) event.getContent());
-                        // send all plans at once
-                        if (plans.getCarIds().size() == getStorage().getAgents().size()) {
-                            logger.debug("Sending new plans");
-
-                            comm.send(new PlansOut(plans));
-                            
-                            if(!meas) logger.error("TO SE NESMI STAT");
-                            else {
-                            	meas = false;
-                            	long duration = System.currentTimeMillis() - time;
-                            	min = Math.min(min, duration);
-                            	max = Math.max(max, duration);
-                            	counter++;
-                            	sum += duration;
-                            	if(counter == 100){
-                            		System.out.println("HUNDRT: " + 10/(time - hundrt));
-                            		hundrt = time;
-                            		System.out.println("------------");
-                            		System.out.println("MIN: " + min);
-                            		System.out.println("MAX: " + max);
-                            		System.out.println("AVG: " + (sum/counter));
-                            		min = 1000000000;
-                            		max = -1;
-                            		sum = 0;
-                            		counter = 0;
-                            	}
-                            }
-                            plans.clear();
-                        }
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+//                } else if (event.isType(HighwayEventType.NEW_PLAN)) {
+//                    try {
+//                        plans.addAction((cz.agents.highway.storage.plan.Action) event.getContent());
+//                        // send all plans at once
+//                        if (plans.getCarIds().size() == getStorage().getAgents().size()) {
+//                            logger.debug("Sending new plans");
+//
+//                            comm.send(new PlansOut(plans));
+//
+//                            if(!meas) logger.error("TO SE NESMI STAT");
+//                            else {
+//                            	meas = false;
+//                            	long duration = System.currentTimeMillis() - time;
+//                            	min = Math.min(min, duration);
+//                            	max = Math.max(max, duration);
+//                            	counter++;
+//                            	sum += duration;
+//                            	if(counter == 100){
+//                            		System.out.println("HUNDRT: " + 10/(time - hundrt));
+//                            		hundrt = time;
+//                            		System.out.println("------------");
+//                            		System.out.println("MIN: " + min);
+//                            		System.out.println("MAX: " + max);
+//                            		System.out.println("AVG: " + (sum/counter));
+//                            		min = 1000000000;
+//                            		max = -1;
+//                            		sum = 0;
+//                            		counter = 0;
+//                            	}
+//                            }
+//                            plans.clear();
+//                        }
+//
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 }
 
             }
@@ -189,56 +189,39 @@ public class HighwayEnvironment extends EventBasedEnvironment {
     }
 
     private void initProtoCommunicator() {
-//        TransportLayerInterface transportInterface = new SocketTransportLayer();
-//        String uri = Configurator.getParamString("highway.protobuf.uri",
-//                "socket://localhost:2222");
-//
-//        // initializing protobuf communicator sending by a thread, but not receiveing by thread
-//        // (cannot addEvent to EventQUeue from different threads)
-//        boolean isSendThread = true;
-//        boolean isReceiveThread = false;
-//        comm = new ServerCommunicator<Header, Message>(URI.create(uri).getPort(), Header.getDefaultInstance(),
-//                Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
-        
-        
-        // factoryInit = new InitFactory();
         FactoryInterface factoryUpdate = null;
         FactoryInterface factoryPlans = null;
-        
+        TransportLayerInterface transportInterface = new SocketTransportLayer();
+        String uri = Configurator.getParamString("highway.protobuf.uri",
+                "socket://localhost:2222");
+
+        // initializing protobuf communicator sending by a thread, but not receiveing by thread
+        // (cannot addEvent to EventQUeue from different threads)
+        boolean isSendThread = true;
+        boolean isReceiveThread = false;
+        int port = URI.create(uri).getPort();
+
         String protocol = Configurator.getParamString("highway.protobuf.protocol", "DLR");
-        if(protocol.equals("DLR")){
+        if (protocol.equals("DLR")) {
+            communicator = new ServerCommunicator<DLR_MessageContainer.Header, DLR_MessageContainer.Message>(
+                    port, DLR_MessageContainer.Header.getDefaultInstance(),
+                    DLR_MessageContainer.Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
             factoryUpdate = new DLR_UpdateFactory();
             factoryPlans = new DLR_PlansFactory();
 
-        }else if(protocol.equals("simplan")){
-//TODO general protocol choice
+        } else if (protocol.equals("simplan")) {
+            communicator = new ServerCommunicator<MessageContainer.Header, MessageContainer.Message>(
+                    port, MessageContainer.Header.getDefaultInstance(), MessageContainer.Message.getDefaultInstance(),
+                    transportInterface, isSendThread, isReceiveThread
+            );
             factoryUpdate = new UpdateFactory();
             factoryPlans = new PlansFactory();
         }
         
-//        ArrayList<Point3d> points = new ArrayList<>();
-//        points.add(new Point3d(refpoint.x, refpoint.y, 2));
-//        points.add(new Point3d(refpoint.x, refpoint.y + 25000,2));
-
-//        InitIn fakeInit = new InitIn(points);
-//        storage.updateInit(fakeInit);
-        
-        // comm.registerInFactory(factoryInit);
-        // comm.registerInFactory(factoryUpdate);
         try {
-            comm.registerOutFactory(factoryPlans);
-            comm.registerOutFactory(factoryUpdate);
-
-//            comm.registerReceiveCallback(factoryInit, new ProtobufMessageHandler<InitIn>() {
-//
-//                public void notify(InitIn object) {
-//                    if (object != null) {
-//                        logger.debug("received InitIn: "+object);
-//                        storage.updateInit(object);
-//                    }
-//                }
-//            });
-            comm.registerReceiveCallback(factoryUpdate, new ProtobufMessageHandler<RadarData>() {
+            communicator.registerOutFactory(factoryPlans);
+            communicator.registerOutFactory(factoryUpdate);
+            communicator.registerReceiveCallback(factoryUpdate, new ProtobufMessageHandler<RadarData>() {
 
                 public void notify(RadarData object) {
                     if (object != null) {
@@ -260,4 +243,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         return storage;
     }
 
+    public Communicator getCommunicator() {
+        return communicator;
+    }
 }

@@ -13,6 +13,8 @@ import cz.agents.highway.storage.plan.WPAction;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +44,7 @@ public class RouteAgent extends Agent {
         XMLReader reader = XMLReader.getInstrance();
         Map<Integer, List<String>> routes = reader.getRoutes();
         Map<String, Edge> edges = network.getEdges();
-        route = new LinkedList<Edge>();
+        route = new ArrayList<Edge>();
 
         for (String edge: routes.get(id)) {
             route.add(edges.get(edge));
@@ -67,6 +69,11 @@ public class RouteAgent extends Agent {
     private Action agentReact() {
         Network network = Network.getInstance();
         RoadObject me = sensor.senseCurrentState();
+
+        // Simulator did not send update yet
+        if (me == null) {
+            return new WPAction(id, 0d, getInitialPosition(), 0);
+        }
 
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
         // FIXME!!

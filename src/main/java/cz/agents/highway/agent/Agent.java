@@ -6,6 +6,8 @@ import cz.agents.alite.common.entity.Entity;
 import cz.agents.highway.storage.VehicleActuator;
 import cz.agents.highway.storage.VehicleSensor;
 
+import javax.vecmath.Point3f;
+
 public class Agent extends Entity {
 
     int id;
@@ -30,6 +32,10 @@ public class Agent extends Entity {
         this.actuator = actuator;
         logger.info("Actuator added: " + actuator);
 
+    }
+
+    public Point3f getInitialPosition() {
+        return new Point3f(0,0,0);
     }
 
 }

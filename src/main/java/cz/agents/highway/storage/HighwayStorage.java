@@ -43,9 +43,9 @@ public class HighwayStorage extends EventBasedStorage {
     public void updateCar(RoadObject carState) {
         int carId = carState.getId();
 
-        if (!agents.containsKey(carId)) {
-            createAgent(carId);
-        }
+//        if (!agents.containsKey(carId)) {
+//            createAgent(carId);
+//        }
         posCurr.put(carId, carState);
     }
 

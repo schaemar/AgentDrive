@@ -64,13 +64,16 @@ highway {
     dashboard {
         simulators {
             OpenDS {
-                launch = "/home/wmatex/Projects/Agents/highway/out/artifacts/simulator_jar/run_simulator.sh felfest_demo.xml";
+                launch = "out/artifacts/simulator_jar/run_simulator.sh felfest_demo.xml";
             }
             OpenDS2 {
-                launch = "/home/wmatex/Projects/Agents/highway/out/artifacts/simulator_jar/run_simulator.sh felfest_demo2.xml";
+                launch = "out/artifacts/simulator_jar/run_simulator.sh felfest_demo2.xml";
+            }
+            SimulatorLite {
+                launch = "launchers/simulator-lite.sh"
             }
         }
 
-        simulatorsToRun = [  ]
+        simulatorsToRun = [ "SimulatorLite", "SimulatorLite" ]
     }
 }

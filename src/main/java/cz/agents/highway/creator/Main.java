@@ -1,5 +1,6 @@
 package cz.agents.highway.creator;
 
+import cz.agents.alite.creator.Creator;
 import cz.agents.alite.creator.CreatorFactory;
 
 public class Main {
@@ -13,11 +14,8 @@ public class Main {
             System.out.print(" " + args[0]);
         }
         System.out.println(".");
-       DefaultCreator creator = (DefaultCreator) CreatorFactory.createCreator(args);
+       Creator creator = (Creator) CreatorFactory.createCreator(args);
        creator.create();
-       creator.runSimulation();
-       
-
     }
 
 }
