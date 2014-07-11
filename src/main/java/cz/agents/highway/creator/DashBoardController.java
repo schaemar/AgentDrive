@@ -196,7 +196,7 @@ public class DashBoardController implements EventHandler, Creator {
      * This method is responsible for even distribution of vehicles between all configured simulators
      */
     private void initTraffic() {
-        XMLReader reader = XMLReader.getInstrance();
+        XMLReader reader = XMLReader.getInstance();
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();
         final int size = vehicles.size();
