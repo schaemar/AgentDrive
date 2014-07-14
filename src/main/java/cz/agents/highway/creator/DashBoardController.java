@@ -1,11 +1,5 @@
 package cz.agents.highway.creator;
 
-import java.awt.*;
-import java.io.IOException;
-import java.net.URI;
-import java.util.*;
-import java.util.List;
-
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.common.event.EventHandler;
 import cz.agents.alite.common.event.EventProcessor;
@@ -13,22 +7,15 @@ import cz.agents.alite.configreader.ConfigReader;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.creator.Creator;
 import cz.agents.alite.protobuf.communicator.Communicator;
-import cz.agents.alite.protobuf.communicator.ServerCommunicator;
 import cz.agents.alite.protobuf.communicator.callback.ConnectCallback;
-import cz.agents.alite.protobuf.factory.FactoryInterface;
 import cz.agents.alite.protobuf.factory.ProtobufFactory;
 import cz.agents.alite.simulation.Simulation;
 import cz.agents.alite.simulation.SimulationEventType;
-import cz.agents.alite.transport.SocketTransportLayer;
-import cz.agents.alite.transport.TransportLayerInterface;
 import cz.agents.alite.vis.VisManager;
 import cz.agents.alite.vis.layer.common.*;
 import cz.agents.highway.agent.Agent;
 import cz.agents.highway.environment.HighwayEnvironment;
-import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
-import cz.agents.highway.protobuf.generated.simplan.MessageContainer;
-import cz.agents.highway.protobuf.generated.dlr.DLR_MessageContainer;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.HighwayStorage;
 import cz.agents.highway.storage.RadarData;
@@ -47,6 +34,10 @@ import org.apache.log4j.PropertyConfigurator;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
+import java.awt.*;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 /**
  * Dash board like controller, that manages launching simulators and their synchronization with agentDrive

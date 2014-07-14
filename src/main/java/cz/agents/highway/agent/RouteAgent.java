@@ -29,6 +29,14 @@ public class RouteAgent extends Agent {
     ///
     private static final float CHANGE_RADIUS = 5.0f;
 
+    @Override
+    public Point3f getInitialPosition() {
+
+        //TODO  initial positioning with proper rotation
+        Point2f p = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
+        return new Point3f(p.x,p.y,0);
+    }
+
     public RouteAgent(int id) {
         super(id);
 

@@ -13,11 +13,7 @@ log
 *.iml
 *.log
 *.so
+launchers/*.sh
 
 syntax: regexp
 
-\.orig\..*$
-\.orig$
-\.chg\..*$
-\.rej$
-\.conflict\~$
