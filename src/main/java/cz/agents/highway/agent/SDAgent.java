@@ -6,6 +6,8 @@ import java.util.Collection;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3f;
 
+import cz.agents.highway.protobuf.generated.simplan.PlanMessage;
+import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.event.Event;
@@ -48,6 +50,9 @@ public class SDAgent extends Agent {
     }
 
     private Action man2Action(CarManeuver man) {
+        if(man ==null){
+            return new WPAction(id, 0d, getInitialPosition(), 0);
+        }
         return new ManeuverAction(sensor.getId(), man.getStartTime() / 1000.0, man.getVelocityOut(), man.getLaneOut(), man.getDuration());
     }
 
@@ -76,7 +81,10 @@ public class SDAgent extends Agent {
     public CarManeuver plan() {
         CarManeuver maneuver = null;
         RoadObject currState = sensor.senseCurrentState();
-
+        // Simulator did not send update yet
+        if (currState == null) {
+            return null;
+        }
 
         logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);

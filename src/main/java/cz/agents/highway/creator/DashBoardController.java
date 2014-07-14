@@ -26,6 +26,7 @@ import cz.agents.highway.storage.plan.WPAction;
 import cz.agents.highway.util.Utils;
 import cz.agents.highway.vis.NetLayer;
 import cz.agents.highway.vis.ProtobufVisLayer;
+import cz.agents.highway.vis.RoadObjectLayer;
 import cz.agents.highway.vis.SimulationControlLayer;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -145,6 +146,7 @@ public class DashBoardController implements EventHandler, Creator {
             createVisualization();
             VisManager.registerLayer(new NetLayer(highwayEnvironment.getRoadNetwork()));
             VisManager.registerLayer(ProtobufVisLayer.create(highwayEnvironment.getStorage()));
+            VisManager.registerLayer(RoadObjectLayer.create(highwayEnvironment.getStorage().getPosCurr()));
             VisManager.registerLayer(SimulationControlLayer.create(simulation));
         }
         simulation.setSimulationSpeed(simulationSpeed);
