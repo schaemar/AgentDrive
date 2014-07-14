@@ -16,3 +16,8 @@ log
 
 syntax: regexp
 
+\.orig\..*$
+\.orig$
+\.chg\..*$
+\.rej$
+\.conflict\~$

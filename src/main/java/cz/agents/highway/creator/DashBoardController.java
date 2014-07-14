@@ -43,7 +43,6 @@ import cz.agents.highway.vis.SimulationControlLayer;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import sun.org.mozilla.javascript.internal.xml.XMLLib;
 
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3f;

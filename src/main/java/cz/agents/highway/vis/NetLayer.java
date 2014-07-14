@@ -15,6 +15,7 @@ import cz.agents.highway.environment.roadnet.Network;
 import javax.vecmath.Point2f;
 import java.awt.*;
 import java.awt.Point;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
@@ -22,6 +23,9 @@ import java.awt.geom.Rectangle2D;
  * Created by martin on 8.7.14.
  */
 public class NetLayer extends GroupLayer implements VisLayer {
+    
+    final int LANE_WIGTH = 10;
+    final int EDGE_WIGTH = 1;
 
     private Network net;
     private Dimension dim = Vis.getDrawingDimension();
@@ -31,25 +35,51 @@ public class NetLayer extends GroupLayer implements VisLayer {
         net = roadNetwork;
     }
 
-    void paintLine(Graphics2D canvas, Point2f p1, Point2f p2){
+    void paintLane(Graphics2D canvas, Point2f p1, Point2f p2){
+        AffineTransform t = canvas.getTransform();
         int x = Vis.transX(p1.x);
         int y = Vis.transY(p1.y);
         int xTo = Vis.transX(p2.x);
         int yTo = Vis.transY(p2.y);
-        Line2D line2d = new Line2D.Double(x, y, xTo, yTo);
-        if (line2d.intersects(drawingRectangle)) {
+        float divX = p2.x - p1.x;
+        float divY = p2.y - p1.y;
+
+        canvas.translate(x, y);
+        canvas.scale(Vis.getZoomFactor(), Vis.getZoomFactor());
+        Line2D line2d = new Line2D.Double(0, 0, divX, divY);
+        if (line2d.intersects(drawingRectangle)){
+            if (!(divX == 0 && divY == 0)) {
+                canvas.draw(line2d);
+            }else{
+                canvas.fillOval(-LANE_WIGTH/2, -LANE_WIGTH/2, LANE_WIGTH, LANE_WIGTH);
+            }
+            canvas.setTransform(t);
+        }
+    }
+    
+    void paintLine(Graphics2D canvas, Point2f p1, Point2f p2){
+        AffineTransform t = canvas.getTransform();
+        int x = Vis.transX(p1.x);
+        int y = Vis.transY(p1.y);
+        float divX = p2.x - p1.x;
+        float divY = p2.y - p1.y;
+
+        canvas.translate(x, y);
+        canvas.scale(Vis.getZoomFactor(), Vis.getZoomFactor());
+        Line2D line2d = new Line2D.Double(0, 0, divX, divY);
+        if (line2d.intersects(drawingRectangle) && !(divX == 0 && divY == 0)) {
             canvas.draw(line2d);
         }
+        canvas.setTransform(t);
     }
 
     @Override
     public void paint(Graphics2D canvas) {
         super.paint(canvas);
         int radius = 10;
+        
         canvas.setColor(Color.black);
-        canvas.setStroke(new BasicStroke(10));
-
-
+        canvas.setStroke(new BasicStroke(LANE_WIGTH));
         for (Lane lane : net.getLanes().values()) {
             Point2f prev = lane.getShape().get(0);
             for (Point2f point : lane.getShape()) {
@@ -60,39 +90,36 @@ public class NetLayer extends GroupLayer implements VisLayer {
                 Point2f point = outgoingLane.getShape().get(0);
                 paintLine(canvas,prev,point);
             }
-
-
         }
-        canvas.setColor(Color.red);
-        canvas.setStroke(new BasicStroke(5));
-        for (Edge edge : net.getEdges().values()) {
-            if(edge.getShape().isEmpty())continue;
-            Point2f prev = edge.getShape().get(0);
-            for (Point2f point : edge.getShape()) {
-                paintLine(canvas,point,prev);
-                prev = point;
-            }
-
-
-        }
-
-        canvas.setColor(Color.green);
-        canvas.setStroke(new BasicStroke(2));
-
-        for (Junction junction : net.getJunctions().values()) {
-
-            if(junction.getShape().isEmpty())continue;
-            //
-            int size = junction.getShape().size();
-            Point2f prev = junction.getShape().get(size-1);
-            for (Point2f point : junction.getShape()) {
-                paintLine(canvas,point,prev);
-                prev = point;
-            }
-
-
-
-        }
+        
+//        canvas.setColor(Color.red);
+//        canvas.setStroke(new BasicStroke(EDGE_WIGTH));
+//        for (Edge edge : net.getEdges().values()) {
+//            if(edge.getShape().isEmpty())continue;
+//            Point2f prev = edge.getShape().get(0);
+//            for (Point2f point : edge.getShape()) {
+//                paintLine(canvas,point,prev);
+//                prev = point;
+//            }
+//        }
+//
+//        canvas.setColor(Color.green);
+//        canvas.setStroke(new BasicStroke(2));
+//
+//        for (Junction junction : net.getJunctions().values()) {
+//
+//            if(junction.getShape().isEmpty())continue;
+//            //
+//            int size = junction.getShape().size();
+//            Point2f prev = junction.getShape().get(size-1);
+//            for (Point2f point : junction.getShape()) {
+//                paintLine(canvas,point,prev);
+//                prev = point;
+//            }
+//
+//
+//
+//        }
 
     }
 }
