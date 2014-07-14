@@ -13,6 +13,7 @@ log
 *.iml
 *.log
 *.so
+launchers/*.sh
 
 syntax: regexp
 
