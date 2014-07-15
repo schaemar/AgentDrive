@@ -77,7 +77,6 @@ highway {
 
         simulatorsToRun = ["SimulatorLite", "SimulatorLite"];
     }
-    netLayer {
 	lane {
 		view = true;
 		width = 10;
@@ -90,5 +89,4 @@ highway {
 		view = false;
 		width = 1;
     }
-}
 }

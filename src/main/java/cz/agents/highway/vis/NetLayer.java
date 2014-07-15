@@ -22,12 +22,12 @@ import javax.vecmath.Vector2f;
  * Created by martin on 8.7.14.
  */
 public class NetLayer extends GroupLayer implements VisLayer {
-    
+
     final int LANE_WIGTH = 10;
     final int EDGE_WIGTH = 1;
     final int CROSSROAD_WIGTH = 1;
-    
-    
+
+
     final Vector2f VECT_X_NORM = new Vector2f(1, 0);
     final Vector2f VECT_Y_NORM = new Vector2f(0, 1);
 
@@ -39,20 +39,20 @@ public class NetLayer extends GroupLayer implements VisLayer {
         net = roadNetwork;
     }
 
-        
-    
+
+
     void paintCircle(Graphics2D canvas, Point2f p, int size){
         AffineTransform t = canvas.getTransform();
         int x = Vis.transX(p.x);
         int y = Vis.transY(p.y);
         canvas.translate(x, y);
         canvas.scale(Vis.getZoomFactor(), Vis.getZoomFactor());
-        
+
         float offset = size / 2 ;
         canvas.fillOval((int) (- offset),(int) (- offset), size, size);
         canvas.setTransform(t);
     }
-    
+
     void paintLine(Graphics2D canvas, Point2f p1, Point2f p2){
         AffineTransform t = canvas.getTransform();
         int x = Vis.transX(p1.x);
@@ -75,7 +75,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
         if(Configurator.getParamBool("highway.netLayer.lane.view", true)){
             canvas.setColor(Color.DARK_GRAY);
             int size = Configurator.getParamInt("highway.netLayer.lane.width", LANE_WIGTH);
-            canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));  
+            canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             for (Lane lane : net.getLanes().values()) {
                 Point2f prev = lane.getShape().get(0);
                 for (Point2f point : lane.getShape()) {
@@ -115,6 +115,6 @@ public class NetLayer extends GroupLayer implements VisLayer {
                 }
             }
         }
-    
+
     }
 }
