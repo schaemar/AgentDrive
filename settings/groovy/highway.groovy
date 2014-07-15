@@ -77,16 +77,19 @@ highway {
 
         simulatorsToRun = ["SimulatorLite", "SimulatorLite"];
     }
-	lane {
-		view = true;
-		width = 10;
-	}
-	edge {
-		view = true;
-		width = 1;
-	}
-	crossRoad {
-		view = false;
-		width = 1;
+
+    netLayer {
+        lane {
+            view = true;
+            width = 10;
+        }
+        edge {
+            view = true;
+            width = 1;
+        }
+        crossRoad {
+            view = false;
+            width = 1;
+        }
     }
 }
