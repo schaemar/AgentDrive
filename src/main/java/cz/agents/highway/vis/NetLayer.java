@@ -30,10 +30,6 @@ public class NetLayer extends GroupLayer implements VisLayer {
     
     final Vector2f VECT_X_NORM = new Vector2f(1, 0);
     final Vector2f VECT_Y_NORM = new Vector2f(0, 1);
-    
-    private static final String CONFIG_FILE = "settings/groovy/netLayer.groovy";
-    final private ConfigReader configReader;
-    
 
     private Network net;
     private Dimension dim = Vis.getDrawingDimension();
@@ -41,9 +37,6 @@ public class NetLayer extends GroupLayer implements VisLayer {
 
     public NetLayer(Network roadNetwork) {
         net = roadNetwork;
-        configReader = new ConfigReader();
-        configReader.loadAndMerge(CONFIG_FILE);
-        Configurator.init(configReader);
     }
 
         
@@ -79,9 +72,9 @@ public class NetLayer extends GroupLayer implements VisLayer {
     @Override
     public void paint(Graphics2D canvas) {
         super.paint(canvas);
-        if(configReader.getBoolean("netLayer.lane.view")){
+        if(Configurator.getParamBool("highway.netLayer.lane.view", true)){
             canvas.setColor(Color.DARK_GRAY);
-            int size = configReader.getInt("netLayer.lane.width", LANE_WIGTH);
+            int size = Configurator.getParamInt("highway.netLayer.lane.width", LANE_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));  
             for (Lane lane : net.getLanes().values()) {
                 Point2f prev = lane.getShape().get(0);
@@ -95,9 +88,9 @@ public class NetLayer extends GroupLayer implements VisLayer {
                 }
             }
         }
-        if(configReader.getBoolean("netLayer.edge.view")){
+        if(Configurator.getParamBool("highway.netLayer.edge.view", false)){
             canvas.setColor(Color.red);
-            int size = configReader.getInt("netLayer.edge.width", EDGE_WIGTH);
+            int size = Configurator.getParamInt("highway.netLayer.edge.width", EDGE_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             for (Edge edge : net.getEdges().values()) {
                 if(edge.getShape().isEmpty())continue;
@@ -108,9 +101,9 @@ public class NetLayer extends GroupLayer implements VisLayer {
                 }
             }
         }
-        if(configReader.getBoolean("netLayer.crossRoad.view")){
+        if(Configurator.getParamBool("highway.netLayer.crossRoad.view", false)){
             canvas.setColor(Color.green);
-            int size = configReader.getInt("netLayer.crossRoad.width", CROSSROAD_WIGTH);
+            int size = Configurator.getParamInt("highway.netLayer.crossRoad.width", CROSSROAD_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             for (Junction junction : net.getJunctions().values()) {
                 if(junction.getShape().isEmpty())continue;
