@@ -3,6 +3,7 @@ package cz.agents.highway.storage;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import cz.agents.highway.agent.ORCAAgent;
 import cz.agents.highway.agent.RouteAgent;
 import org.apache.log4j.Logger;
 
@@ -51,6 +52,7 @@ public class HighwayStorage extends EventBasedStorage {
 
     public Agent createAgent(final int id) {
 //        Agent agent = new SDAgent(id);
+//        Agent agent = new ORCAAgent(id);
         Agent agent = new RouteAgent(id);
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
         VehicleActuator actuator = new VehicleActuator(getEnvironment(), agent, this);

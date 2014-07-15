@@ -74,7 +74,7 @@ public class RouteAgent extends Agent {
      * Generate an action as a reaction
      * @return
      */
-    private Action agentReact() {
+    protected Action agentReact() {
         Network network = Network.getInstance();
         RoadObject me = sensor.senseCurrentState();
 
