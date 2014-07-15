@@ -52,8 +52,8 @@ public class HighwayStorage extends EventBasedStorage {
 
     public Agent createAgent(final int id) {
 //        Agent agent = new SDAgent(id);
-//        Agent agent = new ORCAAgent(id);
-        Agent agent = new RouteAgent(id);
+        Agent agent = new ORCAAgent(id);
+//        Agent agent = new RouteAgent(id);
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
         VehicleActuator actuator = new VehicleActuator(getEnvironment(), agent, this);
         agent.addSensor(sensor);

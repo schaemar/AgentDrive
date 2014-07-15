@@ -1,5 +1,10 @@
 package cz.agents.highway.agent;
 
+import cz.agents.alite.vis.VisManager;
+import cz.agents.alite.vis.element.Point;
+import cz.agents.alite.vis.element.aggregation.PointElements;
+import cz.agents.alite.vis.layer.AbstractLayer;
+import cz.agents.alite.vis.layer.terminal.PointLayer;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.WPAction;
@@ -8,6 +13,8 @@ import rvolib.*;
 import javax.vecmath.Point3f;
 import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector3f;
+import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * Created by martin on 14.7.14.
@@ -47,12 +54,15 @@ public class ORCAAgent extends RouteAgent {
         //prefVel.scale((float) desiredAction.getSpeed(), prefVel);
         rvoAgent.setPrefVelocity(prefVel);
         // compute Neighbors - agents and obstacles
+        rvoAgent.clearAgentNeighbor();
+        for (RoadObject roadObject : sensor.senseCars()) {
+            if(roadObject.getId()!=me.getId()) {
+                RVOAgent other = new RVOAgent(0, ORCAUtil.vector3fToVector2(roadObject.getPosition()));
+                if(me.getId()==0)other.initVisualization();
+                rvoAgent.insertAgentNeighbor(other, new MutableFloat(me.getPosition().distanceSquared(roadObject.getPosition())));
+            }
+        }
 
-//        for (RoadObject roadObject : sensor.senseCars()) {
-//            if(roadObject.getId()!=me.getId()) {
-//                rvoAgent.insertAgentNeighbor(new RVOAgent(0, ORCAUtil.vector3fToVector2(roadObject.getPosition())), new MutableFloat(me.getPosition().distanceSquared(roadObject.getPosition())));
-//            }
-//        }
         //rvoAgent.insertObstacleNeighbor(obstacle, rangeSq);
 
 
