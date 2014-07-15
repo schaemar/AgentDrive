@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
+
+    <location netOffset="0.0,0.0" convBoundary="0.00,0.00,665.37,811.53" origBoundary="14.388600,50.068250,14.516399,50.128835" projParameter="+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
+
+    <edge id="0" from="0" to="1" priority="7" type="highway.secondary" shape="-1.85,0.0 -1.85,1000.0 1.85,1000.0 1.85,0.0">
+        <lane id="0_0" index="0" speed="42" length="16.72" shape="0.0,0.0 0.0,1000.0 1.85,1000.0 1.85,0"/>
+        <lane id="0_1" index="1" speed="42" length="16.72" shape="-1.85,0.0 -1.85,1000.0 0.0,1000.0 0.0,0.0"/>
+    </edge>
+  </net>
