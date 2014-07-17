@@ -73,7 +73,7 @@ public class RoadDescription {
 ////		if(entry == null){
 ////		    entry = profile.ceilingEntry(toSearch);
 ////		}
-		return position.y;
+		return -position.y;
 	}
 	
 //	public Point3d getNearestHighwayPoint(Point2d position){
