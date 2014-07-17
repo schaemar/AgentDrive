@@ -1,11 +1,15 @@
 highway {
     seed = 0;                          // random number generator seed
-    simulationDuration = 1000000;      // not relevant - should be enought not to end earlier then a run test
+    simulationDuration = -1;      // - 1 = infinity
     simulationSpeed = 1.0;             //not relevant
     timestep = 10; //ms               //not relevant
 
+    agent = "RouteAgent";
+//    agent = "SDAgent";
+//    agent = "ORCAAgent";
+
     net {
-        folder = "src/main/resources/nets/junction-big/";
+        folder = "src/main/resources/nets/highway-straight/";
     }
     safeDistanceAgent {
         safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
@@ -73,15 +77,16 @@ highway {
             SimulatorLite {
                 launch = "launchers/simulator-lite.sh"
             }
+
         }
 
-        simulatorsToRun = ["SimulatorLite", "SimulatorLite"];
+        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
     }
 
     netLayer {
         lane {
             view = true;
-            width = 10;
+            width = 2;
         }
         edge {
             view = true;
