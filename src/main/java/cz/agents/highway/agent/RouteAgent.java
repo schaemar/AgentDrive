@@ -23,41 +23,25 @@ import java.util.Map;
  * Created by martin on 9.7.14.
  */
 public class RouteAgent extends Agent {
-    private int nextPoint = 0;
-    private int nextEdge = 0;
-    private List<Edge> route;
     ///
     private static final float CHANGE_RADIUS = 5.0f;
+
+    /// Navigator generating route points
+    private final RouteNavigator navigator;
 
     @Override
     public Point3f getInitialPosition() {
 
         //TODO  initial positioning with proper rotation
-        Point2f p = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
+        Point2f p = navigator.getInitialPosition();
         return new Point3f(p.x,p.y,0);
     }
 
     public RouteAgent(int id) {
         super(id);
-
-        initRoute(id);
+        navigator = new RouteNavigator(id);
     }
 
-    /**
-     * Generate list of edges from route definition
-     * @param id Id of the vehicle
-     */
-    private void initRoute(int id) {
-        Network network = Network.getInstance();
-        XMLReader reader = XMLReader.getInstance();
-        Map<Integer, List<String>> routes = reader.getRoutes();
-        Map<String, Edge> edges = network.getEdges();
-        route = new ArrayList<Edge>();
-
-        for (String edge: routes.get(id)) {
-            route.add(edges.get(edge));
-        }
-    }
 
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
@@ -84,26 +68,10 @@ public class RouteAgent extends Agent {
         }
 
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
-        // FIXME!!
-        Lane lane = route.get(nextEdge).getLanes().get(String.format("%s_%d", route.get(nextEdge).getId(), me.getLane()));
 
         // If the next waypoint is too close, go to the next in route
-        while (lane.getInnerPoints().get(nextPoint).distance(position2D) < CHANGE_RADIUS) {
-            //TODO: do some check when lane ends
-            if (nextPoint >= lane.getInnerPoints().size()-1) {
-                nextPoint = 0;
-                if (nextEdge >= route.size()-1) {
-                    nextEdge = 0;
-                } else {
-                    nextEdge++;
-                }
-            } else {
-                nextPoint++;
-            }
-            lane = route.get(nextEdge).getLanes().get(String.format("%s_%d", route.get(nextEdge).getId(), me.getLane()));
-        }
-
-        Point2f waypoint = lane.getInnerPoints().get(nextPoint);
+        Point2f waypoint;
+        while ((waypoint = navigator.getNextRoutePoint(me.getLane())).distance(position2D) < CHANGE_RADIUS);
 
         WPAction action = new WPAction(sensor.getId(), me.getUpdateTime(),
                 new Point3f(waypoint.x, waypoint.y, me.getPosition().z), me.getVelocity().length());
