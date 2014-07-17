@@ -2,6 +2,7 @@ package cz.agents.highway.environment.roadnet;
 
 
 import cz.agents.alite.configurator.Configurator;
+import cz.agents.highway.util.Utils;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -10,6 +11,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.vecmath.Point2f;
+import javax.vecmath.Point3f;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -17,6 +19,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -36,6 +40,7 @@ public class XMLReader {
 
     private final static Logger log = Logger.getLogger(XMLReader.class);
     private HashMap<Integer, List<String>> routes;
+    private final Map<Integer, Point2f> initalPositions = new HashMap<Integer, Point2f>();
 
 
     private XMLReader() {
@@ -57,7 +62,7 @@ public class XMLReader {
     public void read(String networkFolder) {
         log.info("PARSING NETWORK");
         try {
-            File fXmlFile = new File(getFile(networkFolder, ".net.xml"));
+            File fXmlFile = new File(getFile(Utils.getResourceUrl(networkFolder), ".net.xml"));
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
@@ -145,7 +150,7 @@ public class XMLReader {
             }
 
             parseMultilevelJunctions();
-            routes = parseRoutes(getFile(networkFolder, ".rou.xml"));
+            routes = parseRoutes(getFile(Utils.getResourceUrl(networkFolder), ".rou.xml"));
 
             Network.getInstance().init(edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
             log.info("NETWORK PARSED");
@@ -213,6 +218,11 @@ public class XMLReader {
                     Element l = (Element) lNode;
                     int id = Integer.parseInt(l.getAttribute("id"));
                     float depart = Float.valueOf(l.getAttribute("depart"));
+                    String initPosition = l.getAttribute("initialPosition");
+                    if (initPosition != null && !initPosition.isEmpty()) {
+                        Point2f initialPosition = getShape(initPosition).get(0);
+                        initalPositions.put(id, initialPosition);
+                    }
                     Element route = (Element) l.getElementsByTagName("route").item(0);
                     ArrayList<String> plan = separateStrings(route.getAttribute("edges"));
                     plans.put(id, plan);
@@ -264,9 +274,9 @@ public class XMLReader {
 
     private void parseMultilevelJunctions() {
         try {
-            String folderPath = Configurator.getParamString("net.folder", "src/main/resources/nets/junction-big");
-            String tunnelsFilePath = getFile(folderPath, "." + MultilevelJunctionEdge.tunnels.toString());
-            String bridgesFilePath = getFile(folderPath, "." + MultilevelJunctionEdge.bridges.toString());
+            String folderPath = Configurator.getParamString("highway.net.folder", "nets/junction-big");
+            String tunnelsFilePath = getFile(Utils.getResourceUrl(folderPath), "." + MultilevelJunctionEdge.tunnels.toString());
+            String bridgesFilePath = getFile(Utils.getResourceUrl(folderPath), "." + MultilevelJunctionEdge.bridges.toString());
             if (tunnelsFilePath != null && bridgesFilePath != null) {
                 File tunnelsFile = new File(tunnelsFilePath);
                 BufferedReader br = new BufferedReader(new FileReader(tunnelsFile));
@@ -288,7 +298,7 @@ public class XMLReader {
                 if (bridgesFilePath == null) {
                     log.error("bridges file not found, parsing osm file");
                 }
-                String osmFilePath = getFile(folderPath, ".osm");
+                String osmFilePath = getFile(Utils.getResourceUrl(folderPath), ".osm");
                 if (osmFilePath != null) {
                     File fXmlFile = new File(osmFilePath);
                     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -350,15 +360,24 @@ public class XMLReader {
         return routes;
     }
 
-    private String getFile(String folderPath, String suffix) {
-        File folder = new File(folderPath);
-        if (folder.isDirectory()) {
-            File[] files = folder.listFiles();
-            for (File f : files) {
-                if (f.getName().endsWith(suffix)) {
-                    return f.getAbsolutePath();
+    public Map<Integer, Point2f> getInitialPositions() {
+        return initalPositions;
+    }
+
+    private String getFile(URL folderPath, String suffix) {
+        try {
+            System.out.println("GetFile URL: "+folderPath);
+            File folder = new File(folderPath.toURI());
+            if (folder.isDirectory()) {
+                File[] files = folder.listFiles();
+                for (File f : files) {
+                    if (f.getName().endsWith(suffix)) {
+                        return f.getAbsolutePath();
+                    }
                 }
             }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
         }
         return null;
     }
