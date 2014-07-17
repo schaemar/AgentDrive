@@ -42,22 +42,22 @@ import java.util.List;
 
 /**
  * Dash board like controller, that manages launching simulators and their synchronization with agentDrive
- *
+ * <p/>
  * Created by wmatex on 27.6.14.
  */
-public class DashBoardController implements EventHandler, Creator {
+public class DashBoardController extends DefaultCreator implements EventHandler, Creator {
     private final Logger logger = Logger.getLogger(DashBoardController.class);
 
     /**
      * This class is responsible for sending simulator an appropriate plans and updates
      */
     private class SimulatorHandler {
-        private final ProtobufFactory factory;
-        private final Set<Integer> plannedVehicles;
+        protected final ProtobufFactory factory;
+        protected final Set<Integer> plannedVehicles;
 
-        private PlansOut plans = new PlansOut();
+        protected PlansOut plans = new PlansOut();
 
-        private SimulatorHandler(ProtobufFactory factory, Set<Integer> plannedVehicles) {
+        protected SimulatorHandler(ProtobufFactory factory, Set<Integer> plannedVehicles) {
             this.factory = factory;
             this.plannedVehicles = plannedVehicles;
         }
@@ -80,7 +80,7 @@ public class DashBoardController implements EventHandler, Creator {
             Set<Integer> notPlanned = new HashSet<Integer>(vehicleStates.keySet());
             notPlanned.removeAll(plannedVehicles);
 
-            for (int id: notPlanned) {
+            for (int id : notPlanned) {
                 radarData.add(vehicleStates.get(id));
             }
 
@@ -97,92 +97,80 @@ public class DashBoardController implements EventHandler, Creator {
 
     }
 
-    // Constants
-    private static final String CONFIG_FILE = "settings/groovy/highway.groovy";
+    private class LocalSimulatorHandler extends SimulatorHandler {
+
+        private LocalSimulatorHandler(ProtobufFactory factory, Set<Integer> plannedVehicles) {
+            super(factory, plannedVehicles);
+        }
+
+        @Override
+        public void sendPlans(Map<Integer, RoadObject> vehicleStates) {
+            RadarData radarData = new RadarData();
+
+            Set<Integer> notPlanned = new HashSet<Integer>(vehicleStates.keySet());
+            notPlanned.removeAll(plannedVehicles);
+
+            for (int id : notPlanned) {
+                radarData.add(vehicleStates.get(id));
+            }
+
+            // Finally send plans and updates
+
+                executePlans(plans);
+
+
+            plans.clear();
+        }
+
+        private void executePlans(PlansOut plans) {
+            Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
+            RadarData radarData = new RadarData();
+            double duration = 0;
+            for (Integer carID : plans.getCarIds()) {
+                Collection<Action> plan = plans.getPlan(carID);
+                RoadObject state = currStates.get(carID);
+                for (Action action : plan) {
+                    if (action.getClass().equals(WPAction.class)) {
+                        WPAction wpAction = (WPAction) action;
+
+                        Vector3f vel = new Vector3f(state.getPosition());
+                        vel.negate();
+                        vel.add(wpAction.getPosition());
+                        duration = wpAction.getPosition().distance(state.getPosition())/ wpAction.getSpeed();
+                        state = new RoadObject(carID, duration , state.getLane(), wpAction.getPosition(), vel);
+
+                    }
+                }
+                radarData.add(state);
+            }
+            //send radar-data to storage with duration delay
+            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA,highwayEnvironment.getStorage(),null,radarData,(long)(duration*1000));
+        }
+    }
+
+
     /// Map of all running simulator processes
     private Map<String, Process> simulators = new HashMap<String, Process>();
 
     private Communicator communicator;
-    private Simulation simulation = null;
-    private HighwayEnvironment highwayEnvironment = null;
 
     private List<SimulatorHandler> simulatorHandlers = new LinkedList<SimulatorHandler>();
 
     @Override
     public void init(String[] args) {
-        // Configuration loading using Alite's Configurator and ConfigReader
-        ConfigReader configReader = new ConfigReader();
-        configReader.loadAndMerge(CONFIG_FILE);
-        Configurator.init(configReader);
-
-        String logfile = Configurator.getParamString("cz.highway.configurationFile",
-                "settings/log4j/log4j.properties");
-        PropertyConfigurator.configure(logfile);
-
-        logger.info("Configuration loaded from: " + CONFIG_FILE);
-        logger.info("log4j logger properties loaded from: " + logfile);
+        super.init(args);
         logger.setLevel(Level.INFO);
-
     }
 
     @Override
     public void create() {
-        double simulationSpeed = Configurator.getParamDouble("highway.simulationSpeed", 1.0);
-        logger.info("Simulation speed: " + simulationSpeed);
-
-        logger.info("\n>>> SIMULATION CREATION\n");
-        simulation = new Simulation();
-
-        logger.info("\n>>> COMMUNICATOR CREATION\n");
-
-        logger.info("\n>>> ENVIRONMENT CREATION\n");
-        highwayEnvironment = new HighwayEnvironment(simulation);
+        super.create();
         communicator = highwayEnvironment.getCommunicator();
-
         simulation.addEventHandler(this);
-
-        if (Configurator.getParamBool("highway.vis.isOn", false)) {
-            logger.info("\n>>> VISUALISATION CREATION\n");
-            createVisualization();
-            VisManager.registerLayer(new NetLayer(highwayEnvironment.getRoadNetwork()));
-            VisManager.registerLayer(ProtobufVisLayer.create(highwayEnvironment.getStorage()));
-            VisManager.registerLayer(RoadObjectLayer.create(highwayEnvironment.getStorage().getPosCurr()));
-            VisManager.registerLayer(SimulationControlLayer.create(simulation));
-        }
-        simulation.setSimulationSpeed(simulationSpeed);
-
         // Finally start the simulation
         runSimulation();
     }
 
-    private void createVisualization() {
-        logger.info(">>> VISUALIZATION CREATED");
-
-        VisManager.setInitParam("Highway Protobuf Operator", 1024, 768);
-        VisManager.setSceneParam(new VisManager.SceneParams() {
-
-            @Override
-            public Point2d getDefaultLookAt() {
-                return new Point2d(0, 0);
-            }
-
-            @Override
-            public double getDefaultZoomFactor() {
-                return 0.75;
-            }
-        });
-
-        VisManager.init();
-
-        // Overlay
-
-        VisManager.registerLayer(ColorLayer.create(Color.LIGHT_GRAY));
-        VisManager.registerLayer(VisInfoLayer.create());
-        VisManager.registerLayer(FpsLayer.create());
-        VisManager.registerLayer(LogoLayer.create(Utils.getResourceUrl("img/atg_blue.png")));
-        VisManager.registerLayer(HelpLayer.create());
-
-    }
 
     /**
      * This method is responsible for even distribution of vehicles between all configured simulators
@@ -195,6 +183,34 @@ public class DashBoardController implements EventHandler, Creator {
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
 
+        if(simulatorCount == 0){
+            Iterator<Integer> vehicleIt = vehicles.iterator();
+            RadarData update = new RadarData();
+            Map<Integer, Agent> agents = storage.getAgents();
+
+            // Iterate over all configured vehicles
+            for (int i = 0; i < size; i++) {
+                int vehicleID = vehicleIt.next();
+                // Create agent for every single vehicle
+                Agent agent;
+                if (agents.containsKey(vehicleID)) {
+                    agent = agents.get(vehicleID);
+                } else {
+                    agent = storage.createAgent(vehicleID);
+                }
+
+                Point3f initialPosition = agent.getInitialPosition();
+                // FIXME!!!
+                Vector3f initialVelocity = new Vector3f(1, 1, 0);
+
+
+                    update.add(new RoadObject(vehicleID, 0d, 0, initialPosition, initialVelocity));
+
+            }
+            simulatorHandlers.add(new LocalSimulatorHandler(null,new HashSet<Integer>(vehicles)));
+            storage.updateCars(update);
+         }
+
         // Divide vehicles evenly to the simulators
         communicator.registerConnectCallback(new ConnectCallback() {
             private int section = 1;
@@ -206,7 +222,6 @@ public class DashBoardController implements EventHandler, Creator {
                 RadarData update = new RadarData();
                 Map<Integer, Agent> agents = storage.getAgents();
                 Set<Integer> plannedVehicles = new HashSet<Integer>();
-
 
                 // Iterate over all configured vehicles
                 for (int i = 0; i < size; i++) {
@@ -221,11 +236,11 @@ public class DashBoardController implements EventHandler, Creator {
 
                     Point3f initialPosition = agent.getInitialPosition();
                     // FIXME!!!
-                    Vector3f initialVelocity = new Vector3f(1,1,0);
+                    Vector3f initialVelocity = new Vector3f(1, 1, 0);
 
                     // If the simulator should simulate this vehicle
                     // This divides the id's to even parts
-                    if (i < section*size/simulatorCount && i >= (section-1)*size/simulatorCount) {
+                    if (i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
                         plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
@@ -256,25 +271,28 @@ public class DashBoardController implements EventHandler, Creator {
         });
     }
 
+    @Override
     public void runSimulation() {
         // Start all configured simulators
         List<String> simulatorsToRun = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class);
-        logger.info("Running this simulators: "+simulatorsToRun);
+        logger.info("Running this simulators: " + simulatorsToRun);
         try {
             initTraffic();
             for (String sim : simulatorsToRun) {
                 runSimulator(sim);
             }
-            synchronized (simulation) {
-                try {
-                    simulation.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            if(simulatorsToRun.size()>=1) {
+                synchronized (simulation) {
+                    try {
+                        simulation.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             simulation.run();
         } catch (IOException e) {
-            logger.error("Failed to run a simulator: "+e);
+            logger.error("Failed to run a simulator: " + e);
             e.printStackTrace();
         }
     }
@@ -291,7 +309,7 @@ public class DashBoardController implements EventHandler, Creator {
         } else if (event.isType(HighwayEventType.NEW_PLAN)) {
             Action action = (Action) event.getContent();
 
-            for (SimulatorHandler handler: simulatorHandlers) {
+            for (SimulatorHandler handler : simulatorHandlers) {
                 if (handler.hasVehicle(action.getCarId())) {
                     handler.addAction(action);
                 }
@@ -309,9 +327,9 @@ public class DashBoardController implements EventHandler, Creator {
      * @throws IOException when launch script of the simulator cannot be executed
      */
     private void runSimulator(String name) throws IOException {
-        String launchScript = Configurator.getParamString("highway.dashboard.simulators."+name+".launch", "");
+        String launchScript = Configurator.getParamString("highway.dashboard.simulators." + name + ".launch", "");
         String[] parts = launchScript.split(" ");
-        logger.info("Starting simulator: "+name+", script: "+launchScript);
+        logger.info("Starting simulator: " + name + ", script: " + launchScript);
         if (!launchScript.isEmpty()) {
             simulators.put(name, new ProcessBuilder().inheritIO().command(parts).start());
         }

@@ -3,6 +3,7 @@ package cz.agents.highway.storage;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.agent.ORCAAgent;
 import cz.agents.highway.agent.RouteAgent;
 import org.apache.log4j.Logger;
@@ -24,7 +25,7 @@ public class HighwayStorage extends EventBasedStorage {
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
 
-    private  Agent queen;
+    private Agent queen;
 
     public HighwayStorage(EventBasedEnvironment environment) {
         super(environment);
@@ -37,6 +38,10 @@ public class HighwayStorage extends EventBasedStorage {
 
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             logger.debug("HighwayStorage: handled simulation START");
+        }else if(event.isType(HighwayEventType.RADAR_DATA)){
+            logger.debug("HighwayStorage: handled: RADAR_DATA");
+            RadarData radar_data = (RadarData) event.getContent();
+            updateCars(radar_data);
         }
 
     }
@@ -51,9 +56,16 @@ public class HighwayStorage extends EventBasedStorage {
     }
 
     public Agent createAgent(final int id) {
-//        Agent agent = new SDAgent(id);
-        Agent agent = new ORCAAgent(id);
-//        Agent agent = new RouteAgent(id);
+        String agentClassName = Configurator.getParamString("highway.agent", "RouteAgent");
+        Agent agent = null;
+        if (agentClassName.equals("RouteAgent")) {
+            agent = new RouteAgent(id);
+        } else if (agentClassName.equals("SDAgent")) {
+            agent = new SDAgent(id);
+        } else if (agentClassName.equals("ORCAAgent")) {
+            agent = new ORCAAgent(id);
+        }
+
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
         VehicleActuator actuator = new VehicleActuator(getEnvironment(), agent, this);
         agent.addSensor(sensor);
@@ -88,7 +100,7 @@ public class HighwayStorage extends EventBasedStorage {
         for (RoadObject car : object.getCars()) {
             updateCar(car);
         }
-        logger.debug("HighwayStorage updated vehicles: received "+object);
+        logger.debug("HighwayStorage updated vehicles: received " + object);
         getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
     }
 

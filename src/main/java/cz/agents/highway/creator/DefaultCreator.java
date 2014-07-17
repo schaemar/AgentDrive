@@ -5,6 +5,7 @@ import java.awt.Color;
 import javax.vecmath.Point2d;
 
 import cz.agents.highway.vis.NetLayer;
+import cz.agents.highway.vis.RoadObjectLayer;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -26,29 +27,28 @@ import cz.agents.highway.vis.ProtobufVisLayer;
 import cz.agents.highway.vis.SimulationControlLayer;
 
 public class DefaultCreator implements Creator {
+    protected String CONFIG_FILE = "settings/groovy/highway.groovy";
+
     protected Simulation simulation = null;
     protected HighwayEnvironment highwayEnvironment = null;
 
     private final Logger logger = Logger.getLogger(DefaultCreator.class);
 
     public void init(String[] args) {
-
-       
-        String configfile = "settings/groovy/highway.groovy";
         if(args.length>1){
-            configfile = args[1];
+            CONFIG_FILE = args[1];
         }        
 
         // Configuration loading using alite's Configurator and ConfigReader
         ConfigReader configReader = new ConfigReader();
-        configReader.loadAndMerge(configfile);
+        configReader.loadAndMerge(CONFIG_FILE);
         Configurator.init(configReader);
       
 
         String logfile = Configurator.getParamString("cz.highway.configurationFile", "settings/log4j/log4j.properties");
         PropertyConfigurator.configure(logfile);
         
-        logger.info("Configuration loaded from: " + configfile);
+        logger.info("Configuration loaded from: " + CONFIG_FILE);
         logger.info("log4j logger properties loaded from: " + logfile);
         logger.setLevel(Level.INFO);
 
@@ -59,12 +59,15 @@ public class DefaultCreator implements Creator {
         logger.info("Seed set to: " + seed);
         double simulationSpeed = Configurator.getParamDouble("highway.simulationSpeed", 1.0);
         logger.info("Simulation speed: " + simulationSpeed);
-        long simulationDuration = Configurator.getParamInt("highway.simulationDuration", 100000);
+        long simulationDuration = Configurator.getParamInt("highway.simulationDuration", -1);
         logger.info("Simulation duration: " + simulationDuration);
 
         logger.info("\n>>> SIMULATION CREATION\n");
-        simulation = new Simulation(simulationDuration);
-
+        if(simulationDuration==-1){
+            simulation = new Simulation();
+        }else {
+            simulation = new Simulation(simulationDuration);
+        }
         logger.info("\n>>> ENVIRONMENT CREATION\n");
         //FIXME
         highwayEnvironment = new HighwayEnvironment(simulation);
@@ -74,20 +77,21 @@ public class DefaultCreator implements Creator {
             createVisualization();
             VisManager.registerLayer(new NetLayer(highwayEnvironment.getRoadNetwork()));
             VisManager.registerLayer(ProtobufVisLayer.create(highwayEnvironment.getStorage()));
+            VisManager.registerLayer(RoadObjectLayer.create(highwayEnvironment.getStorage().getPosCurr()));
             VisManager.registerLayer(SimulationControlLayer.create(simulation));
         }
         simulation.setSimulationSpeed(simulationSpeed);
  
     }
-    void runSimulation(){
+    public void runSimulation(){
          simulation.run();
     }
 
-    private void createVisualization() {
+    protected void createVisualization() {
         logger.info(">>> VISUALIZATION CREATED");
 
         VisManager.setInitParam("Highway Protobuf Operator", 1024, 768);
-        VisManager.setSceneParam(new SceneParams() {
+        VisManager.setSceneParam(new VisManager.SceneParams() {
 
             @Override
             public Point2d getDefaultLookAt() {

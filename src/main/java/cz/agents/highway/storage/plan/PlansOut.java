@@ -41,4 +41,10 @@ public class PlansOut {
         
     }
 
+    @Override
+    public String toString() {
+        return plans.toString();
+    }
+
+
 }
