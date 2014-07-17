@@ -143,8 +143,11 @@ public class Network {
      * @return
      */
     public Lane getLane(Point3f position) {
-        Point2f pos2d = new Point2f(position.x, -position.z);
+        Point2f pos2d = new Point2f(position.x, position.y);
         return getLane(pos2d);
+    }
+    public int getLaneNum(Point3f position) {
+       return Integer.parseInt(getLane(position).getIndex());
     }
 
     public HashMap<String, Edge> getEdges() {

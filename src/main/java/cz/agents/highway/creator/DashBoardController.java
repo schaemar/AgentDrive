@@ -116,7 +116,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
 
             // Finally send plans and updates
 
-                executePlans(plans);
+            executePlans(plans);
 
 
             plans.clear();
@@ -136,15 +136,16 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         Vector3f vel = new Vector3f(state.getPosition());
                         vel.negate();
                         vel.add(wpAction.getPosition());
-                        duration = wpAction.getPosition().distance(state.getPosition())/ wpAction.getSpeed();
-                        state = new RoadObject(carID, duration , state.getLane(), wpAction.getPosition(), vel);
+                        duration = wpAction.getPosition().distance(state.getPosition()) / wpAction.getSpeed();
+                        int lane = highwayEnvironment.getRoadNetwork().getLaneNum(wpAction.getPosition());
+                        state = new RoadObject(carID, duration, lane, wpAction.getPosition(), vel);
 
                     }
                 }
                 radarData.add(state);
             }
             //send radar-data to storage with duration delay
-            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA,highwayEnvironment.getStorage(),null,radarData,(long)(duration*1000));
+            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, (long) (duration * 1000));
         }
     }
 
@@ -183,7 +184,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
 
-        if(simulatorCount == 0){
+        if (simulatorCount == 0) {
             Iterator<Integer> vehicleIt = vehicles.iterator();
             RadarData update = new RadarData();
             Map<Integer, Agent> agents = storage.getAgents();
@@ -203,13 +204,13 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 // FIXME!!!
                 Vector3f initialVelocity = new Vector3f(1, 1, 0);
 
-
-                    update.add(new RoadObject(vehicleID, 0d, 0, initialPosition, initialVelocity));
+                int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
+                update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
 
             }
-            simulatorHandlers.add(new LocalSimulatorHandler(null,new HashSet<Integer>(vehicles)));
+            simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(vehicles)));
             storage.updateCars(update);
-         }
+        }
 
         // Divide vehicles evenly to the simulators
         communicator.registerConnectCallback(new ConnectCallback() {
@@ -237,6 +238,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     Point3f initialPosition = agent.getInitialPosition();
                     // FIXME!!!
                     Vector3f initialVelocity = new Vector3f(1, 1, 0);
+                    int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
 
                     // If the simulator should simulate this vehicle
                     // This divides the id's to even parts
@@ -244,7 +246,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
-                        update.add(new RoadObject(vehicleID, 0d, 0, initialPosition, initialVelocity));
+                        update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
                     }
                 }
 
@@ -281,7 +283,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             for (String sim : simulatorsToRun) {
                 runSimulator(sim);
             }
-            if(simulatorsToRun.size()>=1) {
+            if (simulatorsToRun.size() >= 1) {
                 synchronized (simulation) {
                     try {
                         simulation.wait();
