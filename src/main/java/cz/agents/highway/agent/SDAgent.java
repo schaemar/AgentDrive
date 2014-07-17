@@ -33,20 +33,22 @@ public class SDAgent extends Agent {
     private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
     private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance",   4.0  );
     private final static double MAX_SPEED               = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 20.0  );
-    private final static double MAX_SPEED_VARIANCE      = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.1 );
+    private final static double MAX_SPEED_VARIANCE      = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.8 );
 
     private final static double LANE_SPEED_RATIO        = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio",            0.1);
     private final static long   PLANNING_TIME           = 1000;
     private static final int    NUM_OF_LANES            =    2;
 
     private CarManeuver currentManeuver = null;
+    private final ManeuverTranslator maneuverTranslator;
 
     // maximal speed after variance application
     private final double initialMaximalSpeed = (RandomProvider.getRandom().nextDouble() - 0.5) * 2 *MAX_SPEED_VARIANCE * MAX_SPEED  + MAX_SPEED;
     private double maximalSpeed = initialMaximalSpeed;
 
     public Action agentReact() {
-        return man2Action(plan());
+        //return man2Action(plan());
+        return maneuverTranslator.translate(plan());
     }
 
     private Action man2Action(CarManeuver man) {
@@ -58,10 +60,12 @@ public class SDAgent extends Agent {
 
     public SDAgent(int id) {
         super(id);
+        maneuverTranslator = new ManeuverTranslator(id);
     }
 
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
+        maneuverTranslator.setSensor(sensor);
         this.sensor.registerReaction(new Reaction() {
             public void react(Event event) {
                 if(event.getType().equals(HighwayEventType.UPDATED)){
