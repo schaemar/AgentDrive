@@ -33,6 +33,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import javax.vecmath.Point2d;
+import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 import java.awt.*;
@@ -177,7 +178,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
      * This method is responsible for even distribution of vehicles between all configured simulators
      */
     private void initTraffic() {
-        XMLReader reader = XMLReader.getInstance();
+        final XMLReader reader = XMLReader.getInstance();
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();
         final int size = vehicles.size();
@@ -223,6 +224,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 RadarData update = new RadarData();
                 Map<Integer, Agent> agents = storage.getAgents();
                 Set<Integer> plannedVehicles = new HashSet<Integer>();
+                Map<Integer, Point2f> initialPositions = reader.getInitialPositions();
 
                 // Iterate over all configured vehicles
                 for (int i = 0; i < size; i++) {
@@ -235,7 +237,12 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         agent = storage.createAgent(vehicleID);
                     }
 
+                    Point2f pos = initialPositions.get(vehicleID);
                     Point3f initialPosition = agent.getInitialPosition();
+                    if (pos != null) {
+                        initialPosition.setX(pos.x);
+                        initialPosition.setY(pos.y);
+                    }
                     // FIXME!!!
                     Vector3f initialVelocity = new Vector3f(1, 1, 0);
                     int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
