@@ -18,8 +18,9 @@ import java.util.Map;
 public class RouteNavigator {
     private final int id;
 
-    private int nextEdge = 0;
-    private int nextPoint = 0;
+    private int pointPtr;
+    private int routePtr;
+    private Lane agentLane;
 
     /// Route represented as a list of edges, that the car should visit
     private final List<Edge> route = new ArrayList<Edge>();
@@ -42,43 +43,70 @@ public class RouteNavigator {
         for (String edge: routes.get(id)) {
             route.add(edges.get(edge));
         }
+
+        routePtr = 0;
+        agentLane = route.get(0).getLaneByIndex(0);
     }
 
-    public Point2f getNextRoutePoint(int laneID) {
-        // FIXME!!
-        Lane lane = getNextLane(laneID);
-        Point2f point = lane.getInnerPoints().get(nextPoint);
+    public void changeLaneLeft() {
+        Lane leftLane = agentLane.getLaneLeft();
+        if (leftLane != null) {
+            agentLane = leftLane;
+        }
+    }
 
+    public void changeLaneRight() {
+        Lane rightLane = agentLane.getLaneRight();
+        if (rightLane != null) {
+            agentLane = rightLane;
+        }
+    }
 
-        // Increment the point pointers
-        if (nextPoint >= lane.getInnerPoints().size()-1) {
-            nextPoint = 0;
-            if (nextEdge >= route.size()-1) {
-                nextEdge = 0;
+    public void advanceInRoute() {
+        if (pointPtr >= agentLane.getInnerPoints().size()-1) {
+            // Were at the end of the route
+            if (routePtr >= route.size()-1) {
+                routePtr = 0;
+                pointPtr = 0;
+                agentLane = route.get(0).getLaneByIndex(0);
             } else {
-                nextEdge++;
+                Lane nextLane = getFollowingLane(route.get(routePtr + 1));
+                if (nextLane != null) {
+                    pointPtr = 0;
+                    routePtr++;
+                    agentLane = nextLane;
+                } else {
+                    // TODO: This or neigbour lanes don't continue to the route edge
+                }
             }
         } else {
-            nextPoint++;
+            pointPtr++;
         }
-        return point;
+
     }
 
-    public int getNumberOfLanePoints(int lane) {
-        Lane ln = getNextLane(lane);
-        if (ln == null) {
-            return 0;
-        } else {
-            return ln.getInnerPoints().size();
+    private Lane getFollowingLane(Edge edge) {
+        Lane nextLane = agentLane.getNextLane(edge);
+        if (nextLane == null) {
+            // Lane doesn't continue to the edge in route, maybe we should change lane
+            Lane changeLane = agentLane.getLaneLeft();
+            if (changeLane != null) {
+                nextLane = changeLane.getNextLane(edge);
+                // Try right lane
+                if (nextLane == null) {
+                    changeLane = agentLane.getLaneRight();
+                    if (changeLane != null) {
+                        nextLane = changeLane.getNextLane(edge);
+                    }
+                }
+            }
         }
+
+        return nextLane;
     }
 
-    private Lane getNextLane(int currentLane) {
-        //FIXME!!!
-        String getter = String.format("%s_%d", route.get(nextEdge).getId(),
-                currentLane);
-        return route.get(nextEdge).getLanes().get(getter);
-
+    public Point2f getRoutePoint() {
+        return agentLane.getInnerPoints().get(pointPtr);
     }
 
     public Point2f getInitialPosition() {
