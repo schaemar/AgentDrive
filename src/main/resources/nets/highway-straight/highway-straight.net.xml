@@ -7,5 +7,6 @@
     <edge id="0" from="0" to="1" priority="7" type="highway.secondary" shape="-10,0.0 -10,5000.0 10,5000.0 10,0.0">
         <lane id="0_0" index="0" speed="42" length="16.72" shape="6.0,0.0 6.0,5000.0"/>
         <lane id="0_1" index="1" speed="42" length="16.72" shape="-6.0,0.0 -6.0,5000.0"/>
+
     </edge>
   </net>

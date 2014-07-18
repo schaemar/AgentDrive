@@ -146,7 +146,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 radarData.add(state);
             }
             //send radar-data to storage with duration delay
-            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, (long) (duration * 1000));
+            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1,(long) (duration * 1000)));
         }
     }
 

@@ -25,6 +25,7 @@ import java.util.Map;
 public class RouteAgent extends Agent {
     ///
     private static final float CHANGE_RADIUS = 5.0f;
+    private static float MAX_SPEED = 10;
 
     private static final int TRY_COUNT = 10;
 
@@ -80,11 +81,6 @@ public class RouteAgent extends Agent {
                 navigator.advanceInRoute();
             }
             i++;
-        }
-
-        float velocity = me.getVelocity().length();
-        if (velocity < 10) {
-            velocity = 10;
         }
 
         WPAction action = new WPAction(sensor.getId(), me.getUpdateTime(),

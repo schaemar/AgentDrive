@@ -3,13 +3,14 @@ package cz.agents.highway.agent;
 import rvolib.Vector2;
 
 import javax.vecmath.Point3f;
+import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector3f;
 
 /**
  * Created by martin on 15.7.14.
  */
 public class ORCAUtil {
-    public static Vector2 vector3fToVector2(Point3f position) {
+    public static Vector2 vector3fToVector2(Tuple3f position) {
         return new Vector2(position.x, position.y);
     }
 
