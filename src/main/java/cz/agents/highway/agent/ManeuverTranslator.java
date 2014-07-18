@@ -62,7 +62,7 @@ public class ManeuverTranslator {
         }
     }
 
-    private Point2f generateWaypointInLane(int lane, CarManeuver maneuver) {
+    private Point2f generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
         RoadObject me = sensor.senseCurrentState();
 
         Point3f p = me.getPosition();
@@ -77,12 +77,20 @@ public class ManeuverTranslator {
 
         // Get the closest route point the translated position
         Point2f innerPoint = null;
+        // Change to right
+        if (relativeLane < 0) {
+            navigator.changeLaneRight();
+        } else if (relativeLane > 0) {
+            navigator.changeLaneLeft();
+        }
         int i = 0;
-        //int size = navigator.getNumberOfLanePoints(lane);
         do {
-            innerPoint = navigator.getNextRoutePoint(lane);
+            innerPoint = navigator.getRoutePoint();
+            if (!pointCloseEnough(innerPoint, pos2D, vel2D)) {
+                navigator.advanceInRoute();
+            }
             i++;
-        } while (i < TRY_COUNT && !pointCloseEnough(innerPoint, pos2D, vel2D));
+        } while (i < TRY_COUNT);
 
         if (innerPoint == null) {
             return navigator.getInitialPosition();

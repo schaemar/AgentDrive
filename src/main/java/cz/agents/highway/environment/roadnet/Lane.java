@@ -11,9 +11,9 @@ import java.util.ArrayList;
  * Created by pavel on 19.6.14.
  */
 public class Lane {
-    private static final float INNER_POINTS_STEP_SIZE = 1;
+    public static final float INNER_POINTS_STEP_SIZE = 1;
     private final String laneId;
-    private final String index;
+    private final int index;
     private final float speed;
     private final float length;
     private final ArrayList<Point2f> shape;
@@ -23,7 +23,7 @@ public class Lane {
     private ArrayList<Lane> incomingLanes = new ArrayList<Lane>();
     private ArrayList<Lane> outgoingLanes = new ArrayList<Lane>();
 
-    public Lane(String laneId, String index, float speed, float length, ArrayList<Point2f> shape) {
+    public Lane(String laneId, int index, float speed, float length, ArrayList<Point2f> shape) {
         this.laneId = laneId;
         this.index = index;
         this.speed = speed;
@@ -77,7 +77,7 @@ public class Lane {
         return laneId;
     }
 
-    public String getIndex() {
+    public int getIndex() {
         return index;
     }
 
@@ -116,4 +116,49 @@ public class Lane {
     public ArrayList<Lane> getOutgoingLanes() {
         return outgoingLanes;
     }
+
+    /**
+     * Return outgoing lane going through the given edge
+     * @return null if no lane is found
+     */
+    public Lane getNextLane(Edge edge) {
+        for (Lane lane: getOutgoingLanes()) {
+            if (lane.getEdge().getId() == edge.getId()) {
+                return lane;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Return incoming lane going through the given edge
+     * @return null if no lane is found
+     */
+    public Lane getPreviousLane(Edge edge) {
+        for (Lane lane: getIncomingLanes()) {
+            if (lane.getEdge().getId() == edge.getId()) {
+                return lane;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the lane left of this one in the driving direction
+     * @return null if this is the left-most lane
+     */
+    public Lane getLaneLeft() {
+        return getEdge().getLaneByIndex(getIndex()+1);
+    }
+
+    /**
+     * Returns the lane right of this one in the driving direction
+     * @return null if this is the right-most lane
+     */
+    public Lane getLaneRight() {
+        return getEdge().getLaneByIndex(getIndex()-1);
+    }
 }
+

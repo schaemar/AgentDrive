@@ -27,6 +27,8 @@ public class RouteAgent extends Agent {
     private static final float CHANGE_RADIUS = 5.0f;
     private static float MAX_SPEED = 10;
 
+    private static final int TRY_COUNT = 10;
+
     /// Navigator generating route points
     private final RouteNavigator navigator;
 
@@ -71,11 +73,18 @@ public class RouteAgent extends Agent {
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
 
         // If the next waypoint is too close, go to the next in route
-        Point2f waypoint;
-        while ((waypoint = navigator.getNextRoutePoint(me.getLane())).distance(position2D) < CHANGE_RADIUS);
+        Point2f waypoint = null;
+        int i = 0;
+        while (i < TRY_COUNT) {
+            waypoint = navigator.getRoutePoint();
+            if (waypoint.distance(position2D) < CHANGE_RADIUS) {
+                navigator.advanceInRoute();
+            }
+            i++;
+        }
 
         WPAction action = new WPAction(sensor.getId(), me.getUpdateTime(),
-                new Point3f(waypoint.x, waypoint.y, me.getPosition().z), MAX_SPEED);
+                new Point3f(waypoint.x, waypoint.y, me.getPosition().z), velocity);
         return action;
     }
 }
