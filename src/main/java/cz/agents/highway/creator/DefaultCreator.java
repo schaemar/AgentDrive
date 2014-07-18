@@ -27,7 +27,8 @@ import cz.agents.highway.vis.ProtobufVisLayer;
 import cz.agents.highway.vis.SimulationControlLayer;
 
 public class DefaultCreator implements Creator {
-    protected String CONFIG_FILE = "settings/groovy/highway.groovy";
+    protected String DEFAULT_CONFIG_FILE = "settings/groovy/highway.groovy";
+    protected String CONFIG_FILE = DEFAULT_CONFIG_FILE;
 
     protected Simulation simulation = null;
     protected HighwayEnvironment highwayEnvironment = null;
@@ -41,7 +42,9 @@ public class DefaultCreator implements Creator {
 
         // Configuration loading using alite's Configurator and ConfigReader
         ConfigReader configReader = new ConfigReader();
+        configReader.loadAndMerge(DEFAULT_CONFIG_FILE);
         configReader.loadAndMerge(CONFIG_FILE);
+
         Configurator.init(configReader);
       
 

@@ -184,8 +184,11 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         final int size = vehicles.size();
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
+        Map<Integer, Point2f> initialPositions = reader.getInitialPositions();
 
         if (simulatorCount == 0) {
+            //Simulatorlocal initialization - FIXME remove duplicate code with ConnectCallback.invoke()
+
             Iterator<Integer> vehicleIt = vehicles.iterator();
             RadarData update = new RadarData();
             Map<Integer, Agent> agents = storage.getAgents();
@@ -200,8 +203,12 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 } else {
                     agent = storage.createAgent(vehicleID);
                 }
-
+                Point2f pos = initialPositions.get(vehicleID);
                 Point3f initialPosition = agent.getInitialPosition();
+                if (pos != null) {
+                    initialPosition.setX(pos.x);
+                    initialPosition.setY(pos.y);
+                }
                 // FIXME!!!
                 Vector3f initialVelocity = new Vector3f(1, 1, 0);
 
