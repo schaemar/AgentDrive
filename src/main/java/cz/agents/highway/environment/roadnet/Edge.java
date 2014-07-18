@@ -50,5 +50,13 @@ public class Edge extends Sector {
         return lanes;
     }
 
+    /**
+     * Returns lane by given index
+     * @return null if the index is invalid
+     */
+    public Lane getLaneByIndex(int laneIdx) {
+        return getLanes().get(String.format("%s_%d", getId(), laneIdx));
+    }
+
 
 }
