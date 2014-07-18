@@ -84,7 +84,7 @@ public class RouteAgent extends Agent {
         }
 
         WPAction action = new WPAction(sensor.getId(), me.getUpdateTime(),
-                new Point3f(waypoint.x, waypoint.y, me.getPosition().z), velocity);
+                new Point3f(waypoint.x, waypoint.y, me.getPosition().z), MAX_SPEED);
         return action;
     }
 }
