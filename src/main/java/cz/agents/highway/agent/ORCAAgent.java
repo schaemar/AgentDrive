@@ -40,11 +40,10 @@ public class ORCAAgent extends RouteAgent {
             return new WPAction(id, 0d, getInitialPosition(), 0);
         }
         float timestep = 0.1f;
-        Vector2 velocity = new Vector2(me.getVelocity().x,me.getVelocity().y);
-        Vector2 position = rvoAgent.position_;
-
-
-
+        Vector2 velocity = ORCAUtil.vector3fToVector2(me.getPosition());
+        Vector2 position = ORCAUtil.vector3fToVector2(me.getPosition());
+        rvoAgent.position_ = position;
+        rvoAgent.velocity_ = velocity;
 
 
         WPAction desiredAction = (WPAction) super.agentReact();
@@ -58,7 +57,8 @@ public class ORCAAgent extends RouteAgent {
         for (RoadObject roadObject : sensor.senseCars()) {
             if(roadObject.getId()!=me.getId()) {
                 RVOAgent other = new RVOAgent(0, ORCAUtil.vector3fToVector2(roadObject.getPosition()));
-                //if(me.getId()==0)other.initVisualization();
+                other.velocity_ = ORCAUtil.vector3fToVector2(roadObject.getVelocity());
+//                if(me.getId()==0)other.initVisualization();
                 rvoAgent.insertAgentNeighbor(other, new MutableFloat(me.getPosition().distanceSquared(roadObject.getPosition())));
             }
         }
@@ -68,10 +68,10 @@ public class ORCAAgent extends RouteAgent {
 
         Vector2 newVelocity = rvoAgent.computeNewVelocity(timestep);
         Point3f p = new Point3f(me.getPosition());
-        p.scaleAdd((float) 1, new Vector3f(newVelocity.x(), newVelocity.y(), 0f));
+        p.add(ORCAUtil.vector2ToVector3f(newVelocity));
         WPAction action = new WPAction(id, me.getUpdateTime(), p, newVelocity.getLength());
 
-        rvoAgent.update(timestep,velocity);
+        //rvoAgent.update(timestep,velocity);
         return action;
     }
 

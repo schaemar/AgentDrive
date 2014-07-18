@@ -4,9 +4,9 @@ highway {
     simulationSpeed = 1.0;             //not relevant
     timestep = 10; //ms               //not relevant
 
-    agent = "SDAgent";
+//    agent = "RouteAgent";
 //    agent = "SDAgent";
-//    agent = "ORCAAgent";
+    agent = "ORCAAgent";
 
     net {
         //folder = "src/main/resources/nets/junction-big/";
