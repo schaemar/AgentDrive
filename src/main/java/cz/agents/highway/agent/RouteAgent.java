@@ -25,6 +25,7 @@ import java.util.Map;
 public class RouteAgent extends Agent {
     ///
     private static final float CHANGE_RADIUS = 5.0f;
+    private static float MAX_SPEED = 10;
 
     /// Navigator generating route points
     private final RouteNavigator navigator;
@@ -74,7 +75,7 @@ public class RouteAgent extends Agent {
         while ((waypoint = navigator.getNextRoutePoint(me.getLane())).distance(position2D) < CHANGE_RADIUS);
 
         WPAction action = new WPAction(sensor.getId(), me.getUpdateTime(),
-                new Point3f(waypoint.x, waypoint.y, me.getPosition().z), me.getVelocity().length());
+                new Point3f(waypoint.x, waypoint.y, me.getPosition().z), MAX_SPEED);
         return action;
     }
 }
