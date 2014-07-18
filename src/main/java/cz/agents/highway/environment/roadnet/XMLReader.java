@@ -178,7 +178,7 @@ public class XMLReader {
 
                 Element l = (Element) lNode;
                 String laneId = l.getAttribute("id");
-                String index = l.getAttribute("index");
+                int index = Integer.parseInt(l.getAttribute("index"));
                 float speed = Float.valueOf(l.getAttribute("speed"));
                 float length = Float.valueOf(l.getAttribute("length"));
                 String shapeStr = l.getAttribute("shape");
