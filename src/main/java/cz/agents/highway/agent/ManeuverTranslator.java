@@ -123,7 +123,14 @@ public class ManeuverTranslator {
                 distance(innerPoint, position, direction, velocity) < RADIUS;
     }
 
+    /**
+     * This method computes the distance of the waypoint. It is the Euklidian distance of the waypoint
+     * multiplied by absolute value of the sin of the angle between the direction of the waypoint
+     * and the vector of velocity. This ensures, that waypoints that are less deviating from
+     * the direction of the vehicle's movement and are close enough are picked.
+     */
     private float distance(Point2f innerPoint, Point2f position, Vector2f direction, Vector2f velocity) {
-        return innerPoint.distance(position)*Math.abs((float)Math.sin(direction.angle(velocity))+EPSILON);
+        float d = innerPoint.distance(position);
+        return d*d*Math.abs((float)Math.sin(direction.angle(velocity))+EPSILON);
     }
 }
