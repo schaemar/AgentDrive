@@ -37,7 +37,8 @@ public class SDAgent extends Agent {
 
     private final static double LANE_SPEED_RATIO        = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio",            0.1);
     private final static long   PLANNING_TIME           = 1000;
-    private static final int    NUM_OF_LANES            =    2;
+    //FIXME: Determine number of lanes based on agent's current position
+    private static final int    NUM_OF_LANES            =    1;
 
     private CarManeuver currentManeuver = null;
     private final ManeuverTranslator maneuverTranslator;
@@ -444,7 +445,7 @@ public class SDAgent extends Agent {
         }
 
         int laneOut = carManeuver.getExpectedLaneOut();
-        if (laneOut < 1) {
+        if (laneOut < 0) {
             logger.debug("LaneOut= " + laneOut);
             return false;
         }
