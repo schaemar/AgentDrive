@@ -137,7 +137,9 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         Vector3f vel = new Vector3f(state.getPosition());
                         vel.negate();
                         vel.add(wpAction.getPosition());
+
                         duration = wpAction.getPosition().distance(state.getPosition()) / wpAction.getSpeed();
+                        vel.scale(1f/(float)duration);
                         int lane = highwayEnvironment.getRoadNetwork().getLaneNum(wpAction.getPosition());
                         state = new RoadObject(carID, duration, lane, wpAction.getPosition(), vel);
 

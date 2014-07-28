@@ -72,7 +72,7 @@ public class ORCAAgent extends RouteAgent {
         //rvoAgent.insertObstacleNeighbor(obstacle, rangeSq);
 
         Vector2 newVelocity = rvoAgent.computeNewVelocity(TIMESTEP);
-        double speed = newVelocity.getLength()/ TIMESTEP;
+        double speed = newVelocity.getLength();
         log.debug("ORCA out speed= "+speed);
         Point3f p = new Point3f(me.getPosition());
         p.add(ORCAUtil.vector2ToVector3f(newVelocity));

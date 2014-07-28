@@ -5,11 +5,12 @@ highway {
     timestep = 10; //ms               //not relevant
 
 //    agent = "SDAgent";
-    agent = "RouteAgent";
-//    agent = "ORCAAgent";
+//    agent = "RouteAgent";
+    agent = "ORCAAgent";
 
     net {
         folder = "nets/junction-big/";
+        folder = "nets/highway-bidirectional/";
 //        folder = "nets/highway-straight/";
     }
     safeDistanceAgent {
@@ -81,8 +82,8 @@ highway {
 
         }
 
-//        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-        simulatorsToRun = ["SimulatorLite"];
+        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+//        simulatorsToRun = ["SimulatorLite"];
     }
 
     netLayer {

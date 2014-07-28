@@ -25,7 +25,7 @@ import java.util.Map;
 public class RouteAgent extends Agent {
     ///
     private static final float CHANGE_RADIUS = 5.0f;
-    private static float MAX_SPEED = 10;
+    private static float MAX_SPEED = 30;
 
     private static final int TRY_COUNT = 10;
 
