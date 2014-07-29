@@ -210,7 +210,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     initialPosition.setY(pos.y);
                 }
                 // FIXME!!!
-                Vector3f initialVelocity = new Vector3f(1, 1, 0);
+                Vector3f initialVelocity = agent.getInitialVelocity();
 
                 int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
                 update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
