@@ -31,6 +31,12 @@ public class RouteNavigator {
         initRoute(id);
     }
 
+    public void reset(){
+        pointPtr = 0;
+        routePtr = 0;
+        agentLane = route.get(0).getLaneByIndex(0);
+    }
+
     /**
      * Generate list of edges from route definition
      * @param id Id of the vehicle
@@ -118,5 +124,23 @@ public class RouteNavigator {
         Point2f p1 = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
         Point2f p2 = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(1);
         return new Vector3f(p2.x - p1.x, p2.y - p1.y, 0);
+    }
+
+    public Point2f next(){
+        Point2f p = getRoutePoint();
+        advanceInRoute();
+        return p;
+    }
+
+    public Point2f nextWithReset(){
+        int OLDpointPtr = pointPtr;
+        int OLDroutePtr = routePtr;
+        Lane OLDagentLane = agentLane;
+        Point2f p = getRoutePoint();
+        advanceInRoute();
+        pointPtr = OLDpointPtr;
+        routePtr = OLDroutePtr;
+        agentLane = OLDagentLane;
+        return p;
     }
 }

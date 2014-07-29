@@ -17,11 +17,13 @@ public class Agent extends Entity {
 
     protected VehicleSensor sensor;
     protected VehicleActuator actuator;
+    protected final RouteNavigator navigator;
     
 
     public Agent(int id) {
         super("" + id);
         this.id = id;
+        navigator = new RouteNavigator(id);
         logger.info("Agent " + id + " created");
     }
 
@@ -34,6 +36,10 @@ public class Agent extends Entity {
         this.actuator = actuator;
         logger.info("Actuator added: " + actuator);
 
+    }
+
+    public RouteNavigator getNavigator() {
+        return navigator;
     }
 
     public Point3f getInitialPosition() {
