@@ -7,6 +7,7 @@ import cz.agents.highway.environment.roadnet.XMLReader;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -111,5 +112,11 @@ public class RouteNavigator {
 
     public Point2f getInitialPosition() {
         return route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
+    }
+
+    public Vector3f getInitialVelocity(){
+        Point2f p1 = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
+        Point2f p2 = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(1);
+        return new Vector3f(p2.x - p1.x, p2.y - p1.y, 0);
     }
 }
