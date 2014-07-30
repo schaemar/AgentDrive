@@ -30,9 +30,9 @@ public class ManeuverTranslator {
     private final RouteNavigator navigator;
     private final int id;
 
-    public ManeuverTranslator(int id) {
+    public ManeuverTranslator(int id, RouteNavigator navigator) {
         this.id = id;
-        navigator = new RouteNavigator(id);
+        this.navigator = navigator;
     }
 
     public void setSensor(VehicleSensor sensor) {

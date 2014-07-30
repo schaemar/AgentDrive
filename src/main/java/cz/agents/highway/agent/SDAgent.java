@@ -61,7 +61,7 @@ public class SDAgent extends Agent {
 
     public SDAgent(int id) {
         super(id);
-        maneuverTranslator = new ManeuverTranslator(id);
+        maneuverTranslator = new ManeuverTranslator(id, navigator);
     }
 
     public void addSensor(final VehicleSensor sensor) {

@@ -29,8 +29,6 @@ public class RouteAgent extends Agent {
 
     private static final int TRY_COUNT = 10;
 
-    /// Navigator generating route points
-    private final RouteNavigator navigator;
 
     @Override
     public Point3f getInitialPosition() {
@@ -42,7 +40,6 @@ public class RouteAgent extends Agent {
 
     public RouteAgent(int id) {
         super(id);
-        navigator = new RouteNavigator(id);
     }
 
 

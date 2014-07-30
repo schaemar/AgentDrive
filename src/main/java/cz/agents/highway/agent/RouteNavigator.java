@@ -7,6 +7,7 @@ import cz.agents.highway.environment.roadnet.XMLReader;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,12 @@ public class RouteNavigator {
     public RouteNavigator(int id) {
         this.id = id;
         initRoute(id);
+    }
+
+    public void reset(){
+        pointPtr = 0;
+        routePtr = 0;
+        agentLane = route.get(0).getLaneByIndex(0);
     }
 
     /**
@@ -111,5 +118,29 @@ public class RouteNavigator {
 
     public Point2f getInitialPosition() {
         return route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
+    }
+
+    public Vector3f getInitialVelocity(){
+        Point2f p1 = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
+        Point2f p2 = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(1);
+        return new Vector3f(p2.x - p1.x, p2.y - p1.y, 0);
+    }
+
+    public Point2f next(){
+        Point2f p = getRoutePoint();
+        advanceInRoute();
+        return p;
+    }
+
+    public Point2f nextWithReset(){
+        int OLDpointPtr = pointPtr;
+        int OLDroutePtr = routePtr;
+        Lane OLDagentLane = agentLane;
+        Point2f p = getRoutePoint();
+        advanceInRoute();
+        pointPtr = OLDpointPtr;
+        routePtr = OLDroutePtr;
+        agentLane = OLDagentLane;
+        return p;
     }
 }
