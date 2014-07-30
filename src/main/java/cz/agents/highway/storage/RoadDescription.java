@@ -1,5 +1,7 @@
 package cz.agents.highway.storage;
 
+import cz.agents.highway.environment.roadnet.Network;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,8 +9,10 @@ import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
 
 public class RoadDescription {
-	
-	private Point3d lastPoint = null;
+
+
+    private final Network roadNetwork;
+    private Point3d lastPoint = null;
 	
 //	class PointOrdering implements Comparator<Point3d> {
 //		public int compare(Point3d o1, Point3d o2) {
@@ -28,6 +32,14 @@ public class RoadDescription {
 	private final List<Line> lines = new ArrayList<Line>();
 	private final List<RoadObject> obstacles = new ArrayList<RoadObject>();
 
+
+    public RoadDescription(Network roadNetwork) {
+        this.roadNetwork = roadNetwork;
+    }
+
+    public Network getRoadNetwork() {
+        return roadNetwork;
+    }
 //	public void addPoint(Point3d p) {
 //		double dist = 0;
 //		if (lastPoint != null) {

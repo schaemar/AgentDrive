@@ -6,6 +6,7 @@ import java.util.Map;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.agent.ORCAAgent;
 import cz.agents.highway.agent.RouteAgent;
+import cz.agents.highway.environment.HighwayEnvironment;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.event.Event;
@@ -20,16 +21,17 @@ public class HighwayStorage extends EventBasedStorage {
 
     private final Logger logger = Logger.getLogger(HighwayStorage.class);
 
-    private final RoadDescription roadDescription = new RoadDescription();
+    private final RoadDescription roadDescription;
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
 
     private Agent queen;
 
-    public HighwayStorage(EventBasedEnvironment environment) {
+    public HighwayStorage(HighwayEnvironment environment) {
         super(environment);
         environment.getEventProcessor().addEventHandler(this);
+        roadDescription = new RoadDescription(environment.getRoadNetwork());
 
     }
 

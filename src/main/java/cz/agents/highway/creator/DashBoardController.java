@@ -138,8 +138,11 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         vel.negate();
                         vel.add(wpAction.getPosition());
 
-                        duration = wpAction.getPosition().distance(state.getPosition()) / wpAction.getSpeed();
-                        vel.scale(1f/(float)duration);
+                        if(wpAction.getSpeed()< 0.001){
+                            duration = 0.1f;
+                        }else {
+                            duration = wpAction.getPosition().distance(state.getPosition()) / (wpAction.getSpeed());
+                        }vel.scale(1f/(float)duration);
                         int lane = highwayEnvironment.getRoadNetwork().getLaneNum(wpAction.getPosition());
                         state = new RoadObject(carID, duration, lane, wpAction.getPosition(), vel);
 
