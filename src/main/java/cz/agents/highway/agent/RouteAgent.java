@@ -1,10 +1,7 @@
 package cz.agents.highway.agent;
 
 import cz.agents.alite.common.event.Event;
-import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.Network;
-import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
@@ -13,21 +10,18 @@ import cz.agents.highway.storage.plan.WPAction;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by martin on 9.7.14.
  */
 public class RouteAgent extends Agent {
     ///
-    private static final float CHANGE_RADIUS = 5.0f;
+    private static final float WAYPOINT_DISTANCE = 3.0f;
     private static float MAX_SPEED = 30;
 
-    private static final int TRY_COUNT = 10;
+    private static final float WP_COUNT_CONST = 0.1f;
 
 
     @Override
@@ -35,7 +29,7 @@ public class RouteAgent extends Agent {
 
         //TODO  initial positioning with proper rotation
         Point2f p = navigator.getInitialPosition();
-        return new Point3f(p.x,p.y,0);
+        return new Point3f(p.x, p.y, 0);
     }
 
     public RouteAgent(int id) {
@@ -47,7 +41,7 @@ public class RouteAgent extends Agent {
         this.sensor = sensor;
         this.sensor.registerReaction(new Reaction() {
             public void react(Event event) {
-                if(event.getType().equals(HighwayEventType.UPDATED)){
+                if (event.getType().equals(HighwayEventType.UPDATED)) {
                     actuator.act(agentReact());
                 }
             }
@@ -56,6 +50,7 @@ public class RouteAgent extends Agent {
 
     /**
      * Generate an action as a reaction
+     *
      * @return
      */
     protected Action agentReact() {
@@ -70,18 +65,35 @@ public class RouteAgent extends Agent {
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
 
         // If the next waypoint is too close, go to the next in route
+        List<Point2f> wps = new LinkedList<Point2f>();
         Point2f waypoint = null;
-        int i = 0;
-        while (i < TRY_COUNT) {
-            waypoint = navigator.getRoutePoint();
-            if (waypoint.distance(position2D) < CHANGE_RADIUS) {
+
+        int wpCount = Math.max(3, (int) (me.getVelocity().length() * WP_COUNT_CONST));
+
+        navigator.setCheckpoint();
+
+        int a = 10;
+        while (a-- > 0 && navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2) {
+            navigator.advanceInRoute();
+        }
+        if( navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2){
+            navigator.resetToCheckpoint();
+        }else {
+            navigator.setCheckpoint();
+        }
+        waypoint = navigator.getRoutePoint();
+
+        for (int i = 0; i < wpCount; i++) {
+            while (waypoint.distance(navigator.getRoutePoint()) < WAYPOINT_DISTANCE){
                 navigator.advanceInRoute();
             }
-            i++;
+            waypoint = navigator.getRoutePoint();
+            wps.add(waypoint);
         }
+        navigator.resetToCheckpoint();
 
-        WPAction action = new WPAction(sensor.getId(), me.getUpdateTime(),
-                new Point3f(waypoint.x, waypoint.y, me.getPosition().z), MAX_SPEED);
-        return action;
-    }
+    WPAction action = new WPAction(sensor.getId(), me.getUpdateTime(),
+            new Point3f(waypoint.x, waypoint.y, me.getPosition().z), MAX_SPEED);
+    return action;
+}
 }
