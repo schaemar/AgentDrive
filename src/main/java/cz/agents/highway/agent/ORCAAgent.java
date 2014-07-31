@@ -16,6 +16,8 @@ import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by martin on 14.7.14.
@@ -38,13 +40,13 @@ public class ORCAAgent extends RouteAgent {
     }
 
     private ArrayList<RVOObstacle> generateObstacles(Network roadNetwork) {
-        float shift = 5;
+        float shift = 10;
         ArrayList<RVOObstacle> obstacles = new ArrayList<RVOObstacle>();
         //obstacles
         for (Lane lane : roadNetwork.getLanes().values()) {
 
             //generate obstacles only for the rightmost lanes
-            if(lane.getLaneRight()==null) {
+            if(lane.getLaneRight() == null) {
 
                 ArrayList<Point2f> points = lane.getShape();
                 Point2f p1, p2;
@@ -126,13 +128,14 @@ public class ORCAAgent extends RouteAgent {
     }
 
     @Override
-    protected Action agentReact() {
+    protected List<Action> agentReact() {
         RoadObject me = sensor.senseCurrentState();
-
+        LinkedList<Action> actions = new LinkedList<Action>();
 
         // Simulator did not send update yet
         if (me == null) {
-            return new WPAction(id, 0d, getInitialPosition(), 0);
+            actions.add(new WPAction(id, 0d, getInitialPosition(), 0));
+            return actions;
         }
 
 //generate obstacles for ORCA algorithm according to roadNetwork
@@ -151,7 +154,7 @@ public class ORCAAgent extends RouteAgent {
         rvoAgent.velocity_ = velocity;
 
 
-        WPAction desiredAction = (WPAction) super.agentReact();
+        WPAction desiredAction = (WPAction) super.agentReact().get(0);
         Vector2 prefVel = new Vector2(desiredAction.getPosition().x - position.x(), desiredAction.getPosition().y - position.y());
 
         //scale preferred velocity to correspond desired TIMESTEP to simulate
@@ -182,8 +185,8 @@ public class ORCAAgent extends RouteAgent {
         Point3f p = new Point3f(me.getPosition());
         p.add(ORCAUtil.vector2ToVector3f(newVelocity));
         WPAction action = new WPAction(id, me.getUpdateTime(), p, speed);
-
-        return action;
+        actions.add(action);
+        return actions;
     }
 
 

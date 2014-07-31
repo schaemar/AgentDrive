@@ -19,9 +19,9 @@ import java.util.List;
 public class RouteAgent extends Agent {
     ///
     private static final float WAYPOINT_DISTANCE = 3.0f;
-    private static float MAX_SPEED = 30;
+    private static float MAX_SPEED = 20;
 
-    private static final float WP_COUNT_CONST = 0.1f;
+    private static final float WP_COUNT_CONST = 0.2f;
 
 
     @Override
@@ -53,25 +53,25 @@ public class RouteAgent extends Agent {
      *
      * @return
      */
-    protected Action agentReact() {
-        Network network = Network.getInstance();
+    protected List<Action> agentReact() {
+        LinkedList<Action> actions = new LinkedList<Action>();
         RoadObject me = sensor.senseCurrentState();
 
         // Simulator did not send update yet
         if (me == null) {
-            return new WPAction(id, 0d, getInitialPosition(), 0);
+            actions.add(new WPAction(id, 0d, getInitialPosition(), 0));
+            return actions;
         }
 
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
 
-        // If the next waypoint is too close, go to the next in route
         List<Point2f> wps = new LinkedList<Point2f>();
         Point2f waypoint = null;
 
         int wpCount = Math.max(3, (int) (me.getVelocity().length() * WP_COUNT_CONST));
-
         navigator.setCheckpoint();
 
+        //try to advance navigator closer to the actual position
         int a = 10;
         while (a-- > 0 && navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2) {
             navigator.advanceInRoute();
@@ -84,16 +84,18 @@ public class RouteAgent extends Agent {
         waypoint = navigator.getRoutePoint();
 
         for (int i = 0; i < wpCount; i++) {
+            // If the next waypoint is too close, go to the next in route
             while (waypoint.distance(navigator.getRoutePoint()) < WAYPOINT_DISTANCE){
                 navigator.advanceInRoute();
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);
+            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),
+                    new Point3f(waypoint.x, waypoint.y, me.getPosition().z), MAX_SPEED));
         }
         navigator.resetToCheckpoint();
 
-    WPAction action = new WPAction(sensor.getId(), me.getUpdateTime(),
-            new Point3f(waypoint.x, waypoint.y, me.getPosition().z), MAX_SPEED);
-    return action;
+
+    return actions;
 }
 }

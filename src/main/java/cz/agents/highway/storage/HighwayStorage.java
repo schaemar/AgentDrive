@@ -1,6 +1,7 @@
 package cz.agents.highway.storage;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import cz.agents.alite.configurator.Configurator;
@@ -79,6 +80,9 @@ public class HighwayStorage extends EventBasedStorage {
 
     public void act(int carId, Action action) {
         actions.put(carId, action);
+
+    }public void act(int carId, List<Action> action) {
+        actions.put(carId, action.get(0));
 
     }
 

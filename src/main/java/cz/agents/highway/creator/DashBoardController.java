@@ -21,10 +21,12 @@ import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import javax.vecmath.*;
+import javax.vecmath.Point2f;
+import javax.vecmath.Point3f;
+import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
 /**
  * Dash board like controller, that manages launching simulators and their synchronization with agentDrive
@@ -55,8 +57,13 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             return plannedVehicles.contains(vehicleID);
         }
 
+        @Deprecated
         public void addAction(Action action) {
             plans.addAction(action);
+        }
+
+        public void addActions(int id, List<Action> actions) {
+            plans.addActions(id, actions);
         }
 
         public boolean isReady() {
@@ -126,11 +133,12 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         vel.negate();
                         vel.add(wpAction.getPosition());
 
-                        if(wpAction.getSpeed()< 0.001){
+                        if (wpAction.getSpeed() < 0.001) {
                             duration = 0.1f;
-                        }else {
+                        } else {
                             duration = wpAction.getPosition().distance(state.getPosition()) / (wpAction.getSpeed());
-                        }vel.scale(1f/(float)duration);
+                        }
+                        vel.scale(1f / (float) duration);
                         int lane = highwayEnvironment.getRoadNetwork().getLaneNum(wpAction.getPosition());
                         state = new RoadObject(carID, duration, lane, wpAction.getPosition(), vel);
 
@@ -139,7 +147,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 radarData.add(state);
             }
             //send radar-data to storage with duration delay
-            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1,(long) (duration * 1000)));
+            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (duration * 1000)));
         }
     }
 
@@ -239,8 +247,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     }
 
                     Point2f position = agent.getNavigator().next();
-                    for(int j = 0; j < initPos.size(); j++){
-                        while(!saveDistance(initPos.get(j), position)){
+                    for (int j = 0; j < initPos.size(); j++) {
+                        while (!saveDistance(initPos.get(j), position)) {
                             position = agent.getNavigator().next();
                         }
                     }
@@ -248,12 +256,12 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     Point3f initialPosition = new Point3f(position.x, position.y, 0);
                     Point2f next = agent.getNavigator().nextWithReset();
                     Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-                    logger.info(""+initialVelocity);
+                    logger.info("" + initialVelocity);
                     int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
 
 
                     if (i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
-                        logger.info("OndraTest - created car "+new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
+                        logger.info("OndraTest - created car " + new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
@@ -327,25 +335,26 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             simulation.run();
         } catch (IOException e) {
             logger.error("Failed to run a simulator: " + e);
-    e.printStackTrace();
-}
-}
-
-@Override
-public EventProcessor getEventProcessor() {
-        return simulation;
+            e.printStackTrace();
         }
+    }
+
+    @Override
+    public EventProcessor getEventProcessor() {
+        return simulation;
+    }
 
     @Override
     public void handleEvent(Event event) {
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             System.out.println("Caught SIMULATION_STARTED from DashBoard");
         } else if (event.isType(HighwayEventType.NEW_PLAN)) {
-            Action action = (Action) event.getContent();
+            List<Action> actions = (List<Action>) event.getContent();
+            int id = actions.get(0).getCarId();
 
             for (SimulatorHandler handler : simulatorHandlers) {
-                if (handler.hasVehicle(action.getCarId())) {
-                    handler.addAction(action);
+                if (handler.hasVehicle(id)) {
+                    handler.addActions(id, actions);
                 }
                 if (handler.isReady()) {
                     handler.sendPlans(highwayEnvironment.getStorage().getPosCurr());
@@ -369,7 +378,7 @@ public EventProcessor getEventProcessor() {
         }
     }
 
-    private boolean saveDistance(Point2f p1, Point2f p2){
+    private boolean saveDistance(Point2f p1, Point2f p2) {
         Vector2f v = new Vector2f(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
         return v.length() > SAVE_DISTANCE;
     }

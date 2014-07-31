@@ -1,9 +1,6 @@
 package cz.agents.highway.storage.plan;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 
 public class PlansOut {
@@ -17,6 +14,15 @@ public class PlansOut {
 
     public PlansOut() {
         this.plans =  new LinkedHashMap<Integer, Collection<Action>>();
+    }
+
+    public void addActions(int id, List<Action> actions){
+        Collection<Action> plan = plans.get(id);
+        if(plan == null){
+            plan = new LinkedList<Action>();
+            plans.put(id, plan);
+        }
+        plan.addAll(actions);
     }
 
     public void addAction(Action action){

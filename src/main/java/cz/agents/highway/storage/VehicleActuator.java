@@ -6,6 +6,9 @@ import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.Utils;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class VehicleActuator extends EventBasedAction {
 
     private HighwayStorage storage;
@@ -18,8 +21,13 @@ public class VehicleActuator extends EventBasedAction {
     }
     
     public void act(Action action){
-        storage.act(id, action);
-        getEventProcessor().addEvent(HighwayEventType.NEW_PLAN, null, null, action);
+        List<Action> actions = new LinkedList<Action>();
+        actions.add(action);
+        act(actions);
+    }
+    public void act(List<Action> actions){
+        storage.act(id, actions);
+        getEventProcessor().addEvent(HighwayEventType.NEW_PLAN, null, null, actions);
     }
 
 }
