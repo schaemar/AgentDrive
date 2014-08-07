@@ -204,8 +204,15 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 } else {
                     agent = storage.createAgent(vehicleID);
                 }
+                Point2f position = agent.getNavigator().next();
+                for (int j = 0; j < initPos.size(); j++) {
+                    while (!saveDistance(initPos.get(j), position)) {
+                        position = agent.getNavigator().next();
+                    }
+                }
+                initPos.add(position);
+                Point3f initialPosition = new Point3f(position.x, position.y, 0);
                 Point2f pos = initialPositions.get(vehicleID);
-                Point3f initialPosition = agent.getInitialPosition();
                 if (pos != null) {
                     initialPosition.setX(pos.x);
                     initialPosition.setY(pos.y);
