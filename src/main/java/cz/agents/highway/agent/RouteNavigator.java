@@ -99,15 +99,25 @@ public class RouteNavigator {
         Lane nextLane = agentLane.getNextLane(edge);
         if (nextLane == null) {
             // Lane doesn't continue to the edge in route, maybe we should change lane
+            // Try left lane
             Lane changeLane = agentLane.getLaneLeft();
-            if (changeLane != null) {
+            while (changeLane != null) {
                 nextLane = changeLane.getNextLane(edge);
+                if(nextLane!=null){
+                    break;
+                }
+                changeLane = changeLane.getLaneLeft();
+            }
+
+            if (nextLane == null) {
                 // Try right lane
-                if (nextLane == null) {
-                    changeLane = agentLane.getLaneRight();
-                    if (changeLane != null) {
-                        nextLane = changeLane.getNextLane(edge);
+                changeLane = agentLane.getLaneRight();
+                while (changeLane != null) {
+                    nextLane = changeLane.getNextLane(edge);
+                    if(nextLane!=null){
+                        break;
                     }
+                    changeLane = changeLane.getLaneRight();
                 }
             }
         }
