@@ -6,7 +6,8 @@
   </vehicle>
   <vehicle id="1" depart="0.0" initialPosition="1,200.0">
     <route edges="1"/>
-  </vehicle><vehicle id="0" depart="0.0" initialPosition="1,0">
+  </vehicle>
+    <vehicle id="0" depart="0.0" initialPosition="1,0">
     <route edges="0"/>
   </vehicle>
   <vehicle id="2" depart="0.0" initialPosition="1,200.0">
@@ -17,10 +18,10 @@
   <vehicle id="3" depart="0.0" initialPosition="1,200.0">
     <route edges="1"/>
   </vehicle>
-    <!--<vehicle id="2" depart="0.0" initialPosition="3,50.0">-->
-        <!--<route edges="0"/>-->
-    <!--</vehicle>-->
-    <!--<vehicle id="3" depart="0.0" initialPosition="3,150.0">-->
-        <!--<route edges="1"/>-->
-    <!--</vehicle>-->
+    <vehicle id="2" depart="0.0" initialPosition="3,50.0">
+        <route edges="0"/>
+    </vehicle>
+    <vehicle id="3" depart="0.0" initialPosition="3,150.0">
+        <route edges="1"/>
+    </vehicle>
 </routes>

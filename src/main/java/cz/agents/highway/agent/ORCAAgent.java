@@ -25,7 +25,7 @@ import java.util.List;
 public class ORCAAgent extends RouteAgent {
     Logger log = Logger.getLogger(RouteAgent.class);
 
-    float TIMESTEP = .1f;
+    float TIMESTEP = 0.1f;
     //TODO what is rangeSQ for
     MutableFloat rangeSq = new MutableFloat(1000000);
 
@@ -40,7 +40,7 @@ public class ORCAAgent extends RouteAgent {
     }
 
     private ArrayList<RVOObstacle> generateObstacles(Network roadNetwork) {
-        float shift = 10;
+        float shift = 7;
         ArrayList<RVOObstacle> obstacles = new ArrayList<RVOObstacle>();
         //obstacles
         for (Lane lane : roadNetwork.getLanes().values()) {
@@ -138,9 +138,21 @@ public class ORCAAgent extends RouteAgent {
             return actions;
         }
 
+
+        //
 //generate obstacles for ORCA algorithm according to roadNetwork
         if(obstacles ==null)obstacles = generateObstacles(sensor.getRoadDescription().getRoadNetwork());
 
+//        ArrayList<RVOObstacle> obstacles = new ArrayList<RVOObstacle>();
+//
+//        Point[] points = new Point[4];
+//        points[0] = new Point(8, 0);
+//        points[1] = new Point(8, -600);
+//        points[2] = new Point(20, -600);
+//        points[3] = new Point(20, 0);
+//        Polygon polygon2 = new Polygon(points);
+//        ArrayList<Vector2> vertices2 = RVOUtil.regionToVectorList(polygon2);
+//        RVOUtil.addObstacle(vertices2, obstacles);
 
         //insert obstacles to agent's world representation
         for (RVOObstacle rvoObstacle : obstacles) {

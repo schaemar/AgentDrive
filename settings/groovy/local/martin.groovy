@@ -10,8 +10,8 @@ highway {
 
     net {
 //        folder = "nets/kosik/";
-        folder = "nets/x-junction/";
-//        folder = "nets/junction-big/";
+//        folder = "nets/x-junction/";
+        folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
 //        folder = "nets/highway-straight/";
     }
@@ -96,7 +96,7 @@ highway {
     netLayer {
         lane {
             view = true;
-            width = 0.1;
+            width = 10;
         }
         edge {
             view = false;
