@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import cz.agents.alite.configurator.Configurator;
-import cz.agents.highway.agent.ORCAAgent;
-import cz.agents.highway.agent.RouteAgent;
+import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
 import org.apache.log4j.Logger;
 
@@ -14,8 +13,6 @@ import cz.agents.alite.common.event.Event;
 import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
 import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
-import cz.agents.highway.agent.Agent;
-import cz.agents.highway.agent.SDAgent;
 import cz.agents.highway.storage.plan.Action;
 
 public class HighwayStorage extends EventBasedStorage {
@@ -67,6 +64,8 @@ public class HighwayStorage extends EventBasedStorage {
             agent = new SDAgent(id);
         } else if (agentClassName.equals("ORCAAgent")) {
             agent = new ORCAAgent(id);
+        }else if (agentClassName.equals("test")) {
+            agent = new testAgent(id);
         }
 
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
@@ -103,11 +102,13 @@ public class HighwayStorage extends EventBasedStorage {
     }
 
     public void updateCars(RadarData object) {
-        for (RoadObject car : object.getCars()) {
-            updateCar(car);
+        if(!object.getCars().isEmpty()) {
+            for (RoadObject car : object.getCars()) {
+                updateCar(car);
+            }
+            logger.debug("HighwayStorage updated vehicles: received " + object);
+            getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
         }
-        logger.debug("HighwayStorage updated vehicles: received " + object);
-        getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
     }
 
 //    public void updateInit(InitIn init) {
