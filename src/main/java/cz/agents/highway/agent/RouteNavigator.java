@@ -6,6 +6,7 @@ import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
 
 import javax.vecmath.Point2f;
+import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,21 +73,36 @@ public class RouteNavigator {
         }
     }
 
+    /**
+     * Method for advancing in route. First it checks if there is the end of the lane, if it is than try to switch lanes.
+     * if this does not succeed than tries to switch to the another edge.
+     */
     public void advanceInRoute() {
         if (pointPtr >= agentLane.getInnerPoints().size() - 1) {
-            // Were at the end of the route
-            if (routePtr >= route.size() - 1) {
+            // We are at the end of the lane
+            if (routePtr >= route.size() - 1) { // end of the plan
                 routePtr = 0;
                 pointPtr = 0;
                 agentLane = route.get(0).getLaneByIndex(0);
             } else {
-                Lane nextLane = getFollowingLane(route.get(routePtr + 1));
-                if (nextLane != null) {
-                    pointPtr = 0;
-                    routePtr++;
+                Lane nextLane = getNeighbourLane(route.get(routePtr)); //check for neighbour lane
+
+                int desiredPoint = getDesiredNeighbourLinePoint(nextLane);
+                if(desiredPoint == -1)  //neighbour lane is shorter than my lane or does not exist
+                {
+                    nextLane = getFollowingLane(route.get(routePtr + 1));
+                    if (nextLane != null) {
+                        pointPtr = 0;
+                        routePtr++;
+                        agentLane = nextLane;
+                    } else {
+                        // TODO: This or neigbour lanes don't continue to the route edge
+                    }
+                }
+                else
+                {
+                    pointPtr = desiredPoint;
                     agentLane = nextLane;
-                } else {
-                    // TODO: This or neigbour lanes don't continue to the route edge
                 }
             }
         } else {
@@ -95,12 +111,42 @@ public class RouteNavigator {
 
     }
 
+    private int getDesiredNeighbourLinePoint(Lane nextLane) {
+        if(nextLane == null) return -1;
+        int idealDistanceAroundMe = 10;
+        int ii =0;
+        Point2f pp = agentLane.getInnerPoints().get(pointPtr);
+
+        while(pp.distance(nextLane.getInnerPoints().get(ii)) > idealDistanceAroundMe)
+        {
+            ii++;
+            if(ii == nextLane.getInnerPoints().size()) return -1;
+
+        }
+        while(pp.distance(nextLane.getInnerPoints().get(ii)) <= idealDistanceAroundMe)
+        {
+            ii++;
+            if(ii == nextLane.getInnerPoints().size()) return -1;
+        }
+        return ii;
+    }
+
+    private Lane getNeighbourLane(Edge edge) {
+        Lane neighbourLane = agentLane.getLaneLeft();
+        if (neighbourLane == null) {
+            // Try right lane
+            neighbourLane = agentLane.getLaneRight();
+        }
+        return neighbourLane;
+    }
+
     private Lane getFollowingLane(Edge edge) {
         Lane nextLane = agentLane.getNextLane(edge);
         if (nextLane == null) {
             // Lane doesn't continue to the edge in route, maybe we should change lane
             // Try left lane
             Lane changeLane = agentLane.getLaneLeft();
+           // nextLane = changeLane;
             while (changeLane != null) {
                 nextLane = changeLane.getNextLane(edge);
                 if(nextLane!=null){

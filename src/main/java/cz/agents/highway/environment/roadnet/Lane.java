@@ -150,7 +150,7 @@ public class Lane {
      * @return null if this is the left-most lane
      */
     public Lane getLaneLeft() {
-        return getEdge().getLaneByIndex(getIndex()+1);
+        return getEdge().getLaneByIndex(getIndex()-1);
     }
 
     /**
@@ -158,7 +158,7 @@ public class Lane {
      * @return null if this is the right-most lane
      */
     public Lane getLaneRight() {
-        return getEdge().getLaneByIndex(getIndex()-1);
+        return getEdge().getLaneByIndex(getIndex()+1);
     }
 }
 
