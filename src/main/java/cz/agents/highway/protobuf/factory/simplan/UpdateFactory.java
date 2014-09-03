@@ -17,7 +17,7 @@ import cz.agents.highway.storage.RoadObject;
 public class UpdateFactory implements FactoryInterface<RadarData, Message> {
 
     public Message encode(Object object) {
-        float updateTime = Float.MAX_VALUE;
+        double updateTime = Double.MAX_VALUE;
 
         Builder updateBuilder = Update.newBuilder();
         if (object.getClass().equals(this.getObjectClass())) {
@@ -36,7 +36,7 @@ public class UpdateFactory implements FactoryInterface<RadarData, Message> {
                 veh_builder.setAcceleration(0).setPosition(position);
 
                 // updateTime
-                updateTime = (float) Math.min(updateTime, car.getUpdateTime());
+                updateTime = (double) Math.min(updateTime, car.getUpdateTime());
                 updateBuilder.addUpdates(veh_builder.build());
             }
 

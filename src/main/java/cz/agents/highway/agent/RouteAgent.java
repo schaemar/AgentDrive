@@ -26,6 +26,7 @@ public class RouteAgent extends Agent {
     private static float MAX_SPEED = 20;
 
     private static final float WP_COUNT_CONST = 0.2f;
+    private double lastUpateTime;
 
 
     @Override
@@ -63,13 +64,13 @@ public class RouteAgent extends Agent {
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
         RoadObject me = sensor.senseCurrentState(); // my current state
-
         // Simulator did not send update yet
         if (me == null) {
             actions.add(new WPAction(id, 0d, getInitialPosition(), 0));
             return actions;
         }
 
+      //  System.out.println("Time from the RouteAgent " + me.getUpdateTime());
 
 
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
@@ -85,6 +86,9 @@ public class RouteAgent extends Agent {
 
         //try to advance navigator closer to the actual position
         int maxMove = 10;  // how many points will be tried.
+        //testing code
+      //  maxMove = (int)((me.getUpdateTime() - lastUpateTime)*MAX_SPEED);
+        maxMove = (int)(me.getUpdateTime()*MAX_SPEED);
         while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2) {
             navigator.advanceInRoute();
         }
@@ -123,7 +127,7 @@ public class RouteAgent extends Agent {
             actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),minSpeed));
         }
         navigator.resetToCheckpoint();
-
+        lastUpateTime = me.getUpdateTime();
     return actions;
 }
 }
