@@ -12,10 +12,10 @@ highway {
     net {
 //        folder = "nets/kosik/";
 //        folder = "nets/x-junction/";
-       // folder = "nets/junction-big/";
+       folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
-     //   folder = "nets/highway-straight/";
-         folder = "nets/test90/";
+//        folder = "nets/highway-straight/";
+        // folder = "nets/test90/";
     }
     safeDistanceAgent {
         safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
@@ -90,7 +90,7 @@ highway {
         }
 
         simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-       // simulatorsToRun = ["SimulatorLite"];
+ //      simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //        simulatorsToRun = ["Empty"];
     }

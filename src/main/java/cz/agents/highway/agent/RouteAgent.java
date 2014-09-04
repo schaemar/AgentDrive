@@ -70,29 +70,36 @@ public class RouteAgent extends Agent {
             return actions;
         }
 
-      //  System.out.println("Time from the RouteAgent " + me.getUpdateTime());
-
-
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
 
         List<Point2f> wps = new LinkedList<Point2f>();
         Point2f waypoint = null;
 
-        //int wpCount = Math.max(3, (int) (me.getVelocity().length() * WP_COUNT_CONST));
-        //testing
         int wpCount = (int)me.getVelocity().length() +1; // how many waypoints before me will be calculated.
         points =  new ArrayList<Point3f>();
         navigator.setCheckpoint();
 
         //try to advance navigator closer to the actual position
         int maxMove = 10;  // how many points will be tried.
-        //testing code
-      //  maxMove = (int)((me.getUpdateTime() - lastUpateTime)*MAX_SPEED);
-        maxMove = (int)(me.getUpdateTime()*MAX_SPEED);
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2) {
+        //how many waiponts ahead will be chcecked depending on the update time
+        maxMove = (int)(((me.getUpdateTime() - lastUpateTime)*MAX_SPEED)/1000) + 5;
+        if(maxMove < 10) maxMove = 10;
+        String uniqueIndex = navigator.getUniqueLaneIndex();
+        // finding the nearest wayipont, if changing lane, set the first of the new lane.
+        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2 && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             navigator.advanceInRoute();
         }
-        if( navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2){
+        // finding the nearest waipoint in the new lane.
+        if(!navigator.getUniqueLaneIndex().equals(uniqueIndex))
+        {
+            float initialPos = position2D.distance(navigator.getRoutePoint());
+            do{
+                navigator.advanceInRoute();
+            }while(position2D.distance(navigator.getRoutePoint())  < initialPos);
+
+        }
+        // waipoint not found, reset back
+        if( navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2 && navigator.getUniqueLaneIndex().equals(uniqueIndex)){
             navigator.resetToCheckpoint();
         }else {
             navigator.setCheckpoint();
@@ -102,7 +109,7 @@ public class RouteAgent extends Agent {
         float minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         for(int i=0;i<wpCount;i++)
         {
-            // If the next waypoint is too close, go to the next in route
+            // move 3 waipoints ahead
             while (waypoint.distance(navigator.getRoutePoint()) < WAYPOINT_DISTANCE){
                 navigator.advanceInRoute();
             }
@@ -122,9 +129,11 @@ public class RouteAgent extends Agent {
             if(speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
             points.add(i,new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
         }
+        float speedChangeConst = (me.getVelocity().length() - minSpeed)/wpCount;
         for(int i=0;i<wpCount;i++) // actual filling my outgoing actions
         {
-            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),minSpeed));
+            //scaling speed to the lowest
+            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),me.getVelocity().length()-(i+1)*speedChangeConst));
         }
         navigator.resetToCheckpoint();
         lastUpateTime = me.getUpdateTime();

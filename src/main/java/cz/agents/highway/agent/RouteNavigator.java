@@ -113,7 +113,7 @@ public class RouteNavigator {
 
     private int getDesiredNeighbourLinePoint(Lane nextLane) {
         if(nextLane == null) return -1;
-        int idealDistanceAroundMe = 10;
+        int idealDistanceAroundMe = 4;
         int ii =0;
         Point2f pp = agentLane.getInnerPoints().get(pointPtr);
 
@@ -213,5 +213,9 @@ public class RouteNavigator {
         agentLane = CP_agentLane;
         pointPtr = CP_pointPtr;
         routePtr = CP_routePtr;
+    }
+    public String getUniqueLaneIndex()
+    {
+        return  agentLane.getLaneId();
     }
 }

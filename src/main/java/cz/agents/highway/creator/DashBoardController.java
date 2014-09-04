@@ -118,47 +118,11 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             // Finally send plans and updates
 
             executePlans(plans);
-
-
             plans.clear();
         }
-
-       /* private void executePlans(PlansOut plans) {
-            Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
-            RadarData radarData = new RadarData();
-            double duration = 0;
-            for (Integer carID : plans.getCarIds()) {
-                Collection<Action> plan = plans.getPlan(carID);
-                RoadObject state = currStates.get(carID);
-                //for (Action action : plan) {
-                Action action = plan.iterator().next();
-                    if (action.getClass().equals(WPAction.class)) {
-                        WPAction wpAction = (WPAction) action;
-
-                        Vector3f vel = new Vector3f(state.getPosition());
-                        vel.negate();
-                        vel.add(wpAction.getPosition());
-
-                        if (wpAction.getSpeed() < 0.001) {
-                            duration = 0.1f;
-                        } else {
-                            duration = wpAction.getPosition().distance(state.getPosition()) / (wpAction.getSpeed());
-                        }
-                        duration = 1;
-                        vel.scale(1f / (float) duration);
-                        int lane = highwayEnvironment.getRoadNetwork().getLaneNum(wpAction.getPosition());
-                        state = new RoadObject(carID, duration, lane, wpAction.getPosition(), vel);
-
-                    }
-               // }
-                radarData.add(state);
-            }
-            //send radar-data to storage with duration delay
-            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (duration * 1000)));
-        }*/
-        int qq=0;
+        //int qq=0;
        private void executePlans(PlansOut plans) {
-           System.out.println(++qq);
+          // System.out.println(++qq);
            Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
            RadarData radarData = new RadarData();
            float duration = 0;
@@ -170,7 +134,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                Point3f lastPosition = state.getPosition();
                Point3f myPosition = state.getPosition();
                for (Action action : plan) {
-                   //  Action action = plan.iterator().next();
                    if (action.getClass().equals(WPAction.class)) {
                        WPAction wpAction = (WPAction) action;
                        if (wpAction.getSpeed() < 0.001) {
@@ -180,21 +143,21 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                            lastDuration = (float)(wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed()));
                            duration += wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed());
                        }
-
+                       // crating point between the waipoints if my duration is greater than the defined timestep
                        if (duration >= timestep) {
-                           float dole = lastDuration;
-                           float nahore = timestep - (duration - lastDuration);
-                           float minus = nahore/dole;
+
+                           float remainingDuration = timestep - (duration - lastDuration);
+                           float ration = remainingDuration/lastDuration;
                            float x = myPosition.x - lastPosition.x;
                            float y = myPosition.y - lastPosition.y;
                            float z = myPosition.z - lastPosition.z;
                            Vector3f vek = new Vector3f(x,y,z);
-                           Vector3f kontrola = new Vector3f(x,y,z);
-                           vek.scale(minus);
-                           kontrola.normalize();
-                           kontrola.scale((float)wpAction.getSpeed());
-                           Point3f krkrk = new Point3f(vek.x + lastPosition.x,vek.y + lastPosition.y,vek.z + lastPosition.z);
-                           myPosition = krkrk;
+                         //  Vector3f kontrola = new Vector3f(x,y,z);
+                           vek.scale(ration);
+                           //kontrola.normalize();
+                           //kontrola.scale((float)wpAction.getSpeed());
+                           Point3f myPos = new Point3f(vek.x + lastPosition.x,vek.y + lastPosition.y,vek.z + lastPosition.z);
+                           myPosition = myPos;
                            break;
                        }
                        lastPosition = wpAction.getPosition();
@@ -205,13 +168,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                Vector3f vel = new Vector3f(state.getPosition());
                vel.negate();
                vel.add(myPosition);
-              // vel.scale(1f / (float) duration);
                int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
-               // ??
-               //if(duration < timestep)state = new RoadObject(carID, duration, lane, myPosition, vel);
-               /*else*/ state = new RoadObject(carID, timestep, lane, myPosition, vel);
-
-               System.out.println("Speed is " + state.getVelocity().length());
+               state = new RoadObject(carID,getEventProcessor().getCurrentTime(), lane, myPosition, vel);
                radarData.add(state);
                duration = 0;
            }
@@ -219,80 +177,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
        }
     }
-
-
-        int qqq =0;
-     /*  private void executePlans(PlansOut plans) {
-           System.out.println(qqq);
-           qqq++;
-           Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
-           RadarData radarData = new RadarData();
-           float duration = 0;
-           Integer timestep = (Integer)Configurator.getParam("highway.SimulatorLocal.timestep", Integer.class);
-           for (Integer carID : plans.getCarIds()) {
-               Collection<Action> plan = plans.getPlan(carID);
-               RoadObject state = currStates.get(carID);
-               Action action;
-               WPAction wpAction = null;
-               Vector3f vel = null;// = new Vector3f(state.getPosition());
-               Point3f lastPosition = state.getPosition();
-               Point3f myPosition = state.getPosition();
-               Iterator iterator = plan.iterator();
-               while(duration <= timestep)
-               {
-                   if(!iterator.hasNext()) {
-                       Point3f kraaaa = lastPosition;
-                       kraaaa.sub(state.getPosition());
-                       vel = new Vector3f(kraaaa);
-                       break;
-                   }
-                   action = (Action)iterator.next();
-                   if (action.getClass().equals(WPAction.class)) {
-                       wpAction = (WPAction) action;
-                       if (wpAction.getSpeed() < 0.001) {
-                           duration += 0.1f;
-                       } else {
-                           myPosition = wpAction.getPosition();
-                           duration += myPosition.distance(lastPosition) / (wpAction.getSpeed());
-                       }
-                       if(duration > timestep)
-                       {
-                           float minus = duration - timestep;
-                           float x = wpAction.getPosition().x - lastPosition.x;
-                           float y = wpAction.getPosition().y - lastPosition.y;
-                           float z = wpAction.getPosition().z - lastPosition.z;
-                           Vector3f vek = new Vector3f(x,y,z);
-                           vek.scale(minus);
-                           Point3f krkrk = new Point3f(vek.x + lastPosition.x,vek.y + lastPosition.y,vek.z + lastPosition.z);
-                          // vel.negate();
-                          // vel.add(krkrk);
-                           krkrk.sub(state.getPosition());
-                           vel = new Vector3f(krkrk);
-
-                           myPosition = krkrk;
-                       //    lastPosition = krkrk;
-                       }
-                       else
-                       {
-                           //vel.add(myPosition);
-                           lastPosition = myPosition;
-                       }
-                       // if(duration > )
-                       //vel.scale(1f); //TO DO, change to the config value
-                   }
-               }
-               int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
-               state = new RoadObject(carID, timestep, lane, myPosition, vel);
-               float speed = state.getVelocity().length();
-               System.out.println(speed);
-               radarData.add(state);
-               duration = 0;
-           }
-           highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
-       }*/
-    //}
-
-
     /// Map of all running simulator processes
     private Map<String, Process> simulators = new HashMap<String, Process>();
 
