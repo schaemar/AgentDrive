@@ -69,7 +69,10 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         public boolean isReady() {
             return plans.getCarIds().size() >= plannedVehicles.size();
         }
-
+        public int numberOfVehicles()
+        {
+            return plannedVehicles.size();
+        }
         public void sendPlans(Map<Integer, RoadObject> vehicleStates) {
             RadarData radarData = new RadarData();
 
@@ -84,6 +87,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             try {
                 factory.send(plans);
                 factory.send(radarData);
+                System.out.println("po zpracování " + System.currentTimeMillis());
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -113,45 +118,65 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             // Finally send plans and updates
 
             executePlans(plans);
-
-
             plans.clear();
         }
+        //int qq=0;
+       private void executePlans(PlansOut plans) {
+          // System.out.println(++qq);
+           Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
+           RadarData radarData = new RadarData();
+           float duration = 0;
+           float lastDuration = 0;
+           Integer timestep = (Integer)Configurator.getParam("highway.SimulatorLocal.timestep", Integer.class);
+           for (Integer carID : plans.getCarIds()) {
+               Collection<Action> plan = plans.getPlan(carID);
+               RoadObject state = currStates.get(carID);
+               Point3f lastPosition = state.getPosition();
+               Point3f myPosition = state.getPosition();
+               for (Action action : plan) {
+                   if (action.getClass().equals(WPAction.class)) {
+                       WPAction wpAction = (WPAction) action;
+                       if (wpAction.getSpeed() < 0.001) {
+                           duration += 0.1f;
+                       } else {
+                           myPosition = wpAction.getPosition();
+                           lastDuration = (float)(wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed()));
+                           duration += wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed());
+                       }
+                       // crating point between the waipoints if my duration is greater than the defined timestep
+                       if (duration >= timestep) {
 
-        private void executePlans(PlansOut plans) {
-            Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
-            RadarData radarData = new RadarData();
-            double duration = 0;
-            for (Integer carID : plans.getCarIds()) {
-                Collection<Action> plan = plans.getPlan(carID);
-                RoadObject state = currStates.get(carID);
-                for (Action action : plan) {
-                    if (action.getClass().equals(WPAction.class)) {
-                        WPAction wpAction = (WPAction) action;
+                           float remainingDuration = timestep - (duration - lastDuration);
+                           float ration = remainingDuration/lastDuration;
+                           float x = myPosition.x - lastPosition.x;
+                           float y = myPosition.y - lastPosition.y;
+                           float z = myPosition.z - lastPosition.z;
+                           Vector3f vek = new Vector3f(x,y,z);
+                         //  Vector3f kontrola = new Vector3f(x,y,z);
+                           vek.scale(ration);
+                           //kontrola.normalize();
+                           //kontrola.scale((float)wpAction.getSpeed());
+                           Point3f myPos = new Point3f(vek.x + lastPosition.x,vek.y + lastPosition.y,vek.z + lastPosition.z);
+                           myPosition = myPos;
+                           break;
+                       }
+                       lastPosition = wpAction.getPosition();
+                   }
 
-                        Vector3f vel = new Vector3f(state.getPosition());
-                        vel.negate();
-                        vel.add(wpAction.getPosition());
+               }
 
-                        if (wpAction.getSpeed() < 0.001) {
-                            duration = 0.1f;
-                        } else {
-                            duration = wpAction.getPosition().distance(state.getPosition()) / (wpAction.getSpeed());
-                        }
-                        vel.scale(1f / (float) duration);
-                        int lane = highwayEnvironment.getRoadNetwork().getLaneNum(wpAction.getPosition());
-                        state = new RoadObject(carID, duration, lane, wpAction.getPosition(), vel);
-
-                    }
-                }
-                radarData.add(state);
-            }
-            //send radar-data to storage with duration delay
-            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (duration * 1000)));
-        }
+               Vector3f vel = new Vector3f(state.getPosition());
+               vel.negate();
+               vel.add(myPosition);
+               int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
+               state = new RoadObject(carID,getEventProcessor().getCurrentTime(), lane, myPosition, vel);
+               radarData.add(state);
+               duration = 0;
+           }
+           //send radar-data to storage with duration delay
+           highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
+       }
     }
-
-
     /// Map of all running simulator processes
     private Map<String, Process> simulators = new HashMap<String, Process>();
 
@@ -268,7 +293,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
 
 
                     if (i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
-                        logger.info("OndraTest - created car " + new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
+                      //  logger.info("OndraTest - created car " + new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
@@ -350,7 +375,9 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
     public EventProcessor getEventProcessor() {
         return simulation;
     }
-
+    long timeDifference;
+    int numberOfPlanCalculations = 0;
+    long suma =0;
     @Override
     public void handleEvent(Event event) {
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
@@ -364,10 +391,34 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     handler.addActions(id, actions);
                 }
                 if (handler.isReady()) {
+                    double fTimeStamp = actions.get(0).getTimeStamp();
+                    int abc = 1;
+                    for(Action a : actions)
+                    {
+                        if(a.getTimeStamp() != fTimeStamp)
+                        {
+                            abc++;
+                        }
+                    }
+                    numberOfPlanCalculations++;
+                  /*System.out.println("Daný plán se skládá s " + abc + " updatů");
+                    long diffatime = System.currentTimeMillis() - timeDifference;
+                    System.out.println("Čas výpočtu je " + diffatime);
+                    suma += diffatime;
+                    double abcd = (double)suma / numberOfPlanCalculations;
+                    System.out.println("Průměrný plán " + abcd);
+                    System.out.println("Odchozí čas je " + System.currentTimeMillis()); */
                     handler.sendPlans(highwayEnvironment.getStorage().getPosCurr());
+
                 }
             }
         }
+        else if(event.isType(HighwayEventType.UPDATED)){
+      //      System.out.print("došel nový plán ");
+      //      System.out.println("Aktuální čas je time je " + System.currentTimeMillis());
+            timeDifference = System.currentTimeMillis();
+        }
+
     }
 
     /**
