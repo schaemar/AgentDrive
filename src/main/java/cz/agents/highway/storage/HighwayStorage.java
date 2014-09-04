@@ -65,9 +65,9 @@ public class HighwayStorage extends EventBasedStorage {
             agent = new SDAgent(id);
         } else if (agentClassName.equals("ORCAAgent")) {
             agent = new ORCAAgent(id);
-        }else if (agentClassName.equals("test")) {
+        }/*else if (agentClassName.equals("test")) {
             agent = new testAgent(id);
-        }
+        }*/
 
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
         VehicleActuator actuator = new VehicleActuator(getEnvironment(), agent, this);
