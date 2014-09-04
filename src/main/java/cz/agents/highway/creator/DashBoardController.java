@@ -401,21 +401,21 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         }
                     }
                     numberOfPlanCalculations++;
-                    System.out.println("Daný plán se skládá s " + abc + " updatů");
+                  /*System.out.println("Daný plán se skládá s " + abc + " updatů");
                     long diffatime = System.currentTimeMillis() - timeDifference;
                     System.out.println("Čas výpočtu je " + diffatime);
                     suma += diffatime;
                     double abcd = (double)suma / numberOfPlanCalculations;
                     System.out.println("Průměrný plán " + abcd);
-                    System.out.println("Odchozí čas je " + System.currentTimeMillis());
+                    System.out.println("Odchozí čas je " + System.currentTimeMillis()); */
                     handler.sendPlans(highwayEnvironment.getStorage().getPosCurr());
 
                 }
             }
         }
         else if(event.isType(HighwayEventType.UPDATED)){
-            System.out.print("došel nový plán ");
-            System.out.println("Aktuální čas je time je " + System.currentTimeMillis());
+      //      System.out.print("došel nový plán ");
+      //      System.out.println("Aktuální čas je time je " + System.currentTimeMillis());
             timeDifference = System.currentTimeMillis();
         }
 
