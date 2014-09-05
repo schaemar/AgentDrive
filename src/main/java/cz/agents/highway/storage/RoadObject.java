@@ -11,10 +11,10 @@ public class RoadObject {
     private Vector3f velocity;
     private int lane = -1;
 
-    public RoadObject(int id, double updateTime, int lane, Point3f position, Vector3f velocity) {
+    public RoadObject(int id, double updateTime, int laneIndex, Point3f position, Vector3f velocity) {
         this.id = id;
         this.updateTime = updateTime;
-        this.lane = lane;
+        this.lane = laneIndex;
         this.position = position;
         this.velocity = velocity;
 
@@ -32,7 +32,7 @@ public class RoadObject {
         return updateTime;
     }
 
-    public int getLane() {
+    public int getLaneIndex() {
         return lane;
     }
 

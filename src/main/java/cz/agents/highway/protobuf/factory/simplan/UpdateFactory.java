@@ -32,7 +32,7 @@ public class UpdateFactory implements FactoryInterface<RadarData, Message> {
                 Vector position = Vector.newBuilder().setX(pos.x).setY(pos.y).setZ(pos.z).build();
                 Vector velocity = Vector.newBuilder().setX(v.x).setY(v.y).setZ(v.z).build();
 
-                veh_builder.setVehicleId(car.getId()).setLane(car.getLane()).setVelocity(velocity);
+                veh_builder.setVehicleId(car.getId()).setLane(car.getLaneIndex()).setVelocity(velocity);
                 veh_builder.setAcceleration(0).setPosition(position);
 
                 // updateTime

@@ -33,7 +33,7 @@ public class DLR_UpdateFactory implements FactoryInterface<RadarData, Message> {
                 veh_builder.setPosX(pos.x).setPosY(pos.y).setPosZ(pos.z);
 
                 //TODO hacked lane = lane + 1 to meet dlr lane indexing - check DLR_PlansFactory.java too
-                veh_builder.setVehicleId(car.getId()).setLane(car.getLane()+1).setVelocityX(v.x).setVelocityY(v.y);
+                veh_builder.setVehicleId(car.getId()).setLane(car.getLaneIndex()+1).setVelocityX(v.x).setVelocityY(v.y);
 
                 // updateTime
                 updateTime = (float) Math.min(updateTime, car.getUpdateTime());

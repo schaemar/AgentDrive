@@ -1,38 +1,59 @@
 package cz.agents.highway.agent;
 
-import cz.agents.alite.common.event.Event;
-import cz.agents.highway.storage.HighwayEventType;
+import cz.agents.highway.environment.HighwayEnvironment;
+import cz.agents.highway.environment.roadnet.Edge;
+import cz.agents.highway.environment.roadnet.Lane;
+import cz.agents.highway.maneuver.HighwaySituation;
 import cz.agents.highway.storage.RoadObject;
-import cz.agents.highway.storage.VehicleSensor;
-import cz.agents.highway.storage.plan.Action;
-import cz.agents.highway.storage.plan.WPAction;
 
-import javax.vecmath.Point3f;
-import java.util.List;
+import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
 
 /**
  * Created by david on 26.8.14.
  */
-public class testAgent extends Agent {
-    public testAgent(int id) {
+public class testAgent extends SDAgent {
+    private HighwayEnvironment highwayEnvironment;
+    private Edge myEdge;
+    private Lane myLane;
+
+    public testAgent(int id, HighwayEnvironment hgw) {
         super(id);
+        this.highwayEnvironment = hgw;
     }
-    public void addSensor(final VehicleSensor sensor) {
-        this.sensor = sensor;
-        this.sensor.registerReaction(new Reaction() {
-            public void react(Event event) {
-                if (event.getType().equals(HighwayEventType.UPDATED)) {
-                    actuator.act(agentReact());
-                }
+
+    @Override
+    public HighwaySituation generateSS(RoadObject state, Collection<RoadObject> cars, long from, long to) {
+        HighwaySituation situationPrediction = new HighwaySituation();
+
+        logger.debug("GenerateSS:");
+        Collection<RoadObject> nearCars = new Vector<RoadObject>();
+        // TO OPTIMIZE
+        myLane = highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
+        myEdge = myLane.getEdge();
+
+       // String myLane = state.getPosition();
+        for (RoadObject entry : cars) {
+
+            if(entry.getPosition().distance(state.getPosition()) > 30)
+            {
+                continue;
             }
-        });
-    }
-        protected Action agentReact () {
-            RoadObject me = sensor.senseCurrentState();
-            if (me == null) {
-                return new WPAction(id, 0d, getInitialPosition(), 0);
+            else
+            {
+                nearCars.add(entry);
             }
-            return new WPAction(sensor.getId(), me.getUpdateTime(),
-                    new Point3f(0, 0, me.getPosition().z), 80);
         }
+        Lane testLane;
+        for(RoadObject entry : nearCars)
+        {
+             testLane = highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
+        }
+
+        return null;
     }
+
+
+}

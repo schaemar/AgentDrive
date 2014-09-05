@@ -99,4 +99,7 @@ highway {
             width = 1;
         }
     }
+    SimulatorLocal{
+        timestep=1;
+    }
 }
