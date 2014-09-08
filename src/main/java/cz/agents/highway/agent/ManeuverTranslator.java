@@ -113,7 +113,7 @@ public class ManeuverTranslator {
      * @param velocity   Velocity vector
      * @return
      */
-    private boolean pointCloseEnough(Point2f innerPoint, Point2f position, Vector2f velocity) {
+    public boolean pointCloseEnough(Point2f innerPoint, Point2f position, Vector2f velocity) {
         // Direction vector of waypoint candidate relative to position
         Vector2f direction = new Vector2f();
         direction.sub(innerPoint, position);

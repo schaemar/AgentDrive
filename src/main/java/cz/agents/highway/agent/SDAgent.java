@@ -40,7 +40,7 @@ public class SDAgent extends Agent {
     private static final int    NUM_OF_LANES            =    1;
 
     private CarManeuver currentManeuver = null;
-    private final ManeuverTranslator maneuverTranslator;
+    protected final ManeuverTranslator maneuverTranslator;
 
     // maximal speed after variance application
     private final double initialMaximalSpeed = (RandomProvider.getRandom().nextDouble() - 0.5) * 2 *MAX_SPEED_VARIANCE * MAX_SPEED  + MAX_SPEED;
@@ -128,11 +128,11 @@ public class SDAgent extends Agent {
             }
         } else { // Not narrowingMode
             //performing changing lane?
-            if(currentManeuver !=null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
-                maneuver = left;
-            }
-            else if(currentManeuver !=null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
+            if(currentManeuver !=null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
                 maneuver = right;
+            }
+            else if(currentManeuver !=null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
+                maneuver = left;
             }
             else{
 
@@ -220,7 +220,7 @@ public class SDAgent extends Agent {
         return true;
     }
 
-    private double getDistance(RoadObject state) {
+    protected double getDistance(RoadObject state) {
         return transGeoToDistance(state.getPosition());
     }
 

@@ -120,9 +120,9 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             executePlans(plans);
             plans.clear();
         }
-        //int qq=0;
+        int qq=0;
        private void executePlans(PlansOut plans) {
-          // System.out.println(++qq);
+           System.out.println(++qq);
            Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
            RadarData radarData = new RadarData();
            float duration = 0;
