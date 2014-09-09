@@ -5,9 +5,9 @@ highway {
     timestep = 10; //ms               //not relevant
 
 //    agent = "SDAgent";
-//   agent = "RouteAgent";
+   agent = "RouteAgent";
 //    agent = "ORCAAgent";
-   agent = "test";
+//   agent = "test";
 
     net {
 //        folder = "nets/kosik/";
@@ -15,7 +15,7 @@ highway {
       folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
 //        folder = "nets/highway-straight/";
- //        folder = "nets/test90/";
+     //   folder = "nets/test90/";
     }
     safeDistanceAgent {
         safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
@@ -89,8 +89,8 @@ highway {
 
         }
 
-        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
- //      simulatorsToRun = ["SimulatorLite"];
+ //       simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+       simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //        simulatorsToRun = ["Empty"];
     }
