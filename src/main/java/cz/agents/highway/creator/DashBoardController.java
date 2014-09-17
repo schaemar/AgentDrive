@@ -87,7 +87,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             try {
                 factory.send(plans);
                 factory.send(radarData);
-                System.out.println("po zpracování " + System.currentTimeMillis());
+              //  System.out.println("po zpracování " + System.currentTimeMillis());
 
             } catch (IOException e) {
                 e.printStackTrace();

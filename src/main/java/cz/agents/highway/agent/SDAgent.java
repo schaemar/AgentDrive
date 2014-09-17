@@ -27,7 +27,7 @@ import cz.agents.highway.storage.plan.ManeuverAction;
 
 public class SDAgent extends Agent {
 
-	protected static final Logger logger = Logger.getLogger(SDAgent.class);
+    protected static final Logger logger = Logger.getLogger(SDAgent.class);
 
     private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
     private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance",   4.0  );
@@ -37,7 +37,7 @@ public class SDAgent extends Agent {
     private final static double LANE_SPEED_RATIO        = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio",            0.1);
     private final static long   PLANNING_TIME           = 1000;
     //FIXME: Determine number of lanes based on agent's current position
-    private static final int    NUM_OF_LANES            =    1;
+    protected int num_of_lines;
 
     private CarManeuver currentManeuver = null;
     protected final ManeuverTranslator maneuverTranslator;
@@ -61,6 +61,7 @@ public class SDAgent extends Agent {
     public SDAgent(int id) {
         super(id);
         maneuverTranslator = new ManeuverTranslator(id, navigator);
+       num_of_lines = 1;
     }
 
     public void addSensor(final VehicleSensor sensor) {
@@ -89,7 +90,6 @@ public class SDAgent extends Agent {
         if (currState == null) {
             return null;
         }
-
         logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
         logger.debug("Situation: " + situationPrediction);
@@ -128,11 +128,11 @@ public class SDAgent extends Agent {
             }
         } else { // Not narrowingMode
             //performing changing lane?
-            if(currentManeuver !=null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
-                maneuver = right;
-            }
-            else if(currentManeuver !=null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
+            if(currentManeuver !=null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
                 maneuver = left;
+            }
+            else if(currentManeuver !=null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
+                maneuver = right;
             }
             else{
 
@@ -153,7 +153,7 @@ public class SDAgent extends Agent {
                 }
             }
         }
-        logger.info("Planned maneuver: "+maneuver);
+        logger.info("Planned maneuver for carID " + currState.getId() + " " +maneuver);
         currentManeuver = maneuver;
         return maneuver;
     }
@@ -161,9 +161,9 @@ public class SDAgent extends Agent {
     private double transGeoToDistance(double x, double y) {
         return sensor.getRoadDescription().distance(new Point2d(x, y));
     }
-    private double transGeoToDistance(Point3f position) {
+    protected double transGeoToDistance(Point3f position) {
         return transGeoToDistance(position.x, position.y);
-     }
+    }
 
     private int getPreferredLane(RoadObject startNode) {
         // double dist = getDistance(startNode);
@@ -232,7 +232,7 @@ public class SDAgent extends Agent {
             return false;
         }
         if (isRulesCollision(man)) {
-        	if(id ==2) logger.info("Rules Collision detected! " + man);
+            if(id ==2) logger.info("Rules Collision detected! " + man);
             return false;
 
         }
@@ -246,20 +246,20 @@ public class SDAgent extends Agent {
 
             return isInSafeDistance(situation.getCarAheadMan(), man)// sufficient if not narrowing
                     && (!narrowingMode || (isInSafeDistance(situation.getCarLeftAheadMan(), man) || (situation
-                            .getCarLeftAheadMan() != null && situation.getCarLeftAheadMan()
-                            .getVelocityOut() == 0.0)) // if narrowingMode check also cars in left
-                                                       // lane
-                            && (!narrowingMode || (isInSafeDistance(
-                                    situation.getCarRightAheadMan(), man) || (situation
-                                    .getCarRightAheadMan() != null && situation
-                                    .getCarRightAheadMan().getVelocityOut() == 0.0))));// if
-                                                                                       // narrowingMode
-                                                                                       // check also
-                                                                                       // cars in
-                                                                                       // right lane
+                    .getCarLeftAheadMan() != null && situation.getCarLeftAheadMan()
+                    .getVelocityOut() == 0.0)) // if narrowingMode check also cars in left
+                    // lane
+                    && (!narrowingMode || (isInSafeDistance(
+                    situation.getCarRightAheadMan(), man) || (situation
+                    .getCarRightAheadMan() != null && situation
+                    .getCarRightAheadMan().getVelocityOut() == 0.0))));// if
+            // narrowingMode
+            // check also
+            // cars in
+            // right lane
 
         } else if (man.getClass().equals(LaneLeftManeuver.class)) {
-        	if(id ==2) logger.info("LEFT_MAN_OUTPUT: " + isInSafeDistance(situation.getCarLeftAheadMan(), man)
+            if(id ==2) logger.info("LEFT_MAN_OUTPUT: " + isInSafeDistance(situation.getCarLeftAheadMan(), man)
                     + " " + isInSafeDistance(man, situation.getCarLeftMan()));
             return isInSafeDistance(situation.getCarLeftAheadMan(), man)
                     && isInSafeDistance(man, situation.getCarLeftMan());
@@ -318,7 +318,7 @@ public class SDAgent extends Agent {
     }
 
     public ArrayList<CarManeuver> getStatespace(RoadObject state) {
-    	Collection<RoadObject> cars = sensor.senseCars();
+        Collection<RoadObject> cars = sensor.senseCars();
         long planningStartTime = sensor.getEventProcessor().getCurrentTime();
         ArrayList<CarManeuver> stateSpace = generateSS(state, cars, planningStartTime, planningStartTime + PLANNING_TIME);
         return stateSpace;
@@ -407,7 +407,7 @@ public class SDAgent extends Agent {
     }
 
     private boolean laneChange(CarManeuver carManeuver){
-    	return carManeuver.getClass().equals(LaneLeftManeuver.class) || carManeuver.getClass().equals(LaneRightManeuver.class);
+        return carManeuver.getClass().equals(LaneLeftManeuver.class) || carManeuver.getClass().equals(LaneRightManeuver.class);
     }
 
     private boolean isRulesCollision(CarManeuver carManeuver) {
@@ -419,11 +419,11 @@ public class SDAgent extends Agent {
         }
 
 
-            // TODO check - observed that StraightManeuver accelerates vehicle
+        // TODO check - observed that StraightManeuver accelerates vehicle
         //if(carManeuver.getClass().equals(AccelerationManeuver.class) || carManeuver.getClass().equals(StraManeuver.class)){
-    		double laneMaxSpeed = maximalSpeed + carManeuver.getLaneIn() * LANE_SPEED_RATIO * maximalSpeed;
-    		logger.info("laneMasSpeed= "+laneMaxSpeed +" maximalSpeed="+maximalSpeed+" speedVariance="+MAX_SPEED_VARIANCE+ " MAX_SPEED conf = "+MAX_SPEED);
-    		return carManeuver.getVelocityOut() > laneMaxSpeed;
+        double laneMaxSpeed = maximalSpeed + carManeuver.getLaneIn() * LANE_SPEED_RATIO * maximalSpeed;
+        logger.info("laneMasSpeed= "+laneMaxSpeed +" maximalSpeed="+maximalSpeed+" speedVariance="+MAX_SPEED_VARIANCE+ " MAX_SPEED conf = "+MAX_SPEED);
+        return carManeuver.getVelocityOut() > laneMaxSpeed;
 
 //    	boolean ret = false;
 
@@ -448,7 +448,7 @@ public class SDAgent extends Agent {
             logger.debug("LaneOut= " + laneOut);
             return false;
         }
-        if (laneOut > NUM_OF_LANES) {
+        if (laneOut >= num_of_lines) {
             logger.debug("laneOut = " + laneOut);
             return false;
         }

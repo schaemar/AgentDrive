@@ -218,4 +218,12 @@ public class RouteNavigator {
     {
         return  agentLane.getLaneId();
     }
+    public Lane getLane()
+    {
+        return agentLane;
+    }
+    public int getActualPointer()
+    {
+        return pointPtr;
+    }
 }
