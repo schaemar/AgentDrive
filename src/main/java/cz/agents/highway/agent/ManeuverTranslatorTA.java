@@ -52,6 +52,7 @@ public class ManeuverTranslatorTA {
             LinkedList<Action> actions = new LinkedList<Action>();
             Point2f initial = navigator.getInitialPosition();
             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
+
             return  actions;
         }
         RoadObject me = sensor.senseCurrentState();
@@ -76,7 +77,6 @@ public class ManeuverTranslatorTA {
     private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver,Lane myLane) {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
-        int nearestWaipoint = getNearestWaipointIndex(me, myLane);
 
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
@@ -191,8 +191,14 @@ public class ManeuverTranslatorTA {
         Vector2f direction = new Vector2f();
         direction.sub(innerPoint, position);
 
-        return  velocity.angle(direction) < MAX_ANGLE &&
-                distance(innerPoint, position, direction, velocity) < RADIUS;
+        if(velocity.x == 0 && velocity.y == 0)
+        {
+            return  innerPoint.distance(position) < 3;
+        }
+        else {
+            return velocity.angle(direction) < MAX_ANGLE &&
+                    distance(innerPoint, position, direction, velocity) < RADIUS;
+        }
     }
 
     /**

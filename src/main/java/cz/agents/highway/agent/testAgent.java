@@ -5,9 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
+import javax.vecmath.*;
 
 import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
@@ -506,16 +504,19 @@ public class testAgent extends Agent {
         for(RoadObject entry : nearCars)
         {
             testLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
-            ArrayList<CarManeuver> predictedManeuvers = getPlannedManeuvers(state,myLane,entry,testLane, from, to);
-            situationPrediction.addAll(predictedManeuvers);
-
-            CarManeuver man = predictedManeuvers.get(0);
-
             if(!testLane.getEdge().equals(myEdge))
             {
                 // System.out.println("abeceda"); // TODO situation where car is in the different road
                 continue;
             }
+            logger.info("Checking this entry "+entry);
+
+            ArrayList<CarManeuver> predictedManeuvers = getPlannedManeuvers(state,myLane,entry,testLane, from, to);
+            situationPrediction.addAll(predictedManeuvers);
+
+            CarManeuver man = predictedManeuvers.get(0);
+
+
             if(myLane.getLaneId().equals(testLane.getLaneId())) {
                 int mamamamamia = getNearestWaipointIndex(entry,testLane);
                 if(mamamamamia > myIndexOnRoute)
@@ -564,6 +565,8 @@ public class testAgent extends Agent {
                 break;
             }
         }
+        if(myIndexOnRoute >= myLane.getInnerPoints().size()) myIndexOnRoute=myLane.getInnerPoints().size()-1;
+        logger.debug("nearest waipoint id " + myIndexOnRoute);
         return  myIndexOnRoute;
     }
     public float diss(Point2f innerPoint, Point2f position) {
@@ -575,7 +578,6 @@ public class testAgent extends Agent {
 
         ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();
         // TODO add a part of plan that is between from and to
-        // TODO change myself to the point zero
         CarManeuver lastManeuver;
         lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane), (long) (car.getUpdateTime() * 1000));
         plan.add(lastManeuver);
@@ -622,23 +624,71 @@ public class testAgent extends Agent {
     {
         int nearestA= getNearestWaipointIndex(me,myLane);
         int nearestB= getNearestWaipointIndex(other,otherLane);
+        int nearestAa = getNearestWaipointCloseEnough(me,myLane);
+        int nearestBa = getNearestWaipointCloseEnough(other,otherLane);
+        Edge myEdg = myLane.getEdge();
+        Edge his = otherLane.getEdge();
         double distance =0;
+        //TODO Code duplicity
+        if(nearestA >= myLane.getInnerPoints().size())
+        {
+            System.out.println("Problem Problem Problem");
+        }
+        if(nearestB >= otherLane.getInnerPoints().size())
+        {
+            System.out.println("Problem Problem Problem2");
+        }
+        int maxSize =0;
+        if(myLane.getInnerPoints().size() < otherLane.getInnerPoints().size())
+        {
+            maxSize = myLane.getInnerPoints().size();
+        }
+        else
+        {
+            maxSize = otherLane.getInnerPoints().size();
+        }
         if(nearestA < nearestB)// car is ahead
         {
-            for(int i=nearestA+1;i<=nearestB;i++)
+            for(int i=nearestA+1;i<=nearestB && i<maxSize;i++)
             {
                 distance+=myLane.getInnerPoints().get(i-1).distance(myLane.getInnerPoints().get(i));
             }
             return distance;
         }
-        else
+        else if(nearestA > nearestB)
         {
-            for(int i=nearestB+1;i<=nearestA;i++)
+            for(int i=nearestB+1;i<=nearestA && i<maxSize;i++)
             {
                 distance+=myLane.getInnerPoints().get(i-1).distance(myLane.getInnerPoints().get(i));
             }
             return -distance;
         }
+        else
+            return  0;
+    }
+    public int getNearestWaipointCloseEnough(RoadObject me,Lane myLane)
+    {
+        Point2f myPosition = convertPoint3ftoPoint2f(me.getPosition());
+        Point2f innerPoint = myLane.getInnerPoints().get(0);
+        int i=0;
+        while((!maneuverTranslatorTA.pointCloseEnough(innerPoint,myPosition,convertVector3ftoVector2f(me.getVelocity())) && i<myLane.getInnerPoints().size()))
+        {
+
+            innerPoint = myLane.getInnerPoints().get(i);
+            i++;
+
+        }
+        //TODO FIX THIS
+        if(i >= myLane.getInnerPoints().size())i=myLane.getInnerPoints().size()-1;
+        return i;
+    }
+    public Point2f convertPoint3ftoPoint2f(Point3f point)
+    {
+        return new Point2f(point.x,point.y);
+    }
+    public Vector2f convertVector3ftoVector2f(Vector3f vec)
+    {
+        return new Vector2f(vec.x,vec.y);
     }
 
 }

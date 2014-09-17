@@ -47,7 +47,8 @@ public class Agent extends Entity {
     }
 
     public Vector3f getInitialVelocity(){
-        return new Vector3f(1, 1, 0);
+       // return new Vector3f(1, 1, 0);
+        return navigator.getInitialVelocity();
     }
 
 }

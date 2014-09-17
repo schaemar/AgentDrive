@@ -122,6 +122,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         }
         int qq=0;
        private void executePlans(PlansOut plans) {
+           logger.debug(++qq);
            System.out.println(++qq);
            Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
            RadarData radarData = new RadarData();
