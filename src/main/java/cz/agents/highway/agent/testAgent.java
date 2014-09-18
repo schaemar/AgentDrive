@@ -40,6 +40,7 @@ public class testAgent extends Agent {
 
     private final static double LANE_SPEED_RATIO        = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio",            0.1);
     private final static long   PLANNING_TIME           = 1000;
+    private final static int CIRCLE_AROUND_FOR_SEARCH = 5;
     //FIXME: Determine number of lanes based on agent's current position
     protected int num_of_lines;
 
@@ -565,7 +566,7 @@ public class testAgent extends Agent {
         int myIndexOnRoute = 0;
 
         float test = distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y));
-        while(distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y))  > 5) // Magical value
+        while(distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y))  > CIRCLE_AROUND_FOR_SEARCH) // Magical value
         {
             myIndexOnRoute++;  //TODO fix this
             if(myLane.getInnerPoints().size() == myIndexOnRoute)
@@ -574,7 +575,7 @@ public class testAgent extends Agent {
                 break;
             }
         }
-        while(distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y))  <= 5)
+        while(distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y))  <= CIRCLE_AROUND_FOR_SEARCH)
         {
             myIndexOnRoute++;  //TODO fix this
             if(myLane.getInnerPoints().size() == myIndexOnRoute)
