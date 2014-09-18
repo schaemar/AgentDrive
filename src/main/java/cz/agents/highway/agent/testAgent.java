@@ -91,7 +91,8 @@ public class testAgent extends Agent {
             situationPrediction.add(man);
         }
     }
-
+    long time = -1;
+    boolean test = true;
     public CarManeuver plan() {
         CarManeuver maneuver = null;
         RoadObject currState = sensor.senseCurrentState();
@@ -162,9 +163,18 @@ public class testAgent extends Agent {
                 }
             }
         }
-        if(currState.getId() == 1 && navigator.getActualPointer() > 120)
+        if(currState.getId() == 3 && navigator.getActualPointer() > 120)
         {
             maneuver = dec;
+        }
+        if(currState.getId() == 1 && navigator.getActualPointer() > 140 && test)
+        {
+            maneuver = dec;
+            if(time==-1) time= System.currentTimeMillis();
+            if(System.currentTimeMillis() - time > 50000)
+            {
+                test = false;
+            }
         }
         logger.info("Planned maneuver for carID " + currState.getId() + " " +maneuver);
         currentManeuver = maneuver;
@@ -487,7 +497,7 @@ public class testAgent extends Agent {
 
         for (RoadObject entry : cars) {
 
-            if(entry.getPosition().distance(state.getPosition()) > 20 || state.getPosition().equals(entry.getPosition()))
+            if(entry.getPosition().distance(state.getPosition()) > 100 || state.getPosition().equals(entry.getPosition()))
             {
                 continue;
             }
@@ -620,6 +630,16 @@ public class testAgent extends Agent {
 
         return plan;
     }
+
+    /**
+     * Distance betwenn two road objects is calculated by finding two nearest waipoints of the cars and distance between them,
+     * on the "same" line.
+     * @param me
+     * @param myLane
+     * @param other
+     * @param otherLane
+     * @return
+     */
     private double getDistanceBetweenTwoRoadObjects(RoadObject me,Lane myLane,RoadObject other,Lane otherLane)
     {
         int nearestA= getNearestWaipointIndex(me,myLane);
@@ -629,17 +649,9 @@ public class testAgent extends Agent {
         Edge myEdg = myLane.getEdge();
         Edge his = otherLane.getEdge();
         double distance =0;
-        //TODO Code duplicity
-        if(nearestA >= myLane.getInnerPoints().size())
-        {
-            System.out.println("Problem Problem Problem");
-        }
-        if(nearestB >= otherLane.getInnerPoints().size())
-        {
-            System.out.println("Problem Problem Problem2");
-        }
         int maxSize =0;
-        if(myLane.getInnerPoints().size() < otherLane.getInnerPoints().size())
+        if(myLane.getInnerPoints().size() < otherLane.getInnerPoints().size())  //two lines in the same edge with diferent number of waipoints, typicaly in curves
+
         {
             maxSize = myLane.getInnerPoints().size();
         }

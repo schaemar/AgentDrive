@@ -22,7 +22,7 @@ import java.util.ArrayList;
  */
 public class RouteAgent extends Agent {
     ///
-    private static final float WAYPOINT_DISTANCE = 3.0f;
+    private static final float WAYPOINT_DISTANCE = 3.0f; // Does not exactly corespond to the actual waipoint distance, used to make circle around the car
     private static float MAX_SPEED = 20;
 
     private static final float WP_COUNT_CONST = 0.2f;

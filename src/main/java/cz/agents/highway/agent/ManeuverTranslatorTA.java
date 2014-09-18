@@ -28,7 +28,7 @@ public class ManeuverTranslatorTA {
 
     private static final int TRY_COUNT = 10;
 
-    private static final float WAYPOINT_DISTANCE = 3.0f;
+    private static final float WAYPOINT_DISTANCE = 3.0f;  // Does not exactly corespond to the actual waipoint distance, used to make circle around the car
     private static float MAX_SPEED = 20;
     private double lastUpateTime;
 
@@ -108,10 +108,16 @@ public class ManeuverTranslatorTA {
             }while(position2D.distance(navigator.getRoutePoint())  < initialPos);
 
         }
+
         // waipoint not found, reset back
         if( navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2 && navigator.getUniqueLaneIndex().equals(uniqueIndex)){
             navigator.resetToCheckpoint();
         }else {
+            //jump three waipoints
+            navigator.advanceInRoute();
+            navigator.advanceInRoute();
+            navigator.advanceInRoute();
+
             navigator.setCheckpoint();
         }
 
@@ -210,37 +216,5 @@ public class ManeuverTranslatorTA {
     private float distance(Point2f innerPoint, Point2f position, Vector2f direction, Vector2f velocity) {
         float d = innerPoint.distance(position);
         return d*d*Math.abs((float)Math.sin(direction.angle(velocity))+EPSILON);
-    }
-    // TODO FIX CODE DUPLICATE WITH testAgent and close enough
-    private int getNearestWaipointIndex(RoadObject state,Lane myLane)
-    {
-        int myIndexOnRoute = 0;
-
-        // while(!maneuverTranslator.pointCloseEnough(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y),new Vector2f(state.getVelocity().x,state.getVelocity().y)))
-        float test = diss(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y));
-        while(diss(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y))  > 5) // Magical value
-        {
-            myIndexOnRoute++;  //TODO fix this
-            if(myLane.getInnerPoints().size() == myIndexOnRoute)
-            {
-                myIndexOnRoute--;
-                break;
-            }
-        }
-        while(diss(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y))  <= 5)
-        {
-            myIndexOnRoute++;  //TODO fix this
-            if(myLane.getInnerPoints().size() == myIndexOnRoute)
-            {
-                myIndexOnRoute--;
-                break;
-            }
-        }
-        return  myIndexOnRoute;
-    }
-    // TODO FIX CODE DUPLICATE WITH testAgent
-    public float diss(Point2f innerPoint, Point2f position) {
-        return innerPoint.distance(position);
-
     }
 }
