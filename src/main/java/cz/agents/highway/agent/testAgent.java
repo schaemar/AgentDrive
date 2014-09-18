@@ -163,6 +163,7 @@ public class testAgent extends Agent {
                 }
             }
         }
+        //testing scenario
         if(currState.getId() == 3 && navigator.getActualPointer() > 120)
         {
             maneuver = dec;
@@ -486,15 +487,13 @@ public class testAgent extends Agent {
 
         logger.debug("GenerateSS:");
         Collection<RoadObject> nearCars = new Vector<RoadObject>();
-        // TO OPTIMIZE
-      //  myLane =  highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
-     //   myEdge = myLane.getEdge();
 
         myLane = navigator.getLane();
         myEdge = myLane.getEdge();
         num_of_lines = myEdge.getLanes().size();
         int myIndexOnRoute=getNearestWaipointIndex(state,myLane);
 
+        //removing too far cars and myself from the collection
         for (RoadObject entry : cars) {
 
             if(entry.getPosition().distance(state.getPosition()) > 100 || state.getPosition().equals(entry.getPosition()))
@@ -506,42 +505,42 @@ public class testAgent extends Agent {
                 nearCars.add(entry);
             }
         }
+        //adding my prediction to the collection
         situationPrediction.addAll(getPlannedManeuvers(state, from, to));
 
-        Lane testLane =null;
+        Lane entryLane =null;
         int numberOfLanes = myEdge.getLanes().size();
 
         for(RoadObject entry : nearCars)
         {
-            testLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
-            if(!testLane.getEdge().equals(myEdge))
+            entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
+            if(!entryLane.getEdge().equals(myEdge))
             {
-                // System.out.println("abeceda"); // TODO situation where car is in the different road
+             // TODO situation where car is in the different road
                 continue;
             }
-            logger.info("Checking this entry "+entry);
+            logger.info("Checking this entry " + entry);
 
-            ArrayList<CarManeuver> predictedManeuvers = getPlannedManeuvers(state,myLane,entry,testLane, from, to);
+            ArrayList<CarManeuver> predictedManeuvers = getPlannedManeuvers(state,myLane,entry,entryLane, from, to);
             situationPrediction.addAll(predictedManeuvers);
 
             CarManeuver man = predictedManeuvers.get(0);
 
 
-            if(myLane.getLaneId().equals(testLane.getLaneId())) {
-                int mamamamamia = getNearestWaipointIndex(entry,testLane);
-                if(mamamamamia > myIndexOnRoute)
+            if(myLane.getLaneId().equals(entryLane.getLaneId())) {
+                int entryNearestWaipoint = getNearestWaipointIndex(entry,entryLane);
+                if(entryNearestWaipoint > myIndexOnRoute)
                 {
-                    //  StraightManeuver strh = new StraightManeuver(testLane.getIndex(),(double)entry.getVelocity().length(),getDistance(entry),(long) (entry.getUpdateTime() * 1000));
                     situationPrediction.trySetCarAheadManeuver(man);
                 }
             }
             else
             {
-                if(myLane.getIndex() < testLane.getIndex())  // TODO fix more than three lanes
+                if(myLane.getIndex() - entryLane.getIndex() == -1)  // TODO fix more than three lanes
                 {
                     situationPrediction.trySetCarLeftAheadMan(man);
                 }
-                else
+                else if(myLane.getIndex() - entryLane.getIndex() == 1)
                 {
                     situationPrediction.trySetCarRightAheadMan(man);
                 }
@@ -555,7 +554,6 @@ public class testAgent extends Agent {
     {
         int myIndexOnRoute = 0;
 
-        // while(!maneuverTranslator.pointCloseEnough(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y),new Vector2f(state.getVelocity().x,state.getVelocity().y)))
         float test = diss(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y));
         while(diss(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y))  > 5) // Magical value
         {
