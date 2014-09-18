@@ -1,8 +1,6 @@
 package cz.agents.highway.agent;
 
 import cz.agents.alite.common.event.Event;
-import cz.agents.alite.simulation.Simulation;
-import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
@@ -12,7 +10,6 @@ import cz.agents.highway.storage.plan.WPAction;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
-import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
@@ -22,7 +19,7 @@ import java.util.ArrayList;
  */
 public class RouteAgent extends Agent {
     ///
-    private static final float WAYPOINT_DISTANCE = 3.0f; // Does not exactly corespond to the actual waipoint distance, used to make circle around the car
+    private static final float CIRCLE_AROUND = 6.0f; // Does not exactly corespond to the actual waipoint distance, used to make circle around the car
     private static float MAX_SPEED = 20;
 
     private static final float WP_COUNT_CONST = 0.2f;
@@ -86,7 +83,7 @@ public class RouteAgent extends Agent {
         if(maxMove < 10) maxMove = 10;
         String uniqueIndex = navigator.getUniqueLaneIndex();
         // finding the nearest wayipont, if changing lane, set the first of the new lane.
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2 && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND&& navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             navigator.advanceInRoute();
         }
         // finding the nearest waipoint in the new lane.
@@ -99,9 +96,19 @@ public class RouteAgent extends Agent {
 
         }
         // waipoint not found, reset back
-        if( navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2 && navigator.getUniqueLaneIndex().equals(uniqueIndex)){
+        if( navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)){
             navigator.resetToCheckpoint();
         }else {
+            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                navigator.advanceInRoute();
+            }
+            navigator.advanceInRoute();
+            navigator.advanceInRoute();
+            navigator.advanceInRoute();
+            navigator.advanceInRoute();
+            navigator.advanceInRoute();
+            navigator.advanceInRoute();
+
             navigator.setCheckpoint();
         }
         waypoint = navigator.getRoutePoint();
@@ -110,7 +117,7 @@ public class RouteAgent extends Agent {
         for(int i=0;i<wpCount;i++)
         {
             // move 3 waipoints ahead
-            while (waypoint.distance(navigator.getRoutePoint()) < WAYPOINT_DISTANCE){
+            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND){
                 navigator.advanceInRoute();
             }
             waypoint = navigator.getRoutePoint();

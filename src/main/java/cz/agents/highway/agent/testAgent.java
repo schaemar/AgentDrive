@@ -109,6 +109,8 @@ public class testAgent extends Agent {
         double distance = transGeoToDistance(currState.getPosition());
         long updateTime = (long) (currState.getUpdateTime() * 1000);
 
+
+        // I am point zero so distance to me is 0
         CarManeuver acc   = new AccelerationManeuver  (lane, velocity, 0, updateTime);
         CarManeuver str   = new StraightManeuver      (lane, velocity, 0, updateTime);
         CarManeuver left  = new LaneLeftManeuver      (lane, velocity, 0, updateTime);
@@ -526,9 +528,8 @@ public class testAgent extends Agent {
 
             CarManeuver man = predictedManeuvers.get(0);
 
-
+            int entryNearestWaipoint = getNearestWaipointIndex(entry,entryLane);
             if(myLane.getLaneId().equals(entryLane.getLaneId())) {
-                int entryNearestWaipoint = getNearestWaipointIndex(entry,entryLane);
                 if(entryNearestWaipoint > myIndexOnRoute)
                 {
                     situationPrediction.trySetCarAheadManeuver(man);
@@ -536,13 +537,22 @@ public class testAgent extends Agent {
             }
             else
             {
-                if(myLane.getIndex() - entryLane.getIndex() == -1)  // TODO fix more than three lanes
-                {
-                    situationPrediction.trySetCarLeftAheadMan(man);
+                if(entryNearestWaipoint < myIndexOnRoute) {
+                    if (myLane.getIndex() - entryLane.getIndex() == -1)
+                    {
+                        situationPrediction.trySetCarLeftAheadMan(man);
+                    } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
+                        situationPrediction.trySetCarRightAheadMan(man);
+                    }
                 }
-                else if(myLane.getIndex() - entryLane.getIndex() == 1)
+                else
                 {
-                    situationPrediction.trySetCarRightAheadMan(man);
+                    if (myLane.getIndex() - entryLane.getIndex() == -1)
+                    {
+                        situationPrediction.trySetCarLeftMan(man);
+                    } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
+                        situationPrediction.trySetCarRightMan(man);
+                    }
                 }
             }
 
@@ -554,8 +564,8 @@ public class testAgent extends Agent {
     {
         int myIndexOnRoute = 0;
 
-        float test = diss(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y));
-        while(diss(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y))  > 5) // Magical value
+        float test = distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y));
+        while(distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y))  > 5) // Magical value
         {
             myIndexOnRoute++;  //TODO fix this
             if(myLane.getInnerPoints().size() == myIndexOnRoute)
@@ -564,7 +574,7 @@ public class testAgent extends Agent {
                 break;
             }
         }
-        while(diss(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y))  <= 5)
+        while(distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y))  <= 5)
         {
             myIndexOnRoute++;  //TODO fix this
             if(myLane.getInnerPoints().size() == myIndexOnRoute)
@@ -573,11 +583,12 @@ public class testAgent extends Agent {
                 break;
             }
         }
-        if(myIndexOnRoute >= myLane.getInnerPoints().size()) myIndexOnRoute=myLane.getInnerPoints().size()-1;
+        if(myIndexOnRoute >= myLane.getInnerPoints().size())
+            myIndexOnRoute=myLane.getInnerPoints().size()-1;
         logger.debug("nearest waipoint id " + myIndexOnRoute);
         return  myIndexOnRoute;
     }
-    public float diss(Point2f innerPoint, Point2f position) {
+    public float distanceP2P2(Point2f innerPoint, Point2f position) {
         return innerPoint.distance(position);
 
     }
@@ -640,10 +651,14 @@ public class testAgent extends Agent {
      */
     private double getDistanceBetweenTwoRoadObjects(RoadObject me,Lane myLane,RoadObject other,Lane otherLane)
     {
+        //two possibilities how to find nearest waipoint, point close enough more sophisticated but does not work always
+
         int nearestA= getNearestWaipointIndex(me,myLane);
         int nearestB= getNearestWaipointIndex(other,otherLane);
+
         int nearestAa = getNearestWaipointCloseEnough(me,myLane);
         int nearestBa = getNearestWaipointCloseEnough(other,otherLane);
+        //only for debug
         Edge myEdg = myLane.getEdge();
         Edge his = otherLane.getEdge();
         double distance =0;

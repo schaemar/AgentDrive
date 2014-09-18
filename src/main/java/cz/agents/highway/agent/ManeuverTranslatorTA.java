@@ -2,7 +2,6 @@ package cz.agents.highway.agent;
 
 import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.maneuver.*;
-import cz.agents.highway.protobuf.generated.simplan.PlanMessage;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.ManeuverAction;
@@ -28,7 +27,7 @@ public class ManeuverTranslatorTA {
 
     private static final int TRY_COUNT = 10;
 
-    private static final float WAYPOINT_DISTANCE = 3.0f;  // Does not exactly corespond to the actual waipoint distance, used to make circle around the car
+    private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly corespond to the actual waipoint distance, used to make circle around the car
     private static float MAX_SPEED = 20;
     private double lastUpateTime;
 
@@ -96,7 +95,7 @@ public class ManeuverTranslatorTA {
         if(maxMove < 10) maxMove = 10;
         String uniqueIndex = navigator.getUniqueLaneIndex();
         // finding the nearest wayipont, if changing lane, set the first of the new lane.
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2 && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             navigator.advanceInRoute();
         }
         // finding the nearest waipoint in the new lane.
@@ -110,14 +109,12 @@ public class ManeuverTranslatorTA {
         }
 
         // waipoint not found, reset back
-        if( navigator.getRoutePoint().distance(position2D) > WAYPOINT_DISTANCE / 2 && navigator.getUniqueLaneIndex().equals(uniqueIndex)){
+        if( navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)){
             navigator.resetToCheckpoint();
         }else {
-            //jump three waipoints
-            navigator.advanceInRoute();
-            navigator.advanceInRoute();
-            navigator.advanceInRoute();
-
+            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                navigator.advanceInRoute();
+            }
             navigator.setCheckpoint();
         }
 
@@ -137,7 +134,7 @@ public class ManeuverTranslatorTA {
         for(int i=0;i<=maneuver.getPositionOut() || i<wpCount;i++)
         {
             // move 3 waipoints ahead
-            while (waypoint.distance(navigator.getRoutePoint()) < WAYPOINT_DISTANCE){
+            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND){
                 navigator.advanceInRoute();
             }
             waypoint = navigator.getRoutePoint();
@@ -165,10 +162,18 @@ public class ManeuverTranslatorTA {
         {
             minSpeed = (float)maneuver.getVelocityOut();
         }
-        for(int i=0;i<=maneuver.getVelocityOut() && i<wpCount;i++)
+        float speedChangeConst = (me.getVelocity().length() - minSpeed)/wpCount;
+        for(int i=0;i<wpCount;i++) // actual filling my outgoing actions
+        {
+            //scaling speed to the lowest
+            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),me.getVelocity().length()-(i+1)*speedChangeConst));
+        }
+      /*
+      only minimal speed set
+      for(int i=0;i<=maneuver.getVelocityOut() && i<wpCount;i++)
         {
             actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),minSpeed));
-        }
+        }*/
 
 
         navigator.resetToCheckpoint();
