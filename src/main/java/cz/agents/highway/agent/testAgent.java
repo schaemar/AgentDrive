@@ -540,18 +540,18 @@ public class testAgent extends Agent {
                 if(entryNearestWaipoint < myIndexOnRoute) {
                     if (myLane.getIndex() - entryLane.getIndex() == -1)
                     {
-                        situationPrediction.trySetCarLeftAheadMan(man);
+                        situationPrediction.trySetCarLeftMan(man);
                     } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
-                        situationPrediction.trySetCarRightAheadMan(man);
+                        situationPrediction.trySetCarRightMan(man);
                     }
                 }
                 else
                 {
                     if (myLane.getIndex() - entryLane.getIndex() == -1)
                     {
-                        situationPrediction.trySetCarLeftMan(man);
+                        situationPrediction.trySetCarLeftAheadMan(man);
                     } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
-                        situationPrediction.trySetCarRightMan(man);
+                        situationPrediction.trySetCarRightAheadMan(man);
                     }
                 }
             }
@@ -653,11 +653,11 @@ public class testAgent extends Agent {
     {
         //two possibilities how to find nearest waipoint, point close enough more sophisticated but does not work always
 
-        int nearestA= getNearestWaipointIndex(me,myLane);
-        int nearestB= getNearestWaipointIndex(other,otherLane);
+        int nearestAa= getNearestWaipointIndex(me,myLane);
+        int nearestBb= getNearestWaipointIndex(other,otherLane);
 
-        int nearestAa = getNearestWaipointCloseEnough(me,myLane);
-        int nearestBa = getNearestWaipointCloseEnough(other,otherLane);
+        int nearestA = getNearestWaipointCloseEnough(me,myLane);
+        int nearestB = getNearestWaipointCloseEnough(other,otherLane);
         //only for debug
         Edge myEdg = myLane.getEdge();
         Edge his = otherLane.getEdge();
@@ -704,7 +704,8 @@ public class testAgent extends Agent {
 
         }
         //TODO FIX THIS
-        if(i >= myLane.getInnerPoints().size())i=myLane.getInnerPoints().size()-1;
+        if(i >= myLane.getInnerPoints().size())
+            i=myLane.getInnerPoints().size()-1;
         return i;
     }
     public Point2f convertPoint3ftoPoint2f(Point3f point)

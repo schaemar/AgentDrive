@@ -3,13 +3,13 @@
 <net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
     <location netOffset="0.0,0.0" convBoundary="0.00,0.00,665.37,811.53" origBoundary="14.388600,50.068250,14.516399,50.128835" projParameter="+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
     <edge id="0" from="0" to="1" priority="7" type="highway.secondary">
-        <lane id="0_0" index="0" speed="42" length="16.72" shape="15.0,0.0 -100.0,100.0 -100.0,200.0 15.0,250.0"/>  <!-- 15.0,100.0 70.0,130.0 -->
-        <lane id="0_1" index="1" speed="42" length="16.72" shape="11.7,0.0 -96.7,100.0 -96.7,200.0 11.7,250.0"/> <!-- 15.0,100.0 70.0,130.0 -->
+        <lane id="0_0" index="0" speed="42" length="16.72" shape="11.7,0.0 -96.7,100.0 -96.7,200.0 11.7,250.0"/> <!-- 15.0,100.0 70.0,130.0 -->
+        <lane id="0_1" index="1" speed="42" length="16.72" shape="15.0,0.0 -100.0,100.0 -100.0,200.0 15.0,250.0"/>  <!-- 15.0,100.0 70.0,130.0 -->
 
     </edge>
     <edge id="1" from="1" to="2" priority="7" type="highway.secondary">
-        <lane id="1_0" index="0" speed="42" length="16.72" shape="15.0,250.0 100.0,200.0 100.0,100.0 15.0,0.0"/>  <!-- 15.0,100.0 70.0,130.0 -->
-        <lane id="1_1" index="1" speed="42" length="16.72" shape="11.7,250.0 96.7,200.0 96.7,100.0 11.7,0.0"/> <!-- 15.0,100.0 70.0,130.0 -->
+        <lane id="1_0" index="0" speed="42" length="16.72" shape="11.7,250.0 96.7,200.0 96.7,100.0 11.7,0.0"/> <!-- 15.0,100.0 70.0,130.0 -->
+        <lane id="1_1" index="1" speed="42" length="16.72" shape="15.0,250.0 100.0,200.0 100.0,100.0 15.0,0.0"/>  <!-- 15.0,100.0 70.0,130.0 -->
 
     </edge>
     <connection from="0" to="1" fromLane="0" toLane="1" dir="s" state="M"/>
