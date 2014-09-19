@@ -30,6 +30,9 @@ public class ManeuverTranslatorTA {
     private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly corespond to the actual waipoint distance, used to make circle around the car
     private static float MAX_SPEED = 20;
     private double lastUpateTime;
+    private static int RIGHT =-1;
+    private static int LEFT =1;
+
 
 
     private static final float EPSILON = 0.01f;
@@ -60,9 +63,9 @@ public class ManeuverTranslatorTA {
                 || (maneuver instanceof DeaccelerationManeuver)) {
             return generateWaypointInLane(0, maneuver, myLane);
         } else if (maneuver instanceof LaneLeftManeuver) {
-            return generateWaypointInLane(/*me.getLaneIndex() + 1*/ 29, maneuver, myLane);
+            return generateWaypointInLane(/*me.getLaneIndex() + 1*/ LEFT, maneuver, myLane);
         } else if (maneuver instanceof LaneRightManeuver) {
-            return generateWaypointInLane(/*me.getLaneIndex() - 1*/ -29, maneuver, myLane);
+            return generateWaypointInLane(/*me.getLaneIndex() - 1*/ RIGHT, maneuver, myLane);
         } else {
             LinkedList<Action> actions = new LinkedList<Action>();
             ManeuverAction res = new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
@@ -118,10 +121,10 @@ public class ManeuverTranslatorTA {
             navigator.setCheckpoint();
         }
 
-        if (relativeLane < 0) {
+        if (relativeLane == RIGHT) {
             navigator.changeLaneRight();
             navigator.setCheckpoint();
-        } else if (relativeLane > 0) {
+        } else if (relativeLane == LEFT) {
             navigator.changeLaneLeft();
             navigator.setCheckpoint();
         }

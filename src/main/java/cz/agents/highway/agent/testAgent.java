@@ -85,13 +85,13 @@ public class testAgent extends Agent {
             }
         });
     }
-
+    /*
     public void predictNext(HighwaySituation situationPrediction, RoadObject car, long predictionEndTime) {
         CarManeuver man = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car), (long) (car.getUpdateTime() * 1000));
         if (!isCollision(man, situationPrediction)) {
             situationPrediction.add(man);
         }
-    }
+    }*/
     long time = -1;
     boolean test = true;
     public CarManeuver plan() {
@@ -246,7 +246,7 @@ public class testAgent extends Agent {
         }
         return true;
     }
-
+    @Deprecated
     protected double getDistance(RoadObject state) {
         // return transGeoToDistance(state.getPosition());
         return 0;
@@ -509,7 +509,7 @@ public class testAgent extends Agent {
             }
         }
         //adding my prediction to the collection
-        situationPrediction.addAll(getPlannedManeuvers(state, from, to));
+       // situationPrediction.addAll(getPlannedManeuvers(state, from, to));
 
         Lane entryLane =null;
         int numberOfLanes = myEdge.getLanes().size();
@@ -608,6 +608,7 @@ public class testAgent extends Agent {
 
         return plan;
     }
+    @Deprecated
     public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject car, long from, long to) {
         // if has no plan -> predict TODO use more sofisticated prediction - not
         // here, on all the statespace
@@ -630,7 +631,7 @@ public class testAgent extends Agent {
 //                        (long) (car.getUpdateTime() * 1000));
 //            }
 //        } else {
-        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car), (long) (car.getUpdateTime() * 1000));
+        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), 0, (long) (car.getUpdateTime() * 1000));
 //        }
         plan.add(lastManeuver);
         while (lastManeuver.getEndTime() <= to) {
@@ -665,7 +666,6 @@ public class testAgent extends Agent {
         double distance =0;
         int maxSize =0;
         if(myLane.getInnerPoints().size() < otherLane.getInnerPoints().size())  //two lines in the same edge with diferent number of waipoints, typicaly in curves
-
         {
             maxSize = myLane.getInnerPoints().size();
         }
