@@ -108,6 +108,10 @@ public class ManeuverTranslatorTA {
             do{
                 navigator.advanceInRoute();
             }while(position2D.distance(navigator.getRoutePoint())  < initialPos);
+            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                navigator.advanceInRoute();
+            }
+            navigator.setCheckpoint();
 
         }
 
@@ -120,6 +124,7 @@ public class ManeuverTranslatorTA {
             }
             navigator.setCheckpoint();
         }
+
 
         if (relativeLane == RIGHT) {
             navigator.changeLaneRight();

@@ -29,7 +29,7 @@ import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.ManeuverAction;
 
-public class testAgent extends Agent {
+public class DESDAgent extends Agent {
 
     protected static final Logger logger = Logger.getLogger(SDAgent.class);
 
@@ -67,7 +67,7 @@ public class testAgent extends Agent {
         return new ManeuverAction(sensor.getId(), man.getStartTime() / 1000.0, man.getVelocityOut(), man.getLaneOut(), man.getDuration());
     }
 
-    public testAgent(int id,HighwayEnvironment hgw) {
+    public DESDAgent(int id, HighwayEnvironment hgw) {
         super(id);
         maneuverTranslatorTA = new ManeuverTranslatorTA(id, navigator);
         num_of_lines = 1;
