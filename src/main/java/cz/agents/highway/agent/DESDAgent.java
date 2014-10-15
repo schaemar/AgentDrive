@@ -57,7 +57,7 @@ public class DESDAgent extends Agent {
 
     public List<Action> agentReact() {
         //return man2Action(plan());
-        return maneuverTranslatorDE.translate(plan(),myLane);
+        return maneuverTranslatorDE.translate(plan());
     }
 
     private Action man2Action(CarManeuver man) {
@@ -167,11 +167,11 @@ public class DESDAgent extends Agent {
             }
         }
         //testing scenario
-        if(currState.getId() == 3 && navigator.getActualPointer() > 120)
+        if(currState.getId() == 1 && navigator.getActualPointer() > 120)
         {
             maneuver = dec;
         }
-        if(currState.getId() == 1 && navigator.getActualPointer() > 140 && test)
+        if(currState.getId() == 3 && navigator.getActualPointer() > 140 && test)
         {
             maneuver = dec;
             if(time==-1) time= System.currentTimeMillis();

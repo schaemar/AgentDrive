@@ -32,6 +32,8 @@ public class ManeuverTranslatorDE {
     private double lastUpateTime;
     private static int RIGHT =-1;
     private static int LEFT =1;
+    private float minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
+
 
 
 
@@ -49,23 +51,22 @@ public class ManeuverTranslatorDE {
     public void setSensor(VehicleSensor sensor) {
         this.sensor = sensor;
     }
-    public List<Action> translate(CarManeuver maneuver,Lane myLane) {
+    public List<Action> translate(CarManeuver maneuver) {
         if (maneuver == null) {
             LinkedList<Action> actions = new LinkedList<Action>();
             Point2f initial = navigator.getInitialPosition();
             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
-
             return  actions;
         }
         RoadObject me = sensor.senseCurrentState();
         // Check the type of maneuver
         if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
                 || (maneuver instanceof DeaccelerationManeuver)) {
-            return generateWaypointInLane(0, maneuver, myLane);
+            return generateWaypointInLane(0, maneuver);
         } else if (maneuver instanceof LaneLeftManeuver) {
-            return generateWaypointInLane(/*me.getLaneIndex() + 1*/ LEFT, maneuver, myLane);
+            return generateWaypointInLane(LEFT, maneuver);
         } else if (maneuver instanceof LaneRightManeuver) {
-            return generateWaypointInLane(/*me.getLaneIndex() - 1*/ RIGHT, maneuver, myLane);
+            return generateWaypointInLane(RIGHT, maneuver);
         } else {
             LinkedList<Action> actions = new LinkedList<Action>();
             ManeuverAction res = new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
@@ -74,22 +75,75 @@ public class ManeuverTranslatorDE {
             return actions;
         }
     }
+    public List<Action> translate() {
+        return generateWaypointInLane();
+    }
     //TODO Code duplicate with route agent
     //TODO use point close enough method from original Maneuver Translator
-    private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver,Lane myLane) {
+    private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
         RoadObject me = sensor.senseCurrentState();
-        LinkedList<Action> actions = new LinkedList<Action>();
-
-        ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
         int wpCount = (int)me.getVelocity().length() +1; // how many waypoints before me will be calculated.
-        points =  new ArrayList<Point3f>();
+        LinkedList<Action> actions = new LinkedList<Action>();
+        if (me == null) {
+            Point2f initial = navigator.getInitialPosition();
+            actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
+            return  actions;
+        }
+        ArrayList<Point3f> points = new ArrayList<Point3f>();  // list of points on the way, used to be able to set speed to the action later
+        Point2f waypoint = getWaypoint(relativeLane);
+
+        minSpeed = Float.MAX_VALUE;
+
+        //TODO fix than distance of waipoints is different than 1
+        for(int i=0;i<=maneuver.getPositionOut() || i<wpCount;i++)
+        {
+            points.add(i,generateWaypoint(waypoint,me,i));
+        }
+        if(minSpeed > maneuver.getVelocityOut())
+        {
+            minSpeed = (float)maneuver.getVelocityOut();
+        }
+        float speedChangeConst = (me.getVelocity().length() - minSpeed)/wpCount;
+        for(int i=0;i<wpCount;i++) // actual filling my outgoing actions
+        {
+            //scaling speed to the lowest
+            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),me.getVelocity().length()-(i+1)*speedChangeConst));
+        }
+        navigator.resetToCheckpoint();
+        lastUpateTime = me.getUpdateTime();
+        return actions;
+    }
+    private List<Action> generateWaypointInLane() {
+        RoadObject me = sensor.senseCurrentState();
+        int wpCount = (int)me.getVelocity().length() +1; // how many waypoints before me will be calculated.
+        LinkedList<Action> actions = new LinkedList<Action>();
+        ArrayList<Point3f> points = new ArrayList<Point3f>();  // list of points on the way, used to be able to set speed to the action later
+        Point2f waypoint = getWaypoint(0);
+
+        minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
+        //TODO fix than distance of waipoints is different than 1
+        for(int i=0;i<wpCount;i++)
+        {
+            points.add(i,generateWaypoint(waypoint,me,i));
+        }
+        float speedChangeConst = (me.getVelocity().length() - minSpeed)/wpCount;
+        for(int i=0;i<wpCount;i++) // actual filling my outgoing actions
+        {
+            //scaling speed to the lowest
+            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),me.getVelocity().length()-(i+1)*speedChangeConst));
+        }
+        navigator.resetToCheckpoint();
+        lastUpateTime = me.getUpdateTime();
+        return actions;
+    }
+
+    private Point2f getWaypoint(int relativeLane)
+    {
+        RoadObject me = sensor.senseCurrentState();
         navigator.setCheckpoint();
 
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
-
-        List<Point2f> wps = new LinkedList<Point2f>();
-        Point2f waypoint = null;
 
         //try to advance navigator closer to the actual position
         int maxMove = 10;  // how many points will be tried.
@@ -133,63 +187,34 @@ public class ManeuverTranslatorDE {
             navigator.changeLaneLeft();
             navigator.setCheckpoint();
         }
-        waypoint = navigator.getRoutePoint();
-
-
-
-        float minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
-        //TODO fix than distance of waipoints is different than 1
-        for(int i=0;i<=maneuver.getPositionOut() || i<wpCount;i++)
-        {
-            // move 3 waipoints ahead
-            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND){
-                navigator.advanceInRoute();
-            }
-            waypoint = navigator.getRoutePoint();
-            wps.add(waypoint);
-            // vector from my position to the next waypoint
-            Vector3f toNextPoint = new Vector3f(waypoint.x- me.getPosition().x,waypoint.y - me.getPosition().y,0);
-            Vector3f velocity = me.getVelocity();
-            float angle = velocity.angle(toNextPoint); // angle between my velocity and vector to the next point
-            float speed;
-            if(Float.isNaN(angle))
-            {
-                speed = 1;
-            }
-            else {
-                if (angle < 0.4) speed = MAX_SPEED; // if the curve is less than 20 degrees, go by the max speed.
-                else if (angle > 6) speed = 2;    // minimal speed for curves.
-                else {
-                    speed = 1 / angle * 6;
-                }
-            }
-            if(speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
-            points.add(i,new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
-        }
-        if(minSpeed > maneuver.getVelocityOut())
-        {
-            minSpeed = (float)maneuver.getVelocityOut();
-        }
-        float speedChangeConst = (me.getVelocity().length() - minSpeed)/wpCount;
-        for(int i=0;i<wpCount;i++) // actual filling my outgoing actions
-        {
-            //scaling speed to the lowest
-            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),me.getVelocity().length()-(i+1)*speedChangeConst));
-        }
-      /*
-      only minimal speed set
-      for(int i=0;i<=maneuver.getVelocityOut() && i<wpCount;i++)
-        {
-            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),minSpeed));
-        }*/
-
-
-        navigator.resetToCheckpoint();
-        lastUpateTime = me.getUpdateTime();
-        return actions;
-
+        return  navigator.getRoutePoint();
     }
-
+    private Point3f generateWaypoint(Point2f waypoint,RoadObject me,int i)
+    {
+        // move 3 waipoints ahead
+        while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND){
+            navigator.advanceInRoute();
+        }
+        waypoint = navigator.getRoutePoint();
+        // vector from my position to the next waypoint
+        Vector3f toNextPoint = new Vector3f(waypoint.x- me.getPosition().x,waypoint.y - me.getPosition().y,0);
+        Vector3f velocity = me.getVelocity();
+        float angle = velocity.angle(toNextPoint); // angle between my velocity and vector to the next point
+        float speed;
+        if(Float.isNaN(angle))
+        {
+            speed = 1;
+        }
+        else {
+            if (angle < 0.4) speed = MAX_SPEED; // if the curve is less than 20 degrees, go by the max speed.
+            else if (angle > 6) speed = 2;    // minimal speed for curves.
+            else {
+                speed = 1 / angle * 6;
+            }
+        }
+        if(speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
+        return new Point3f(waypoint.x, waypoint.y, me.getPosition().z);
+    }
     private WPAction point2Waypoint(Point2f point, CarManeuver maneuver) {
         return new WPAction(sensor.getId(), maneuver.getStartTime() / 1000,
                 new Point3f(point.x, point.y, sensor.senseCurrentState().getPosition().z),
