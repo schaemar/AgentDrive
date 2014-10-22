@@ -26,14 +26,6 @@ public class Agent extends Entity {
         navigator = new RouteNavigator(id);
         logger.info("Agent " + id + " created");
     }
-    public Agent(int id,RouteNavigator navigator)
-    {
-        super("" + id);
-        this.id = id;
-        this.navigator = navigator;
-        logger.info("Agent " + id + " created");
-    }
-
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
         logger.info("Sensor added: " + sensor);

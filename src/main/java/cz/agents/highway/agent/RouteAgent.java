@@ -46,11 +46,6 @@ public class RouteAgent extends Agent {
     public RouteAgent(int id) {
         super(id);
     }
-
-    public RouteAgent(int id,RouteNavigator routeNavigator)
-    {
-        super(id,routeNavigator);
-    }
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
         this.sensor.registerReaction(new Reaction() {
@@ -61,9 +56,6 @@ public class RouteAgent extends Agent {
             }
         });
 
-    }
-    public void setSensor(VehicleSensor sensor) {
-        this.sensor = sensor;
     }
     /**
      * Generate an action as a reaction
