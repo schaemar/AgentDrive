@@ -45,7 +45,8 @@ public class DESDAgent extends Agent {
     protected int num_of_lines;
 
     private CarManeuver currentManeuver = null;
-    protected final ManeuverTranslatorDE maneuverTranslatorDE;
+   // protected final ManeuverTranslatorDE maneuverTranslatorDE;
+    protected final RouteAgent routeAgentDE;
 
     // maximal speed after variance application
     private final double initialMaximalSpeed = (RandomProvider.getRandom().nextDouble() - 0.5) * 2 *MAX_SPEED_VARIANCE * MAX_SPEED  + MAX_SPEED;
@@ -57,7 +58,8 @@ public class DESDAgent extends Agent {
 
     public List<Action> agentReact() {
         //return man2Action(plan());
-        return maneuverTranslatorDE.translate(plan(),myLane);
+       // return maneuverTranslatorDE.translate(plan());
+        return routeAgentDE.translate(plan());
     }
 
     private Action man2Action(CarManeuver man) {
@@ -67,16 +69,18 @@ public class DESDAgent extends Agent {
         return new ManeuverAction(sensor.getId(), man.getStartTime() / 1000.0, man.getVelocityOut(), man.getLaneOut(), man.getDuration());
     }
 
-    public DESDAgent(int id, HighwayEnvironment hgw) {
+    public DESDAgent(int id, HighwayEnvironment hgw) { // TODO don't use whole HighwayEnviroment in agent
         super(id);
-        maneuverTranslatorDE = new ManeuverTranslatorDE(id, navigator);
+       // maneuverTranslatorDE = new ManeuverTranslatorDE(id, navigator);
+        routeAgentDE = new RouteAgent(id,navigator);
         num_of_lines = 1;
         this.highwayEnvironment = hgw;
     }
 
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
-        maneuverTranslatorDE.setSensor(sensor);
+       // maneuverTranslatorDE.setSensor(sensor);
+        routeAgentDE.setSensor(sensor);
         this.sensor.registerReaction(new Reaction() {
             public void react(Event event) {
                 if(event.getType().equals(HighwayEventType.UPDATED)){
@@ -697,7 +701,7 @@ public class DESDAgent extends Agent {
         Point2f myPosition = convertPoint3ftoPoint2f(me.getPosition());
         Point2f innerPoint = myLane.getInnerPoints().get(0);
         int i=0;
-        while((!maneuverTranslatorDE.pointCloseEnough(innerPoint,myPosition,convertVector3ftoVector2f(me.getVelocity())) && i<myLane.getInnerPoints().size()))
+        while((!/*maneuverTranslatorDE*/routeAgentDE.pointCloseEnough(innerPoint,myPosition,convertVector3ftoVector2f(me.getVelocity())) && i<myLane.getInnerPoints().size()))
         {
 
             innerPoint = myLane.getInnerPoints().get(i);
