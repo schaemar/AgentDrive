@@ -218,4 +218,8 @@ public class RouteNavigator {
     {
         return  agentLane.getLaneId();
     }
+
+    public List<Edge> getRoute() {
+        return route;
+    }
 }
