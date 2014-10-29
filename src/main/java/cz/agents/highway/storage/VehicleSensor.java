@@ -27,8 +27,9 @@ public class VehicleSensor extends EventBasedSensor {
 
     @Override
     public void handleEvent(Event event) {
-        
+        if (reaction != null) {
             reaction.react(event);
+        }
        
     }
 
