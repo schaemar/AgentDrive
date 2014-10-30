@@ -2,7 +2,7 @@ package cz.agents.highway.agent;
 
 import cz.agents.alite.vis.VisManager;
 import cz.agents.alite.vis.layer.VisLayer;
-import cz.agents.highway.environment.graph.ControlEffortWrapper;
+import cz.agents.highway.environment.planning.graph.ControlEffortWrapper;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.Network;
