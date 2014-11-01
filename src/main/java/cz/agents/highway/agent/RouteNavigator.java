@@ -226,4 +226,14 @@ public class RouteNavigator {
     {
         return pointPtr;
     }
+    public List<Edge> getFollowingEdgesInPlan()
+    {
+        List<Edge> rem = new ArrayList<Edge>();
+
+        for(int i = routePtr +1;i<route.size();i++)
+        {
+            rem.add(route.get(i));
+        }
+    return rem;
+    }
 }

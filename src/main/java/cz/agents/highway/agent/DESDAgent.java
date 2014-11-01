@@ -1,9 +1,6 @@
 package cz.agents.highway.agent;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 import javax.vecmath.*;
 
@@ -183,7 +180,7 @@ public class DESDAgent extends RouteAgent {
         // else if(dist>300)return 1;
         // else return 0;
 
-        double distance = 1000;
+       /* double distance = 1000;
         while (distance >= 200) {
             for (int lane = 1; lane <= 2; lane++) {
                 if (isLaneGoingOn(getDistance(startNode), distance, lane)) {
@@ -192,12 +189,16 @@ public class DESDAgent extends RouteAgent {
 
                 distance -= 200;
             }
-        }
-        return 1;
+        }*/
+        return 0;
     }
 
     private boolean isNarrowingMode(RoadObject state) {
         if(Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", false).equals(false)) return false;
+        else if(Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", true).equals(true))
+            if(myEdge.getId().equals("0"))
+            return true;
+        else return false;
 
         int lane = state.getLaneIndex();
         double distance = getDistance(state);
@@ -484,7 +485,7 @@ public class DESDAgent extends RouteAgent {
         //removing too far cars and myself from the collection
         for (RoadObject entry : cars) {
 
-            if(entry.getPosition().distance(state.getPosition()) > 100 || state.getPosition().equals(entry.getPosition()))
+            if(entry.getPosition().distance(state.getPosition()) > 500 || state.getPosition().equals(entry.getPosition()))
             {
                 continue;
             }
@@ -501,48 +502,68 @@ public class DESDAgent extends RouteAgent {
 
         for(RoadObject entry : nearCars)
         {
+            ArrayList<CarManeuver> predictedManeuvers;
             entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
             if(!entryLane.getEdge().equals(myEdge))
             {
              // TODO situation where car is in the different road
+                List<Edge> rem = navigator.getFollowingEdgesInPlan();
+                logger.info("Checking this entry " + entry);
+                for(Edge planned : rem)
+                {
+                    if(planned.equals(entryLane.getEdge()))
+                    {
+                        predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to,rem);
+                        situationPrediction.addAll(predictedManeuvers);
+                        CarManeuver man = predictedManeuvers.get(0);
+
+                        if((state.getLaneIndex() - entry.getLaneIndex()) == 1)
+                        {
+                            //right
+                            situationPrediction.trySetCarRightAheadMan(man);
+                        }
+                        else if ((state.getLaneIndex() - entry.getLaneIndex()) == 1)
+                        {
+                            // left
+                            situationPrediction.trySetCarLeftAheadMan(man);
+                        }
+                        else
+                        {
+                            //same
+                            situationPrediction.trySetCarAheadManeuver(man);
+                        }
+                    }
+                }
                 continue;
             }
-            logger.info("Checking this entry " + entry);
+            else {
+                predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to,null);
+                situationPrediction.addAll(predictedManeuvers);
 
-            ArrayList<CarManeuver> predictedManeuvers = getPlannedManeuvers(state,myLane,entry,entryLane, from, to);
-            situationPrediction.addAll(predictedManeuvers);
+                CarManeuver man = predictedManeuvers.get(0);
 
-            CarManeuver man = predictedManeuvers.get(0);
-
-            int entryNearestWaipoint = getNearestWaipointIndex(entry,entryLane);
-            if(myLane.getLaneId().equals(entryLane.getLaneId())) {
-                if(entryNearestWaipoint > myIndexOnRoute)
-                {
-                    situationPrediction.trySetCarAheadManeuver(man);
-                }
-            }
-            else
-            {
-                if(entryNearestWaipoint < myIndexOnRoute) {
-                    if (myLane.getIndex() - entryLane.getIndex() == -1)
-                    {
-                        situationPrediction.trySetCarLeftMan(man);
-                    } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
-                        situationPrediction.trySetCarRightMan(man);
+                int entryNearestWaipoint = getNearestWaipointIndex(entry, entryLane);
+                if (myLane.getLaneId().equals(entryLane.getLaneId())) {
+                    if (entryNearestWaipoint > myIndexOnRoute) {
+                        situationPrediction.trySetCarAheadManeuver(man);
+                    }
+                } else {
+                    if (entryNearestWaipoint < myIndexOnRoute) {
+                        if (myLane.getIndex() - entryLane.getIndex() == -1) {
+                            situationPrediction.trySetCarLeftMan(man);
+                        } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
+                            situationPrediction.trySetCarRightMan(man);
+                        }
+                    } else {
+                        if (myLane.getIndex() - entryLane.getIndex() == -1) {
+                            situationPrediction.trySetCarLeftAheadMan(man);
+                        } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
+                            situationPrediction.trySetCarRightAheadMan(man);
+                        }
                     }
                 }
-                else
-                {
-                    if (myLane.getIndex() - entryLane.getIndex() == -1)
-                    {
-                        situationPrediction.trySetCarLeftAheadMan(man);
-                    } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
-                        situationPrediction.trySetCarRightAheadMan(man);
-                    }
-                }
+
             }
-
-
         }
         return situationPrediction;
     }
@@ -579,12 +600,12 @@ public class DESDAgent extends RouteAgent {
 
     }
 
-    public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject me,Lane myLane,RoadObject car,Lane hisLane, long from, long to) {
+    public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject me,Lane myLane,RoadObject car,Lane hisLane, long from, long to,List<Edge> rem) {
 
         ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();
         // TODO add a part of plan that is between from and to
         CarManeuver lastManeuver;
-        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane), (long) (car.getUpdateTime() * 1000));
+        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane,rem), (long) (car.getUpdateTime() * 1000));
         plan.add(lastManeuver);
         while (lastManeuver.getEndTime() <= to) {
             lastManeuver = new StraightManeuver(lastManeuver);
@@ -636,46 +657,66 @@ public class DESDAgent extends RouteAgent {
      * @param otherLane
      * @return
      */
-    private double getDistanceBetweenTwoRoadObjects(RoadObject me,Lane myLane,RoadObject other,Lane otherLane)
-    {
+    private double getDistanceBetweenTwoRoadObjects(RoadObject me,Lane myLane,RoadObject other,Lane otherLane,List<Edge> rem) {
         //two possibilities how to find nearest waipoint, point close enough more sophisticated but does not work always
 
-        int nearestAa= getNearestWaipointIndex(me,myLane);
-        int nearestBb= getNearestWaipointIndex(other,otherLane);
+        int nearestAa = getNearestWaipointIndex(me, myLane);
+        int nearestBb = getNearestWaipointIndex(other, otherLane);
 
-        int nearestA = getNearestWaipointCloseEnough(me,myLane);
-        int nearestB = getNearestWaipointCloseEnough(other,otherLane);
+        int nearestA = getNearestWaipointCloseEnough(me, myLane);
+        int nearestB = getNearestWaipointCloseEnough(other, otherLane);
         //only for debug
         Edge myEdg = myLane.getEdge();
         Edge his = otherLane.getEdge();
-        double distance =0;
-        int maxSize =0;
-        if(myLane.getInnerPoints().size() < otherLane.getInnerPoints().size())  //two lines in the same edge with diferent number of waipoints, typicaly in curves
-        {
-            maxSize = myLane.getInnerPoints().size();
+        double distance = 0;
+        int maxSize = 0;
+        if (myEdg.equals(his)) {
+            if (myLane.getInnerPoints().size() < otherLane.getInnerPoints().size())  //two lines in the same edge with diferent number of waipoints, typicaly in curves
+            {
+                maxSize = myLane.getInnerPoints().size();
+            } else {
+                maxSize = otherLane.getInnerPoints().size();
+            }
+            if (nearestA < nearestB)// car is ahead
+            {
+                for (int i = nearestA + 1; i <= nearestB && i < maxSize; i++) {
+                    distance += myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i));
+                }
+                return distance;
+            } else if (nearestA > nearestB) {
+                for (int i = nearestB + 1; i <= nearestA && i < maxSize; i++) {
+                    distance += myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i));
+                }
+                return -distance;
+            } else
+                return 0;
         }
         else
         {
-            maxSize = otherLane.getInnerPoints().size();
-        }
-        if(nearestA < nearestB)// car is ahead
-        {
-            for(int i=nearestA+1;i<=nearestB && i<maxSize;i++)
-            {
-                distance+=myLane.getInnerPoints().get(i-1).distance(myLane.getInnerPoints().get(i));
+            int distC = 0;
+            for (int i = nearestA + 1; i < myLane.getInnerPoints().size();i++) {
+                distC += myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i));
             }
-            return distance;
-        }
-        else if(nearestA > nearestB)
-        {
-            for(int i=nearestB+1;i<=nearestA && i<maxSize;i++)
+            for(int i =0;i<rem.size();i++)
             {
-                distance+=myLane.getInnerPoints().get(i-1).distance(myLane.getInnerPoints().get(i));
+               if(rem.get(i).equals(his))
+               {
+                   for (int d = 1; d <= nearestB;d++) {
+                       distC += otherLane.getInnerPoints().get(d - 1).distance(otherLane.getInnerPoints().get(d));
+                   }
+                   break;
+               }
+                //TODO FIX MORE LANES LENGHT
+                Lane tem = rem.get(i).getLaneByIndex(0);
+                for (int d = 1; d < tem.getInnerPoints().size();d++) {
+                    distC += tem.getInnerPoints().get(d - 1).distance(tem.getInnerPoints().get(d));
+                }
+
             }
-            return -distance;
+
+            //TODO FIX THIS!!!
+            return distC; // debug
         }
-        else
-            return  0;
     }
     public int getNearestWaipointCloseEnough(RoadObject me,Lane myLane)
     {
