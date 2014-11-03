@@ -127,7 +127,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
            RadarData radarData = new RadarData();
            float duration = 0;
            float lastDuration = 0;
-           Integer timestep = (Integer)Configurator.getParam("highway.SimulatorLocal.timestep", Integer.class);
+           Integer timestep = (Integer)Configurator.getParam("highway.SimulatorLocal.timestep", 1);
            for (Integer carID : plans.getCarIds()) {
                Collection<Action> plan = plans.getPlan(carID);
                RoadObject state = currStates.get(carID);

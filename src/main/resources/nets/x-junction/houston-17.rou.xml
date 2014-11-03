@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Thu Jun  5 10:45:24 2014 by SUMO duarouter Version 0.19.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="houston-17.net.xml"/>
+        <trip-files value="houston-17-2.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="houston-17-2.rou.xml"/>
+    </output>
+
+    <processing>
+        <ignore-errors value="true"/>
+        <routing-algorithm value="astar"/>
+    </processing>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/routes_file.xsd">
+<route id="egoRoute" edges="-13227997#1 -13227997#0"/>    
+<vehicle id="0" depart="0.00">
+        <route edges="13227997#0"/>
+    </vehicle>
+    <vehicle id="1" depart="0.10">
+        <route edges="-13227997#1 -13227997#0"/>
+    </vehicle>
+    <vehicle id="2" depart="0.20">
+        <route edges="-13227997#1 -62343639#1"/>
+    </vehicle>
+    <vehicle id="3" depart="0.30">
+        <route edges="-13227997#1 62343639#2"/>
+    </vehicle>
+    <vehicle id="4" depart="0.50">
+        <route edges="62343639#1 -13227997#0"/>
+    </vehicle>
+    <vehicle id="5" depart="0.60">
+        <route edges="62343639#1 62343639#2"/>
+    </vehicle>
+    <vehicle id="6" depart="0.70">
+        <route edges="62343639#1 13227997#1"/>
+    </vehicle>
+    <vehicle id="7" depart="0.80">
+        <route edges="13227997#0 62343639#2"/>
+    </vehicle>
+    <vehicle id="8" depart="0.90">
+        <route edges="13227997#0 13227997#1"/>
+    </vehicle>
+    <vehicle id="9" depart="1.00">
+        <route edges="13227997#0 -62343639#1"/>
+    </vehicle>
+    <vehicle id="10" depart="1.10">
+        <route edges="-62343639#2 13227997#1"/>
+    </vehicle>
+    <vehicle id="11" depart="1.20">
+        <route edges="-62343639#2 -62343639#1"/>
+    </vehicle>
+    <vehicle id="12" depart="1.30">
+        <route edges="-62343639#2 -13227997#0"/>
+    </vehicle>
+</routes>
