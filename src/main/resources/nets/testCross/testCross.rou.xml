@@ -2,19 +2,19 @@
 
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/routes_file.xsd">
     <vehicle id="0" depart="0.0">
-        <route edges="0 1" />
+        <route edges="0 2" />
     </vehicle>
     <vehicle id="1" depart="5.0">
-        <route edges="0 1" />
+        <route edges="0 2" />
     </vehicle>
     <vehicle id="2" depart="5.0">
-        <route edges="0 1" />
+        <route edges="3 1" />
     </vehicle>
     <vehicle id="3" depart="5.0">
-        <route edges="0 1" />
+        <route edges="3 1" />
     </vehicle>
     <vehicle id="4" depart="5.0">
-        <route edges="0 1" />
+        <route edges="0 2" />
     </vehicle>
     -->
 </routes>

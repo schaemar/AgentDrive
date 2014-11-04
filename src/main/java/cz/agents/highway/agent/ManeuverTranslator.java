@@ -1,16 +1,18 @@
 package cz.agents.highway.agent;
 
+import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.maneuver.*;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
-import cz.agents.highway.storage.plan.ManeuverAction;
 import cz.agents.highway.storage.plan.Action;
+import cz.agents.highway.storage.plan.ManeuverAction;
 import cz.agents.highway.storage.plan.WPAction;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -20,7 +22,7 @@ import java.util.List;
 public class ManeuverTranslator {
     private static final double RADIUS = 1f;
 
-    private static final double MAX_ANGLE = Math.PI/2;
+    private static final double MAX_ANGLE = Math.PI / 2;
 
     private static final int TRY_COUNT = 10;
 
@@ -48,13 +50,13 @@ public class ManeuverTranslator {
         // Check the type of maneuver
         if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
                 || (maneuver instanceof DeaccelerationManeuver)) {
-            Point2f innerPoint = generateWaypointInLane(me.getLane(), maneuver);
+            Point2f innerPoint = generateWaypointInLaneOriginal(me.getLaneIndex(), maneuver);
             return point2Waypoint(innerPoint, maneuver);
         } else if (maneuver instanceof LaneLeftManeuver) {
-            Point2f innerPoint = generateWaypointInLane(me.getLane() + 1, maneuver);
+            Point2f innerPoint = generateWaypointInLaneOriginal(/*me.getLaneIndex() + 1*/ 29, maneuver);
             return point2Waypoint(innerPoint, maneuver);
         } else if (maneuver instanceof LaneRightManeuver) {
-            Point2f innerPoint = generateWaypointInLane(me.getLane() - 1, maneuver);
+            Point2f innerPoint = generateWaypointInLaneOriginal(/*me.getLaneIndex() - 1*/ -29, maneuver);
             return point2Waypoint(innerPoint, maneuver);
         } else {
             return new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
@@ -62,8 +64,34 @@ public class ManeuverTranslator {
         }
     }
 
-    private Point2f generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
+    public List<Action> translate(CarManeuver maneuver, Lane myLane) {
+        if (maneuver == null) {
+            LinkedList<Action> actions = new LinkedList<Action>();
+            Point2f initial = navigator.getInitialPosition();
+            actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
+            return actions;
+        }
         RoadObject me = sensor.senseCurrentState();
+        // Check the type of maneuver
+        if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
+                || (maneuver instanceof DeaccelerationManeuver)) {
+            return generateWaypointInLane(me.getLaneIndex(), maneuver, myLane);
+        } else if (maneuver instanceof LaneLeftManeuver) {
+            return generateWaypointInLane(/*me.getLaneIndex() + 1*/ 29, maneuver, myLane);
+        } else if (maneuver instanceof LaneRightManeuver) {
+            return generateWaypointInLane(/*me.getLaneIndex() - 1*/ -29, maneuver, myLane);
+        } else {
+            LinkedList<Action> actions = new LinkedList<Action>();
+            ManeuverAction res = new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
+                    maneuver.getVelocityOut(), maneuver.getLaneOut(), maneuver.getDuration());
+            actions.add(res);
+            return actions;
+        }
+    }
+
+    private Point2f generateWaypointInLaneOriginal(int relativeLane, CarManeuver maneuver) {
+        RoadObject me = sensor.senseCurrentState();
+
 
         Point3f p = me.getPosition();
         Point2f pos2D = new Point2f(p.x, p.y);
@@ -99,6 +127,21 @@ public class ManeuverTranslator {
         }
     }
 
+    private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver, Lane myLane) {
+        RoadObject me = sensor.senseCurrentState();
+        LinkedList<Action> actions = new LinkedList<Action>();
+        int nearestWaipoint = getNearestWaipointIndex(me, myLane);
+        //TODO Will not work if distance of waipoints is greater than 1
+
+        myLane.getInnerPoints().get(nearestWaipoint);
+        for (int i = 0; i < maneuver.getPositionOut(); i++) {
+            Point2f abc = myLane.getInnerPoints().get(nearestWaipoint + i);
+            WPAction wp = new WPAction(me.getId(), me.getUpdateTime(), new Point3f(abc.x, abc.y, 0), maneuver.getVelocityOut());
+            actions.add(wp);
+        }
+        return actions;
+    }
+
     private WPAction point2Waypoint(Point2f point, CarManeuver maneuver) {
         return new WPAction(sensor.getId(), maneuver.getStartTime() / 1000,
                 new Point3f(point.x, point.y, sensor.senseCurrentState().getPosition().z),
@@ -114,12 +157,12 @@ public class ManeuverTranslator {
      * @param velocity   Velocity vector
      * @return
      */
-    private boolean pointCloseEnough(Point2f innerPoint, Point2f position, Vector2f velocity) {
+    public boolean pointCloseEnough(Point2f innerPoint, Point2f position, Vector2f velocity) {
         // Direction vector of waypoint candidate relative to position
         Vector2f direction = new Vector2f();
         direction.sub(innerPoint, position);
 
-        return  velocity.angle(direction) < MAX_ANGLE &&
+        return velocity.angle(direction) < MAX_ANGLE &&
                 distance(innerPoint, position, direction, velocity) < RADIUS;
     }
 
@@ -131,6 +174,36 @@ public class ManeuverTranslator {
      */
     private float distance(Point2f innerPoint, Point2f position, Vector2f direction, Vector2f velocity) {
         float d = innerPoint.distance(position);
-        return d*d*Math.abs((float)Math.sin(direction.angle(velocity))+EPSILON);
+        return d * d * Math.abs((float) Math.sin(direction.angle(velocity)) + EPSILON);
+    }
+
+    // TODO FIX CODE DUPLICATE WITH testAgent
+    private int getNearestWaipointIndex(RoadObject state, Lane myLane) {
+        int myIndexOnRoute = 0;
+
+        // while(!maneuverTranslator.pointCloseEnough(myLane.getInnerPoints().get(myIndexOnRoute),new Point2f(state.getPosition().x,state.getPosition().y),new Vector2f(state.getVelocity().x,state.getVelocity().y)))
+        float test = diss(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y));
+        while (diss(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y)) > 5) // Magical value
+        {
+            myIndexOnRoute++;  //TODO fix this
+            if (myLane.getInnerPoints().size() == myIndexOnRoute) {
+                myIndexOnRoute--;
+                break;
+            }
+        }
+        while (diss(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y)) <= 5) {
+            myIndexOnRoute++;  //TODO fix this
+            if (myLane.getInnerPoints().size() == myIndexOnRoute) {
+                myIndexOnRoute--;
+                break;
+            }
+        }
+        return myIndexOnRoute;
+    }
+
+    // TODO FIX CODE DUPLICATE WITH testAgent
+    public float diss(Point2f innerPoint, Point2f position) {
+        return innerPoint.distance(position);
+
     }
 }

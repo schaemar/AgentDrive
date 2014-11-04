@@ -6,7 +6,6 @@ import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
 
 import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +87,7 @@ public class RouteNavigator {
                 Lane nextLane = getNeighbourLane(route.get(routePtr)); //check for neighbour lane
 
                 int desiredPoint = getDesiredNeighbourLinePoint(nextLane);
-                if(desiredPoint == -1)  //neighbour lane is shorter than my lane or does not exist
+                if (desiredPoint == -1)  //neighbour lane is shorter than my lane or does not exist
                 {
                     nextLane = getFollowingLane(route.get(routePtr + 1));
                     if (nextLane != null) {
@@ -98,9 +97,7 @@ public class RouteNavigator {
                     } else {
                         // TODO: This or neigbour lanes don't continue to the route edge
                     }
-                }
-                else
-                {
+                } else {
                     pointPtr = desiredPoint;
                     agentLane = nextLane;
                 }
@@ -112,21 +109,19 @@ public class RouteNavigator {
     }
 
     private int getDesiredNeighbourLinePoint(Lane nextLane) {
-        if(nextLane == null) return -1;
+        if (nextLane == null) return -1;
         int idealDistanceAroundMe = 4;
-        int ii =0;
+        int ii = 0;
         Point2f pp = agentLane.getInnerPoints().get(pointPtr);
 
-        while(pp.distance(nextLane.getInnerPoints().get(ii)) > idealDistanceAroundMe)
-        {
+        while (pp.distance(nextLane.getInnerPoints().get(ii)) > idealDistanceAroundMe) {
             ii++;
-            if(ii == nextLane.getInnerPoints().size()) return -1;
+            if (ii == nextLane.getInnerPoints().size()) return -1;
 
         }
-        while(pp.distance(nextLane.getInnerPoints().get(ii)) <= idealDistanceAroundMe)
-        {
+        while (pp.distance(nextLane.getInnerPoints().get(ii)) <= idealDistanceAroundMe) {
             ii++;
-            if(ii == nextLane.getInnerPoints().size()) return -1;
+            if (ii == nextLane.getInnerPoints().size()) return -1;
         }
         return ii;
     }
@@ -146,10 +141,10 @@ public class RouteNavigator {
             // Lane doesn't continue to the edge in route, maybe we should change lane
             // Try left lane
             Lane changeLane = agentLane.getLaneLeft();
-           // nextLane = changeLane;
+            // nextLane = changeLane;
             while (changeLane != null) {
                 nextLane = changeLane.getNextLane(edge);
-                if(nextLane!=null){
+                if (nextLane != null) {
                     break;
                 }
                 changeLane = changeLane.getLaneLeft();
@@ -160,7 +155,7 @@ public class RouteNavigator {
                 changeLane = agentLane.getLaneRight();
                 while (changeLane != null) {
                     nextLane = changeLane.getNextLane(edge);
-                    if(nextLane!=null){
+                    if (nextLane != null) {
                         break;
                     }
                     changeLane = changeLane.getLaneRight();
@@ -214,8 +209,25 @@ public class RouteNavigator {
         pointPtr = CP_pointPtr;
         routePtr = CP_routePtr;
     }
-    public String getUniqueLaneIndex()
-    {
-        return  agentLane.getLaneId();
+
+    public String getUniqueLaneIndex() {
+        return agentLane.getLaneId();
+    }
+
+    public Lane getLane() {
+        return agentLane;
+    }
+
+    public int getActualPointer() {
+        return pointPtr;
+    }
+
+    public List<Edge> getFollowingEdgesInPlan() {
+        List<Edge> rem = new ArrayList<Edge>();
+
+        for (int i = routePtr + 1; i < route.size(); i++) {
+            rem.add(route.get(i));
+        }
+        return rem;
     }
 }

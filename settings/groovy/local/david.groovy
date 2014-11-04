@@ -4,22 +4,27 @@ highway {
     simulationSpeed = 1.0;             //not relevant
     timestep = 10; //ms               //not relevant
 
- //   agent = "SDAgent";
-   agent = "RouteAgent";
+//    agent = "SDAgent";
+//   agent = "RouteAgent";
 //    agent = "ORCAAgent";
-//    agent = "test";
+   agent = "DESDAgent";
 
     net {
 //        folder = "nets/kosik/";
 //        folder = "nets/x-junction/";
-       folder = "nets/junction-big/";
+ //    folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
 //        folder = "nets/highway-straight/";
-        // folder = "nets/test90/";
+//       folder = "nets/test90/";
+//        folder = "nets/circle/";
+//       folder = "nets/testCross";
+        folder = "nets/nartest";
+
+
     }
     safeDistanceAgent {
         safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
-        narrowingModeActive = false;
+        narrowingModeActive = true;
         distanceToActivateNM = 100.0;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
@@ -89,8 +94,8 @@ highway {
 
         }
 
-        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
- //      simulatorsToRun = ["SimulatorLite"];
+ //     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+     simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //        simulatorsToRun = ["Empty"];
     }
