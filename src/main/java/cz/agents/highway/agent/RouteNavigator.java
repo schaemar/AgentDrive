@@ -224,8 +224,9 @@ public class RouteNavigator {
 
     public List<Edge> getFollowingEdgesInPlan() {
         List<Edge> rem = new ArrayList<Edge>();
-
-        for (int i = routePtr + 1; i < route.size(); i++) {
+        int maxNumber = 5;
+        for(int i = routePtr +1;i<route.size() && i < maxNumber;i++)
+        {
             rem.add(route.get(i));
         }
         return rem;
