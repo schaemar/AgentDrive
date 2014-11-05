@@ -13,26 +13,25 @@ import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Created by martin on 9.7.14.
  */
 public class RouteAgent extends Agent {
     ///
-    private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly corespond to the actual waipoint distance, used to make circle around the car
+    private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly correspond to the actual wayPoint distance, used to make circle around the car
     private static float MAX_SPEED = 20;
 
     private static final float WP_COUNT_CONST = 0.2f;
     private double lastUpateTime;
-    private static int RIGHT =-1;
-    private static int LEFT =1;
+    private static int RIGHT = -1;
+    private static int LEFT = 1;
     private static final double RADIUS = 1f;
-    private static final double MAX_ANGLE = Math.PI/2;
+    private static final double MAX_ANGLE = Math.PI / 2;
     private static final float EPSILON = 0.01f;
-
 
 
     @Override
@@ -46,6 +45,7 @@ public class RouteAgent extends Agent {
     public RouteAgent(int id) {
         super(id);
     }
+
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
         this.sensor.registerReaction(new Reaction() {
@@ -57,24 +57,28 @@ public class RouteAgent extends Agent {
         });
 
     }
+
     /**
      * Generate an action as a reaction
      * Rout agent is adjusting speed according to the degrees of the curves and how many waypoints before himself will calculate.
+     *
      * @return
      */
     protected List<Action> agentReact() {
-       return generateWaypointInLane();
+        return generateWaypointInLane();
     }
+
     protected List<Action> agentReact(CarManeuver maneuver) {
         return translate(maneuver);
     }
+
     public List<Action> translate(CarManeuver maneuver) {
         if (maneuver == null) {
             LinkedList<Action> actions = new LinkedList<Action>();
             Point2f initial = navigator.getInitialPosition();
             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
 
-            return  actions;
+            return actions;
         }
         RoadObject me = sensor.senseCurrentState();
         // Check the type of maneuver
@@ -93,6 +97,7 @@ public class RouteAgent extends Agent {
             return actions;
         }
     }
+
     //TODO Code duplicate with route agent
     //TODO use point close enough method from original Maneuver Translator
     private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
@@ -101,8 +106,8 @@ public class RouteAgent extends Agent {
 
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
-        int wpCount = (int)me.getVelocity().length() +1; // how many waypoints before me will be calculated.
-        points =  new ArrayList<Point3f>();
+        int wpCount = (int) me.getVelocity().length() + 1; // how many waypoints before me will be calculated.
+        points = new ArrayList<Point3f>();
         navigator.setCheckpoint();
 
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
@@ -113,20 +118,19 @@ public class RouteAgent extends Agent {
         //try to advance navigator closer to the actual position
         int maxMove = 10;  // how many points will be tried.
         //how many waiponts ahead will be chcecked depending on the update time
-        maxMove = (int)(((me.getUpdateTime() - lastUpateTime)*MAX_SPEED)/1000) + 5;
-        if(maxMove < 10) maxMove = 10;
+        maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
+        if (maxMove < 10) maxMove = 10;
         String uniqueIndex = navigator.getUniqueLaneIndex();
         // finding the nearest wayipont, if changing lane, set the first of the new lane.
         while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             navigator.advanceInRoute();
         }
         // finding the nearest waipoint in the new lane.
-        if(!navigator.getUniqueLaneIndex().equals(uniqueIndex))
-        {
+        if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             float initialPos = position2D.distance(navigator.getRoutePoint());
-            do{
+            do {
                 navigator.advanceInRoute();
-            }while(position2D.distance(navigator.getRoutePoint())  < initialPos);
+            } while (position2D.distance(navigator.getRoutePoint()) < initialPos);
             while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
@@ -135,9 +139,9 @@ public class RouteAgent extends Agent {
         }
 
         // waipoint not found, reset back
-        if( navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)){
+        if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             navigator.resetToCheckpoint();
-        }else {
+        } else {
             while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
@@ -155,45 +159,40 @@ public class RouteAgent extends Agent {
         waypoint = navigator.getRoutePoint();
 
 
-
         float minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         //TODO fix than distance of waipoints is different than 1
-        for(int i=0;i<=maneuver.getPositionOut() || i<wpCount;i++)
-        {
+        for (int i = 0; i <= maneuver.getPositionOut() || i < wpCount; i++) {
             // move 3 waipoints ahead
-            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND){
+            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);
             // vector from my position to the next waypoint
-            Vector3f toNextPoint = new Vector3f(waypoint.x- me.getPosition().x,waypoint.y - me.getPosition().y,0);
+            Vector3f toNextPoint = new Vector3f(waypoint.x - me.getPosition().x, waypoint.y - me.getPosition().y, 0);
             Vector3f velocity = me.getVelocity();
             float angle = velocity.angle(toNextPoint); // angle between my velocity and vector to the next point
             float speed;
-            if(Float.isNaN(angle))
-            {
+            if (Float.isNaN(angle)) {
                 speed = 1;
-            }
-            else {
+            } else {
                 if (angle < 0.4) speed = MAX_SPEED; // if the curve is less than 20 degrees, go by the max speed.
                 else if (angle > 6) speed = 2;    // minimal speed for curves.
                 else {
                     speed = 1 / angle * 6;
                 }
             }
-            if(speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
-            points.add(i,new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
+            if (speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
+            points.add(i, new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
         }
-        if(minSpeed > maneuver.getVelocityOut())
-        {
-            minSpeed = (float)maneuver.getVelocityOut();
+        if (minSpeed > maneuver.getVelocityOut()) {
+            minSpeed = (float) maneuver.getVelocityOut();
         }
-        float speedChangeConst = (me.getVelocity().length() - minSpeed)/wpCount;
-        for(int i=0;i<wpCount;i++) // actual filling my outgoing actions
+        float speedChangeConst = (me.getVelocity().length() - minSpeed) / wpCount;
+        for (int i = 0; i < wpCount; i++) // actual filling my outgoing actions
         {
             //scaling speed to the lowest
-            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),me.getVelocity().length()-(i+1)*speedChangeConst));
+            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(), points.get(i), me.getVelocity().length() - (i + 1) * speedChangeConst));
         }
       /*
       only minimal speed set
@@ -208,14 +207,15 @@ public class RouteAgent extends Agent {
         return actions;
 
     }
+
     private List<Action> generateWaypointInLane() {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
 
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
-        int wpCount = (int)me.getVelocity().length() +1; // how many waypoints before me will be calculated.
-        points =  new ArrayList<Point3f>();
+        int wpCount = (int) me.getVelocity().length() + 1; // how many waypoints before me will be calculated.
+        points = new ArrayList<Point3f>();
         navigator.setCheckpoint();
 
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
@@ -226,20 +226,19 @@ public class RouteAgent extends Agent {
         //try to advance navigator closer to the actual position
         int maxMove = 10;  // how many points will be tried.
         //how many waiponts ahead will be chcecked depending on the update time
-        maxMove = (int)(((me.getUpdateTime() - lastUpateTime)*MAX_SPEED)/1000) + 5;
-        if(maxMove < 10) maxMove = 10;
+        maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
+        if (maxMove < 10) maxMove = 10;
         String uniqueIndex = navigator.getUniqueLaneIndex();
         // finding the nearest wayipont, if changing lane, set the first of the new lane.
         while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             navigator.advanceInRoute();
         }
         // finding the nearest waipoint in the new lane.
-        if(!navigator.getUniqueLaneIndex().equals(uniqueIndex))
-        {
+        if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             float initialPos = position2D.distance(navigator.getRoutePoint());
-            do{
+            do {
                 navigator.advanceInRoute();
-            }while(position2D.distance(navigator.getRoutePoint())  < initialPos);
+            } while (position2D.distance(navigator.getRoutePoint()) < initialPos);
             while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
@@ -248,9 +247,9 @@ public class RouteAgent extends Agent {
         }
 
         // waipoint not found, reset back
-        if( navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)){
+        if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             navigator.resetToCheckpoint();
-        }else {
+        } else {
             while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
@@ -259,41 +258,37 @@ public class RouteAgent extends Agent {
         waypoint = navigator.getRoutePoint();
 
 
-
         float minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         //TODO fix than distance of waipoints is different than 1
-        for(int i=0;i<wpCount;i++)
-        {
+        for (int i = 0; i < wpCount; i++) {
             // move 3 waipoints ahead
-            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND){
+            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);
             // vector from my position to the next waypoint
-            Vector3f toNextPoint = new Vector3f(waypoint.x- me.getPosition().x,waypoint.y - me.getPosition().y,0);
+            Vector3f toNextPoint = new Vector3f(waypoint.x - me.getPosition().x, waypoint.y - me.getPosition().y, 0);
             Vector3f velocity = me.getVelocity();
             float angle = velocity.angle(toNextPoint); // angle between my velocity and vector to the next point
             float speed;
-            if(Float.isNaN(angle))
-            {
+            if (Float.isNaN(angle)) {
                 speed = 1;
-            }
-            else {
+            } else {
                 if (angle < 0.4) speed = MAX_SPEED; // if the curve is less than 20 degrees, go by the max speed.
                 else if (angle > 6) speed = 2;    // minimal speed for curves.
                 else {
                     speed = 1 / angle * 6;
                 }
             }
-            if(speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
-            points.add(i,new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
+            if (speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
+            points.add(i, new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
         }
-        float speedChangeConst = (me.getVelocity().length() - minSpeed)/wpCount;
-        for(int i=0;i<wpCount;i++) // actual filling my outgoing actions
+        float speedChangeConst = (me.getVelocity().length() - minSpeed) / wpCount;
+        for (int i = 0; i < wpCount; i++) // actual filling my outgoing actions
         {
             //scaling speed to the lowest
-            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),me.getVelocity().length()-(i+1)*speedChangeConst));
+            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(), points.get(i), me.getVelocity().length() - (i + 1) * speedChangeConst));
         }
         navigator.resetToCheckpoint();
         lastUpateTime = me.getUpdateTime();
@@ -321,11 +316,9 @@ public class RouteAgent extends Agent {
         Vector2f direction = new Vector2f();
         direction.sub(innerPoint, position);
 
-        if(velocity.x == 0 && velocity.y == 0)
-        {
-            return  innerPoint.distance(position) < 3;
-        }
-        else {
+        if (velocity.x == 0 && velocity.y == 0) {
+            return innerPoint.distance(position) < 3;
+        } else {
             return velocity.angle(direction) < MAX_ANGLE &&
                     distance(innerPoint, position, direction, velocity) < RADIUS;
         }
@@ -339,6 +332,6 @@ public class RouteAgent extends Agent {
      */
     private float distance(Point2f innerPoint, Point2f position, Vector2f direction, Vector2f velocity) {
         float d = innerPoint.distance(position);
-        return d*d*Math.abs((float)Math.sin(direction.angle(velocity))+EPSILON);
+        return d * d * Math.abs((float) Math.sin(direction.angle(velocity)) + EPSILON);
     }
 }

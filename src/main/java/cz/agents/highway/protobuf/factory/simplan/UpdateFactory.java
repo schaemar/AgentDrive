@@ -36,7 +36,7 @@ public class UpdateFactory implements FactoryInterface<RadarData, Message> {
                 veh_builder.setAcceleration(0).setPosition(position);
 
                 // updateTime
-                updateTime = (double) Math.min(updateTime, car.getUpdateTime());
+                updateTime = Math.min(updateTime, car.getUpdateTime());
                 updateBuilder.addUpdates(veh_builder.build());
             }
 

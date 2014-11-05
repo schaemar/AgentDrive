@@ -1,10 +1,6 @@
 package cz.agents.highway.protobuf.factory.dlr;
 
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
-
 import com.google.protobuf.InvalidProtocolBufferException;
-
 import cz.agents.alite.protobuf.factory.FactoryInterface;
 import cz.agents.highway.protobuf.generated.dlr.DLR_MessageContainer.Message;
 import cz.agents.highway.protobuf.generated.dlr.DLR_UpdateMessage.Update;
@@ -13,6 +9,8 @@ import cz.agents.highway.protobuf.generated.dlr.DLR_UpdateMessage.Vehicle_update
 import cz.agents.highway.storage.RadarData;
 import cz.agents.highway.storage.RoadObject;
 
+import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
 
 
 public class DLR_UpdateFactory implements FactoryInterface<RadarData, Message> {
@@ -33,7 +31,7 @@ public class DLR_UpdateFactory implements FactoryInterface<RadarData, Message> {
                 veh_builder.setPosX(pos.x).setPosY(pos.y).setPosZ(pos.z);
 
                 //TODO hacked lane = lane + 1 to meet dlr lane indexing - check DLR_PlansFactory.java too
-                veh_builder.setVehicleId(car.getId()).setLane(car.getLaneIndex()+1).setVelocityX(v.x).setVelocityY(v.y);
+                veh_builder.setVehicleId(car.getId()).setLane(car.getLaneIndex() + 1).setVelocityX(v.x).setVelocityY(v.y);
 
                 // updateTime
                 updateTime = (float) Math.min(updateTime, car.getUpdateTime());
@@ -55,8 +53,8 @@ public class DLR_UpdateFactory implements FactoryInterface<RadarData, Message> {
         RadarData carUpdates = new RadarData();
         for (Vehicle_update vu : update.getUpdatesList()) {
             double time = update.getUpdateTime();
-            
-            
+
+
             Point3f pos = new Point3f((float) vu.getPosX(), (float) vu.getPosY(), (float) vu.getPosZ());
             Vector3f vel = new Vector3f((float) vu.getVelocityX(), (float) vu.getVelocityY(), 0.0f);
             carUpdates.add(new RoadObject(vu.getVehicleId(), time, vu.getLane(), pos, vel));

@@ -1,41 +1,33 @@
 package cz.agents.highway.agent;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3f;
-
-import cz.agents.highway.storage.plan.WPAction;
-import org.apache.log4j.Logger;
-
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.environment.RandomProvider;
-import cz.agents.highway.maneuver.AccelerationManeuver;
-import cz.agents.highway.maneuver.CarManeuver;
-import cz.agents.highway.maneuver.DeaccelerationManeuver;
-import cz.agents.highway.maneuver.HighwaySituation;
-import cz.agents.highway.maneuver.LaneLeftManeuver;
-import cz.agents.highway.maneuver.LaneRightManeuver;
-import cz.agents.highway.maneuver.StraightManeuver;
+import cz.agents.highway.maneuver.*;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.ManeuverAction;
+import cz.agents.highway.storage.plan.WPAction;
+import org.apache.log4j.Logger;
+
+import javax.vecmath.Point2d;
+import javax.vecmath.Point3f;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class SDAgent extends Agent {
 
     protected static final Logger logger = Logger.getLogger(SDAgent.class);
 
-    private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
-    private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance",   4.0  );
-    private final static double MAX_SPEED               = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 20.0  );
-    private final static double MAX_SPEED_VARIANCE      = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.8 );
+    private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM", 300.0);
+    private final static double SAFETY_RESERVE = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance", 4.0);
+    private final static double MAX_SPEED = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 20.0);
+    private final static double MAX_SPEED_VARIANCE = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.8);
 
-    private final static double LANE_SPEED_RATIO        = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio",            0.1);
-    private final static long   PLANNING_TIME           = 1000;
+    private final static double LANE_SPEED_RATIO = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio", 0.1);
+    private final static long PLANNING_TIME = 1000;
     //FIXME: Determine number of lanes based on agent's current position
     protected int num_of_lines;
 
@@ -43,7 +35,7 @@ public class SDAgent extends Agent {
     protected final ManeuverTranslator maneuverTranslator;
 
     // maximal speed after variance application
-    private final double initialMaximalSpeed = (RandomProvider.getRandom().nextDouble() - 0.5) * 2 *MAX_SPEED_VARIANCE * MAX_SPEED  + MAX_SPEED;
+    private final double initialMaximalSpeed = (RandomProvider.getRandom().nextDouble() - 0.5) * 2 * MAX_SPEED_VARIANCE * MAX_SPEED + MAX_SPEED;
     private double maximalSpeed = initialMaximalSpeed;
 
     public Action agentReact() {
@@ -52,7 +44,7 @@ public class SDAgent extends Agent {
     }
 
     private Action man2Action(CarManeuver man) {
-        if(man ==null){
+        if (man == null) {
             return new WPAction(id, 0d, getInitialPosition(), 0);
         }
         return new ManeuverAction(sensor.getId(), man.getStartTime() / 1000.0, man.getVelocityOut(), man.getLaneOut(), man.getDuration());
@@ -61,7 +53,7 @@ public class SDAgent extends Agent {
     public SDAgent(int id) {
         super(id);
         maneuverTranslator = new ManeuverTranslator(id, navigator);
-       num_of_lines = 1;
+        num_of_lines = 1;
     }
 
     public void addSensor(final VehicleSensor sensor) {
@@ -69,7 +61,7 @@ public class SDAgent extends Agent {
         maneuverTranslator.setSensor(sensor);
         this.sensor.registerReaction(new Reaction() {
             public void react(Event event) {
-                if(event.getType().equals(HighwayEventType.UPDATED)){
+                if (event.getType().equals(HighwayEventType.UPDATED)) {
                     actuator.act(agentReact());
                 }
             }
@@ -99,11 +91,11 @@ public class SDAgent extends Agent {
         double distance = transGeoToDistance(currState.getPosition());
         long updateTime = (long) (currState.getUpdateTime() * 1000);
 
-        CarManeuver acc   = new AccelerationManeuver  (lane, velocity, distance, updateTime);
-        CarManeuver str   = new StraightManeuver      (lane, velocity, distance, updateTime);
-        CarManeuver left  = new LaneLeftManeuver      (lane, velocity, distance, updateTime);
-        CarManeuver right = new LaneRightManeuver     (lane, velocity, distance, updateTime);
-        CarManeuver dec   = new DeaccelerationManeuver(lane, velocity, distance, updateTime);
+        CarManeuver acc = new AccelerationManeuver(lane, velocity, distance, updateTime);
+        CarManeuver str = new StraightManeuver(lane, velocity, distance, updateTime);
+        CarManeuver left = new LaneLeftManeuver(lane, velocity, distance, updateTime);
+        CarManeuver right = new LaneRightManeuver(lane, velocity, distance, updateTime);
+        CarManeuver dec = new DeaccelerationManeuver(lane, velocity, distance, updateTime);
 
         int preferredLane = getPreferredLane(currState);
         logger.debug("PreferredLane: " + preferredLane);
@@ -128,22 +120,19 @@ public class SDAgent extends Agent {
             }
         } else { // Not narrowingMode
             //performing changing lane?
-            if(currentManeuver !=null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
+            if (currentManeuver != null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
                 maneuver = left;
-            }
-            else if(currentManeuver !=null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
+            } else if (currentManeuver != null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
                 maneuver = right;
-            }
-            else{
+            } else {
 
                 if (isSafeMan(currState, right, situationPrediction)) {
                     maneuver = right;
-                }
-                else if (isSafeMan(currState, acc, situationPrediction)) {
+                } else if (isSafeMan(currState, acc, situationPrediction)) {
                     maneuver = acc;
                 } else if (isSafeMan(currState, str, situationPrediction)) {
                     maneuver = str;
-                }else  if (isSafeMan(currState, left, situationPrediction)) {
+                } else if (isSafeMan(currState, left, situationPrediction)) {
                     maneuver = left;
                 } else if (isSafeMan(currState, dec, situationPrediction)) {
                     maneuver = dec;
@@ -153,7 +142,7 @@ public class SDAgent extends Agent {
                 }
             }
         }
-        logger.info("Planned maneuver for carID " + currState.getId() + " " +maneuver);
+        logger.info("Planned maneuver for carID " + currState.getId() + " " + maneuver);
         currentManeuver = maneuver;
         return maneuver;
     }
@@ -161,6 +150,7 @@ public class SDAgent extends Agent {
     private double transGeoToDistance(double x, double y) {
         return sensor.getRoadDescription().distance(new Point2d(x, y));
     }
+
     protected double transGeoToDistance(Point3f position) {
         return transGeoToDistance(position.x, position.y);
     }
@@ -185,7 +175,8 @@ public class SDAgent extends Agent {
     }
 
     private boolean isNarrowingMode(RoadObject state) {
-        if(Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", false).equals(false)) return false;
+        if (Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", false).equals(false))
+            return false;
 
         int lane = state.getLaneIndex();
         double distance = getDistance(state);
@@ -228,11 +219,11 @@ public class SDAgent extends Agent {
         boolean narrowingMode = isNarrowingMode(state);
 
         if (isHighwayCollision(state, man)) {
-            if(id ==2) logger.info("Highway Collision detected!" + man);
+            if (id == 2) logger.info("Highway Collision detected!" + man);
             return false;
         }
         if (isRulesCollision(man)) {
-            if(id ==2) logger.info("Rules Collision detected! " + man);
+            if (id == 2) logger.info("Rules Collision detected! " + man);
             return false;
 
         }
@@ -259,7 +250,7 @@ public class SDAgent extends Agent {
             // right lane
 
         } else if (man.getClass().equals(LaneLeftManeuver.class)) {
-            if(id ==2) logger.info("LEFT_MAN_OUTPUT: " + isInSafeDistance(situation.getCarLeftAheadMan(), man)
+            if (id == 2) logger.info("LEFT_MAN_OUTPUT: " + isInSafeDistance(situation.getCarLeftAheadMan(), man)
                     + " " + isInSafeDistance(man, situation.getCarLeftMan()));
             return isInSafeDistance(situation.getCarLeftAheadMan(), man)
                     && isInSafeDistance(man, situation.getCarLeftMan());
@@ -406,7 +397,7 @@ public class SDAgent extends Agent {
 
     }
 
-    private boolean laneChange(CarManeuver carManeuver){
+    private boolean laneChange(CarManeuver carManeuver) {
         return carManeuver.getClass().equals(LaneLeftManeuver.class) || carManeuver.getClass().equals(LaneRightManeuver.class);
     }
 
@@ -422,7 +413,7 @@ public class SDAgent extends Agent {
         // TODO check - observed that StraightManeuver accelerates vehicle
         //if(carManeuver.getClass().equals(AccelerationManeuver.class) || carManeuver.getClass().equals(StraManeuver.class)){
         double laneMaxSpeed = maximalSpeed + carManeuver.getLaneIn() * LANE_SPEED_RATIO * maximalSpeed;
-        logger.info("laneMasSpeed= "+laneMaxSpeed +" maximalSpeed="+maximalSpeed+" speedVariance="+MAX_SPEED_VARIANCE+ " MAX_SPEED conf = "+MAX_SPEED);
+        logger.info("laneMasSpeed= " + laneMaxSpeed + " maximalSpeed=" + maximalSpeed + " speedVariance=" + MAX_SPEED_VARIANCE + " MAX_SPEED conf = " + MAX_SPEED);
         return carManeuver.getVelocityOut() > laneMaxSpeed;
 
 //    	boolean ret = false;

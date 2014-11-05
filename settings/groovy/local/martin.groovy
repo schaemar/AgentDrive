@@ -11,9 +11,9 @@ highway {
     net {
 //        folder = "nets/kosik/";
 //        folder = "nets/x-junction/";
-        folder = "nets/junction-big/";
+//        folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
-//        folder = "nets/highway-straight/";
+        folder = "nets/highway-straight/";
     }
     safeDistanceAgent {
         safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)

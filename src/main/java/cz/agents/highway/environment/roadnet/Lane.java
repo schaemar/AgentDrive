@@ -160,6 +160,5 @@ public class Lane {
     public Lane getLaneRight() {
         return getEdge().getLaneByIndex(getIndex()-1);
     }
-
 }
 
