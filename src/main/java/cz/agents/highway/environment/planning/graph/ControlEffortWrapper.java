@@ -17,6 +17,10 @@ public class ControlEffortWrapper extends GraphDelegator<Point, Straight> implem
 
     @Override
     public double getEdgeWeight(Straight e) {
-        return e.getStart().getPosition().distance(e.getEnd().getPosition());
+        if (e.getStart().getPosition().distance(e.getEnd().getPosition()) < 0.1) {
+            return super.getEdgeWeight(e);
+        } else {
+            return e.getStart().getPosition().distance(e.getEnd().getPosition());
+        }
     }
 }
