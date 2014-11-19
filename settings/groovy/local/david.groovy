@@ -19,12 +19,16 @@ highway {
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
         folder = "nets/nartest";
+ //       folder = "nets/x-junction";
+  //      folder = "nets/nadprysk"
+   //     folder = "nets/extest";
+
 
 
     }
     safeDistanceAgent {
         safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
-        narrowingModeActive = true;
+        narrowingModeActive = false;
         distanceToActivateNM = 100.0;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
@@ -94,8 +98,8 @@ highway {
 
         }
 
- //     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-     simulatorsToRun = ["SimulatorLite"];
+      simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+//    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //        simulatorsToRun = ["Empty"];
     }
