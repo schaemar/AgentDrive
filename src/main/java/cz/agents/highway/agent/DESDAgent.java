@@ -517,8 +517,10 @@ public class DESDAgent extends RouteAgent {
             {
                 break;
             }
-            if (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION) //distance from the junction, should be determined by max allowed speed on the lane.
+
+            if (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1) //distance from the junction, should be determined by max allowed speed on the lane.
             {
+
                 Point2f myPosition = convertPoint3ftoPoint2f(state.getPosition());
                 Point2f entryPosition = convertPoint3ftoPoint2f(entry.getPosition());
 
@@ -529,7 +531,7 @@ public class DESDAgent extends RouteAgent {
                 double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre);
                 if(ange > maxAngle || Double.isNaN(ange) )
                 {
-                    break; // blbe resena kaskada podminek - tohle zrusi ochranu pred prekazkou za krizovatkou
+                    break;
                 }
                 double hypotenuse = entry.getVelocity().length();
                 double d = hypotenuse * Math.cos(ange);
@@ -543,56 +545,10 @@ public class DESDAgent extends RouteAgent {
                     StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
                     situationPrediction.trySetCarAheadManeuver(man);
                 }
-                //TODO FIX THIS CODE DUPLICATE!!!
-                if (!entryLane.getEdge().equals(myEdge)) {
-                    // TODO situation where car is in the different road
-                    List<Edge> rem = navigator.getFollowingEdgesInPlan();
-                    logger.info("Checking this entry " + entry);
-                    for (Edge planned : rem) {
-                        if (planned.equals(entryLane.getEdge())) {
-                            predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, rem);
-                            situationPrediction.addAll(predictedManeuvers);
-                            CarManeuver man = predictedManeuvers.get(0);
 
-                            if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
-                                //right
-                                situationPrediction.trySetCarRightAheadMan(man);
-                            } else if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
-                                // left
-                                situationPrediction.trySetCarLeftAheadMan(man);
-                            } else {
-                                //same
-                                situationPrediction.trySetCarAheadManeuver(man);
-                            }
-                        }
-                    }
-                    continue;
-                }
-            } else {
-                if (!entryLane.getEdge().equals(myEdge)) {
-                    // TODO situation where car is in the different road
-                    List<Edge> rem = navigator.getFollowingEdgesInPlan();
-                    logger.info("Checking this entry " + entry);
-                    for (Edge planned : rem) {
-                        if (planned.equals(entryLane.getEdge())) {
-                            predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, rem);
-                            situationPrediction.addAll(predictedManeuvers);
-                            CarManeuver man = predictedManeuvers.get(0);
-
-                            if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
-                                //right
-                                situationPrediction.trySetCarRightAheadMan(man);
-                            } else if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
-                                // left
-                                situationPrediction.trySetCarLeftAheadMan(man);
-                            } else {
-                                //same
-                                situationPrediction.trySetCarAheadManeuver(man);
-                            }
-                        }
-                    }
-                    continue;
-                } else {
+            } else
+            {
+                 if(entryLane.getEdge().equals(myEdge)) {
                     predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, null);
                     situationPrediction.addAll(predictedManeuvers);
 
@@ -620,6 +576,30 @@ public class DESDAgent extends RouteAgent {
                     }
 
                 }
+            }
+            if (!entryLane.getEdge().equals(myEdge)) {
+                // TODO situation where car is in the different road
+                List<Edge> rem = navigator.getFollowingEdgesInPlan();
+                logger.info("Checking this entry " + entry);
+                for (Edge planned : rem) {
+                    if (planned.equals(entryLane.getEdge())) {
+                        predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, rem);
+                        situationPrediction.addAll(predictedManeuvers);
+                        CarManeuver man = predictedManeuvers.get(0);
+
+                        if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
+                            //right
+                            situationPrediction.trySetCarRightAheadMan(man);
+                        } else if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
+                            // left
+                            situationPrediction.trySetCarLeftAheadMan(man);
+                        } else {
+                            //same
+                            situationPrediction.trySetCarAheadManeuver(man);
+                        }
+                    }
+                }
+                continue;
             }
         }
         return situationPrediction;

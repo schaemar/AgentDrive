@@ -27,4 +27,12 @@ public class Junction extends Sector {
     public Point2f getCenter() {
         return center;
     }
+
+    public ArrayList<String> getIncLanes() {
+        return incLanes;
+    }
+
+    public ArrayList<String> getIntLanes() {
+        return intLanes;
+    }
 }
