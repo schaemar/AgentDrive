@@ -41,7 +41,7 @@ public class DESDAgent extends RouteAgent {
     private final static long   PLANNING_TIME           = 1000;
     private final static int CIRCLE_AROUND_FOR_SEARCH = 5;
     private final static int ANGLE_TO_JUNCTION = 60;
-    private final static int DISTANCE_TO_THE_JUNCTION = 600;
+    private final static int DISTANCE_TO_THE_JUNCTION = 100;
 
     //FIXME: Determine number of lanes based on agent's current position
     protected int num_of_lines;
@@ -504,34 +504,40 @@ public class DESDAgent extends RouteAgent {
 
         Lane entryLane =null;
         int numberOfLanes = myEdge.getLanes().size();
-        Junction abc = highwayEnvironment.getRoadNetwork().getJunctions().get(myEdge.getTo());
-        Point2f junctionwaypoint = navigator.getLane().getInnerPoints().get(myLane.getInnerPoints().size() -1);
-        Point2f entryjunctionwaypoint;
+        Junction myNearestJunction = highwayEnvironment.getRoadNetwork().getJunctions().get(myEdge.getTo());
+        Point2f junctionwaypoint = myNearestJunction.getCenter();
 
         for(RoadObject entry : nearCars) {
 
 
             ArrayList<CarManeuver> predictedManeuvers;
             entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
-            entryjunctionwaypoint = entryLane.getInnerPoints().get(entryLane.getInnerPoints().size() - 1);
             //TODO Fix this if else structur    ;
+            if(!myNearestJunction.equals(highwayEnvironment.getRoadNetwork().getJunctions().get(entryLane.getEdge().getTo())))
+            {
+                break;
+            }
             if (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION) //distance from the junction, should be determined by max allowed speed on the lane.
             {
                 Point2f myPosition = convertPoint3ftoPoint2f(state.getPosition());
                 Point2f entryPosition = convertPoint3ftoPoint2f(entry.getPosition());
 
-                Vector2f toTheCentre = new Vector2f((entryjunctionwaypoint.x - convertPoint3ftoPoint2f(entry.getPosition()).x),
-                        (entryjunctionwaypoint.y - convertPoint3ftoPoint2f(entry.getPosition()).y));
+                Vector2f toTheCentre = new Vector2f((junctionwaypoint.x - convertPoint3ftoPoint2f(entry.getPosition()).x),
+                        (junctionwaypoint.y - convertPoint3ftoPoint2f(entry.getPosition()).y));
 
-                double maxAngle = ANGLE_TO_JUNCTION * 180 / Math.PI;    //Max used angle
+                double maxAngle = ANGLE_TO_JUNCTION * Math.PI / 180;    //Max used angle
                 double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre);
+                if(ange > maxAngle || Double.isNaN(ange) )
+                {
+                    break; // blbe resena kaskada podminek - tohle zrusi ochranu pred prekazkou za krizovatkou
+                }
                 double hypotenuse = entry.getVelocity().length();
                 double d = hypotenuse * Math.cos(ange);
                 if (Double.isNaN(d)) d = 0;
                 toTheCentre.normalize();
                 Vector2f resultant = new Vector2f((float) toTheCentre.x * (float) d, (float) toTheCentre.y * (float) d);
                 float myDistance = myPosition.distance(junctionwaypoint);
-                float entryDistance = entryPosition.distance(entryjunctionwaypoint);
+                float entryDistance = entryPosition.distance(junctionwaypoint);
                 if (entryDistance < myDistance) {
                     //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
                     StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));

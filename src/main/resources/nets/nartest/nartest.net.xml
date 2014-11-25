@@ -2,26 +2,26 @@
 
 <net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
     <location netOffset="0.0,0.0" convBoundary="0.00,0.00,665.37,811.53" origBoundary="14.388600,50.068250,14.516399,50.128835" projParameter="+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
-    <edge id="0" from="nikde" to="0to1" priority="7" type="highway.secondary">
+    <edge id="0" from="nowhere" to="0to1" priority="7" type="highway.secondary">
         <lane id="0_0" index="0" speed="42" length="16.72" shape="15.0,0.0 15.0,100.0"/>  <!-- 15.0,100.0 70.0,130.0 -->
         <lane id="0_1" index="1" speed="42" length="16.72" shape="11.7,0.0 11.7,100.0"/> <!-- 15.0,100.0 70.0,130.0 -->
 
     </edge>
-    <edge id="1" from="1" to="2" priority="7" type="highway.secondary">
+    <edge id="1" from="nowhere" to="deadend" priority="7" type="highway.secondary">
         <lane id="1_0" index="0" speed="42" length="16.72" shape="15.0,105.0 15.0,180.0 30.0,190 40.0,180 50.0,50 70,0 60,-100 20,-140"/>
     </edge>
 
-    <edge id="2" from="nikde" to="23to0" priority="7" type="highway.secondary">
+    <edge id="2" from="nowhere" to="23to0" priority="7" type="highway.secondary">
         <lane id="2_0" index="0" speed="42" length="16.72" shape="15.0,-100.0 15.0,-5.0"/>  <!-- 15.0,100.0 70.0,130.0 -->
     </edge>
 
-    <edge id="3" from="nikde" to="23to0" priority="7" type="highway.secondary">
+    <edge id="3" from="nowhere" to="23to0" priority="7" type="highway.secondary">
         <lane id="3_0" index="0" speed="42" length="16.72" shape="-10.0,-95.0 11.7,-5.0"/>  <!-- 15.0,100.0 70.0,130.0 -->
     </edge>
 
-    <!--<junction id="266707267" type="dead_end" x="0.00" y="0.00" incLanes="1_0" intLanes="" shape="0.01,-0.05 0.59,-3.20 -0.59,3.20 -0.01,0.05"/>-->
-    <junction id="23to0" type="unregulated" x="0.00" y="0.00" incLanes="2_0 3_0" intLanes="0_0 0_1" shape="15.0,-5.0 11.7,-5.0 11.7,0.0 15.0,0.0"/>
-    <junction id="0to1" type="unregulated" x="0.00" y="0.00" incLanes="0_0 0_1" intLanes="1_0" shape="15.0,100.0 11.7,100.0 15.0,105.0"/>
+    <junction id="deadend" type="dead_end" x="20.00" y="-140.00" incLanes="1_0" intLanes="" shape="20,-140"/>
+    <junction id="23to0" type="unregulated" x="13.00" y="-2.50" incLanes="2_0 3_0" intLanes="0_0 0_1" shape="15.0,-5.0 11.7,-5.0 11.7,0.0 15.0,0.0"/>
+    <junction id="0to1" type="unregulated" x="15.00" y="102.00" incLanes="0_0 0_1" intLanes="1_0" shape="15.0,100.0 11.7,100.0 15.0,105.0"/>
     <connection from="0" to="1" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="2" to="0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="3" to="0" fromLane="0" toLane="1" dir="s" state="M"/>

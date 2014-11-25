@@ -24,5 +24,7 @@ public class Junction extends Sector {
         this.requests = requests;
     }
 
-
+    public Point2f getCenter() {
+        return center;
+    }
 }
