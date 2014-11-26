@@ -230,4 +230,8 @@ public class RouteNavigator {
         }
         return rem;
     }
+
+    public List<Edge> getRoute() {
+        return route;
+    }
 }

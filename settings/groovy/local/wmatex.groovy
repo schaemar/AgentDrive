@@ -3,12 +3,17 @@
  * Created by wmatex on 21.7.14.
  */
 highway {
-    agent = "RouteAgent";
+    //agent = "RouteAgent";
+    agent = "ADPPAgent";
     net {
 //        folder = "nets/highway-straight";
 //        folder = "nets/CharlesSquare";
 //        folder = "nets/junction-big";
-        folder = "nets/pisek";
+//        folder = "nets/graz";
+//        folder = "nets/vysehrad";
+//        folder = "nets/pisek";
+//        folder = "nets/test";
+        folder = "nets/test90";
     }
 
     dashboard {
@@ -21,7 +26,7 @@ highway {
             }
         }
 
-        simulatorsToRun = ["OpenDS_devel"];
+        simulatorsToRun = [];
     }
 }
 
