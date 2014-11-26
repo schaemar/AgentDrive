@@ -513,68 +513,65 @@ public class DESDAgent extends RouteAgent {
             ArrayList<CarManeuver> predictedManeuvers;
             entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
             //TODO Fix this if else structur    ;
-            if(!myNearestJunction.equals(highwayEnvironment.getRoadNetwork().getJunctions().get(entryLane.getEdge().getTo())))
-            {
-                break;
-            }
+            if(myNearestJunction.equals(highwayEnvironment.getRoadNetwork().getJunctions().get(entryLane.getEdge().getTo()))) {
 
-            if (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1) //distance from the junction, should be determined by max allowed speed on the lane.
-            {
-
-                Point2f myPosition = convertPoint3ftoPoint2f(state.getPosition());
-                Point2f entryPosition = convertPoint3ftoPoint2f(entry.getPosition());
-
-                Vector2f toTheCentre = new Vector2f((junctionwaypoint.x - convertPoint3ftoPoint2f(entry.getPosition()).x),
-                        (junctionwaypoint.y - convertPoint3ftoPoint2f(entry.getPosition()).y));
-
-                double maxAngle = ANGLE_TO_JUNCTION * Math.PI / 180;    //Max used angle
-                double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre);
-                if(ange > maxAngle || Double.isNaN(ange) )
+                if (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1) //distance from the junction, should be determined by max allowed speed on the lane.
                 {
-                    break;
-                }
-                double hypotenuse = entry.getVelocity().length();
-                double d = hypotenuse * Math.cos(ange);
-                if (Double.isNaN(d)) d = 0;
-                toTheCentre.normalize();
-                Vector2f resultant = new Vector2f((float) toTheCentre.x * (float) d, (float) toTheCentre.y * (float) d);
-                float myDistance = myPosition.distance(junctionwaypoint);
-                float entryDistance = entryPosition.distance(junctionwaypoint);
-                if (entryDistance < myDistance) {
-                    //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
-                    StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
-                    situationPrediction.trySetCarAheadManeuver(man);
-                }
 
-            } else
-            {
-                 if(entryLane.getEdge().equals(myEdge)) {
-                    predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, null);
-                    situationPrediction.addAll(predictedManeuvers);
+                    Point2f myPosition = convertPoint3ftoPoint2f(state.getPosition());
+                    Point2f entryPosition = convertPoint3ftoPoint2f(entry.getPosition());
 
-                    CarManeuver man = predictedManeuvers.get(0);
+                    Vector2f toTheCentre = new Vector2f((junctionwaypoint.x - convertPoint3ftoPoint2f(entry.getPosition()).x),
+                            (junctionwaypoint.y - convertPoint3ftoPoint2f(entry.getPosition()).y));
 
-                    int entryNearestWaipoint = getNearestWaipointIndex(entry, entryLane);
-                    if (myLane.getLaneId().equals(entryLane.getLaneId())) {
-                        if (entryNearestWaipoint > myIndexOnRoute) {
-                            situationPrediction.trySetCarAheadManeuver(man);
-                        }
+                    double maxAngle = ANGLE_TO_JUNCTION * Math.PI / 180;    //Max used angle
+                    double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre);
+                    if (ange > maxAngle || Double.isNaN(ange)) {
+
                     } else {
-                        if (entryNearestWaipoint < myIndexOnRoute) {
-                            if (myLane.getIndex() - entryLane.getIndex() == -1) {
-                                situationPrediction.trySetCarLeftMan(man);
-                            } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
-                                situationPrediction.trySetCarRightMan(man);
-                            }
-                        } else {
-                            if (myLane.getIndex() - entryLane.getIndex() == -1) {
-                                situationPrediction.trySetCarLeftAheadMan(man);
-                            } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
-                                situationPrediction.trySetCarRightAheadMan(man);
-                            }
+                        double hypotenuse = entry.getVelocity().length();
+                        double d = hypotenuse * Math.cos(ange);
+                        if (Double.isNaN(d)) d = 0;
+                        toTheCentre.normalize();
+                        Vector2f resultant = new Vector2f((float) toTheCentre.x * (float) d, (float) toTheCentre.y * (float) d);
+                        float myDistance = myPosition.distance(junctionwaypoint);
+                        float entryDistance = entryPosition.distance(junctionwaypoint);
+                        if (entryDistance < myDistance) {
+                            //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
+                            StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
+                            situationPrediction.trySetCarAheadManeuver(man);
                         }
                     }
 
+                } else {
+                    if (entryLane.getEdge().equals(myEdge)) {
+                        predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, null);
+                        situationPrediction.addAll(predictedManeuvers);
+
+                        CarManeuver man = predictedManeuvers.get(0);
+
+                        int entryNearestWaipoint = getNearestWaipointIndex(entry, entryLane);
+                        if (myLane.getLaneId().equals(entryLane.getLaneId())) {
+                            if (entryNearestWaipoint > myIndexOnRoute) {
+                                situationPrediction.trySetCarAheadManeuver(man);
+                            }
+                        } else {
+                            if (entryNearestWaipoint < myIndexOnRoute) {
+                                if (myLane.getIndex() - entryLane.getIndex() == -1) {
+                                    situationPrediction.trySetCarLeftMan(man);
+                                } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
+                                    situationPrediction.trySetCarRightMan(man);
+                                }
+                            } else {
+                                if (myLane.getIndex() - entryLane.getIndex() == -1) {
+                                    situationPrediction.trySetCarLeftAheadMan(man);
+                                } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
+                                    situationPrediction.trySetCarRightAheadMan(man);
+                                }
+                            }
+                        }
+
+                    }
                 }
             }
             if (!entryLane.getEdge().equals(myEdge)) {

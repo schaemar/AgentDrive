@@ -230,6 +230,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     agent = storage.createAgent(vehicleID);
                 }
                 Point2f position = agent.getNavigator().next();
+                //TODO FIX when lane is too short
                 for (int j = 0; j < initPos.size(); j++) {
                     while (!saveDistance(initPos.get(j), position)) {
                         position = agent.getNavigator().next();

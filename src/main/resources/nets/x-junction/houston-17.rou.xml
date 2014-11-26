@@ -36,6 +36,15 @@
     <vehicle id="3" depart="0.30">
         <route edges="-13227997#1 62343639#2"/>
     </vehicle>
+    <vehicle id="11" depart="0.10">
+        <route edges="-13227997#1 -13227997#0"/>
+    </vehicle>
+    <vehicle id="22" depart="0.20">
+        <route edges="-13227997#1 -62343639#1"/>
+    </vehicle>
+    <vehicle id="33" depart="0.30">
+        <route edges="-13227997#1 62343639#2"/>
+    </vehicle>
     <vehicle id="4" depart="0.50">
         <route edges="62343639#1 -13227997#0"/>
     </vehicle>
@@ -43,6 +52,15 @@
         <route edges="62343639#1 62343639#2"/>
     </vehicle>
     <vehicle id="6" depart="0.70">
+        <route edges="62343639#1 13227997#1"/>
+    </vehicle>
+    <vehicle id="44" depart="0.50">
+        <route edges="62343639#1 -13227997#0"/>
+    </vehicle>
+    <vehicle id="55" depart="0.60">
+        <route edges="62343639#1 62343639#2"/>
+    </vehicle>
+    <vehicle id="66" depart="0.70">
         <route edges="62343639#1 13227997#1"/>
     </vehicle>
     <vehicle id="7" depart="0.80">
@@ -54,6 +72,15 @@
     <vehicle id="9" depart="1.00">
         <route edges="13227997#0 -62343639#1"/>
     </vehicle>
+    <vehicle id="77" depart="0.80">
+        <route edges="13227997#0 62343639#2"/>
+    </vehicle>
+    <vehicle id="88" depart="0.90">
+        <route edges="13227997#0 13227997#1"/>
+    </vehicle>
+    <vehicle id="99" depart="1.00">
+        <route edges="13227997#0 -62343639#1"/>
+    </vehicle>
     <vehicle id="10" depart="1.10">
         <route edges="-62343639#2 13227997#1"/>
     </vehicle>
@@ -61,6 +88,15 @@
         <route edges="-62343639#2 -62343639#1"/>
     </vehicle>
     <vehicle id="12" depart="1.30">
+        <route edges="-62343639#2 -13227997#0"/>
+    </vehicle>
+    <vehicle id="1010" depart="1.10">
+        <route edges="-62343639#2 13227997#1"/>
+    </vehicle>
+    <vehicle id="1111" depart="1.20">
+        <route edges="-62343639#2 -62343639#1"/>
+    </vehicle>
+    <vehicle id="1212" depart="1.30">
         <route edges="-62343639#2 -13227997#0"/>
     </vehicle>
 </routes>
