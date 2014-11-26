@@ -5,6 +5,9 @@
 highway {
     //agent = "RouteAgent";
     agent = "ADPPAgent";
+    SimulatorLocal {
+        timestep = 1;
+    }
     net {
 //        folder = "nets/highway-straight";
 //        folder = "nets/CharlesSquare";
@@ -13,7 +16,9 @@ highway {
 //        folder = "nets/vysehrad";
 //        folder = "nets/pisek";
 //        folder = "nets/test";
-        folder = "nets/test90";
+//        folder = "nets/test90";
+//        folder = "nets/test91";
+        folder = "nets/test92";
     }
 
     dashboard {
@@ -23,6 +28,9 @@ highway {
             }
             Dummy {
                 launch = "launchers/dummy.sh"
+            }
+            SimulatorLite {
+                launch = "launchers/simulator-lite.sh"
             }
         }
 
