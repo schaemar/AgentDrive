@@ -6,10 +6,8 @@ import cz.agents.alite.vis.layer.VisLayer;
 import cz.agents.alite.vis.layer.toggle.KeyToggleLayer;
 import cz.agents.highway.environment.planning.Timer;
 import cz.agents.highway.environment.planning.graph.RoadNetWrapper;
-import cz.agents.highway.environment.planning.graph.SpaceTimeHeuristic;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Lane;
-import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
@@ -20,16 +18,15 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.AStarShortestPathSimple;
-import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.util.Goal;
-import tt.discrete.Trajectory;
-import tt.discrete.vis.TrajectoryLayer;
+import org.jgrapht.util.HeuristicToGoal;
 import tt.euclid2i.Line;
 import tt.euclid2i.Point;
 import tt.euclid2i.trajectory.StraightSegmentTrajectory;
 import tt.euclid2i.vis.ProjectionTo2d;
-import tt.euclidtime3i.L2Heuristic;
 import tt.euclidtime3i.Region;
+import tt.euclidtime3i.ShortestPathHeuristic;
 import tt.euclidtime3i.discretization.ConstantSpeedTimeExtension;
 import tt.euclidtime3i.discretization.ControlEffortWrapper;
 import tt.euclidtime3i.discretization.FreeOnTargetWaitExtension;
@@ -39,25 +36,25 @@ import tt.euclidtime3i.vis.TimeParameter;
 import tt.euclidtime3i.vis.TimeParameterProjectionTo2d;
 import tt.vis.GraphLayer;
 import tt.vis.ParameterControlLayer;
-import tt.vis.TimeParameterHolder;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
-import java.awt.Color;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * Planning agent implementation using the
- * Asynchronous Decentralized Prioritized Planning Algorithm, see: http://agents.fel.cvut.cz/~cap/research/adpp/
+ * Asynchronous Decentralized Prioritized Planning Algorithm
+ * see: http://agents.fel.cvut.cz/~cap/research/adpp/
  *
  * Created by wmatex on 13.10.14.
  */
 public class ADPPAgent extends Agent {
-    private static final int SKIP_POINTS = 3;
-    private static final int MOVE_PENALTY = 1;
-    private static final int RADIUS = 10;
+    private static final int RADIUS = 5;
     private static final int SPEED = 1;
-    private static final int MAX_TIME = 1000;
+    private static final float[] SPEEDS = new float[] {1};
+    private static final int MAX_TIME = 10000;
     private static final Timer globalTimer = new Timer(true);
     private static final TimeParameter timeParameter = new TimeParameter();
     private static ArrayList<Region> agentTrajectories = new ArrayList<Region>();
@@ -70,6 +67,7 @@ public class ADPPAgent extends Agent {
     tt.euclid2i.Trajectory trajectory;
     VisLayer trajectoryLayer = null;
     Point start, goal;
+    long expanded = 0;
 
     public ADPPAgent(int id) {
         super(id);
@@ -102,66 +100,25 @@ public class ADPPAgent extends Agent {
         goal = new Point(Math.round(lastPoint.x), Math.round(lastPoint.y));
         start = new Point(Math.round(navigator.getRoutePoint().x), Math.round(navigator.getRoutePoint().y));
 
-
-        System.out.println("Agent "+id+" planning");
-        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[] {SPEED}, new ArrayList<Region>(agentTrajectories), 1, 1);
+        int speed = (int) (Math.random()*3+1);
+        System.out.println("Agent "+id+" planning, speed = "+speed);
+//        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[] {speed}, new ArrayList<Region>(agentTrajectories), 1, 1);
+        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, SPEEDS, new ArrayList<Region>(agentTrajectories), 1, 1);
+//        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, SPEEDS, new ArrayList<Region>(), 1, 1);
         planningGraph = new FreeOnTargetWaitExtension(planningGraph, goal);
         planningGraph = new ControlEffortWrapper(planningGraph, 1);
         // Do the planning
         this.plan();
-        final List<Region> agentRegions = new ArrayList<Region>(agentTrajectories);
-        VisManager.registerLayer(KeyToggleLayer.create(""+id, false, tt.euclidtime3i.vis.RegionsLayer.create(new tt.euclidtime3i.vis.RegionsLayer.RegionsProvider() {
+        VisManager.registerLayer(KeyToggleLayer.create(""+id, true, tt.euclidtime3i.vis.RegionsLayer.create(new tt.euclidtime3i.vis.RegionsLayer.RegionsProvider() {
 
             @Override
-            public Collection<tt.euclidtime3i.Region> getRegions() {
+            public Collection<Region> getRegions() {
                 List<Region> regions = new ArrayList<Region>(1);
                 regions.add(new MovingCircle(trajectory, RADIUS));
                 return regions;
             }
         }, new TimeParameterProjectionTo2d(timeParameter), AgentColors.getColorForAgent(id), AgentColors.getColorForAgent(id))));
         System.out.println("Sum time: "+globalTimer.getElapsedTime());
-    }
-
-
-    /**
-     * Plan the optimal non-collision trajectory
-     */
-    private void plan() {
-        timer.reset();
-        System.out.println("Start: "+start);
-        System.out.println("Goal: "+goal);
-        System.out.println("Trajectories size: " + agentTrajectories.size());
-         GraphPath<tt.euclidtime3i.Point, Straight> path = AStarShortestPathSimple.findPathBetween(planningGraph, new SpaceTimeHeuristic(goal, start),
-                new tt.euclidtime3i.Point(start.x, start.y, 0), new Goal<tt.euclidtime3i.Point>() {
-                    @Override
-                    public boolean isGoal(tt.euclidtime3i.Point point) {
-                        return (goal.distance(point.getPosition()) < 1);
-                    }
-                });
-        if (path == null) {
-            trajectory = null;
-            System.out.println("No path found!");
-            return;
-        }
-        System.out.println("Planning took: " + timer.getElapsedTime());
-        trajectory = new StraightSegmentTrajectory(path, path.getEndVertex().getTime());
-        MovingCircle region = new MovingCircle(trajectory, RADIUS);
-        try {
-            agentTrajectories.set(id, region);
-        } catch (IndexOutOfBoundsException e) {
-            agentTrajectories.add(region);
-        }
-
-        if (trajectoryLayer != null) {
-            VisManager.unregisterLayer(trajectoryLayer);
-        }
-        trajectoryLayer = TrajectoryLayer.create(new TrajectoryLayer.TrajectoryProvider<Point>() {
-            @Override
-            public Trajectory<Point> getTrajectory() {
-                return trajectory;
-            }
-        }, new ProjectionTo2d(), AgentColors.getColorForAgent(id), 1, MAX_TIME, 'g');
-        VisManager.registerLayer(trajectoryLayer);
     }
 
 
@@ -193,12 +150,54 @@ public class ADPPAgent extends Agent {
             Point3f planP = new Point3f(p.x, p.y, 0);
             actions.add(new WPAction(me.getId(), me.getUpdateTime(), planP, SPEED));
         }
-
         // Replan every 10 seconds
         if (time > 0 && time % 10 == 0) {
-            System.out.println("Agent "+id+" replanning...");
+            System.out.println("Agent " + id + " replanning...");
             this.plan();
         }
         return actions;
+    }
+
+
+    /**
+     * Plan the optimal non-collision trajectory
+     */
+    private void plan() {
+        System.out.println("Start: "+start);
+        System.out.println("Goal: "+goal);
+        expanded = 0;
+
+        timer.reset();
+        DirectedGraph<Point, Line> reversed = new EdgeReversedGraph<Point, Line>(spatialGraph);
+        System.out.println("Reversing graph: "+timer.getElapsedTime());
+        timer.reset();
+        HeuristicToGoal<tt.euclidtime3i.Point> heuristicToGoal = new ShortestPathHeuristic(reversed, goal);
+        System.out.println("Creating heuristic: "+timer.getElapsedTime());
+        timer.reset();
+        GraphPath<tt.euclidtime3i.Point, Straight> path = AStarShortestPathSimple.findPathBetween(planningGraph,
+            //new SpaceTimeHeuristic(goal, start),
+//            new L2Heuristic(goal),
+//            new ShortestPathHeuristic(new EdgeReversedGraph<Point, Line>(spatialGraph), goal),
+              heuristicToGoal,
+            new tt.euclidtime3i.Point(start.x, start.y, 0), new Goal<tt.euclidtime3i.Point>() {
+                @Override
+                public boolean isGoal(tt.euclidtime3i.Point point) {
+                    ++expanded;
+                    return (goal.distance(point.getPosition()) < 1);
+                }
+            });
+        System.out.println("Planning took: " + timer.getElapsedTime()+", expanded nodes: "+expanded);
+        if (path == null) {
+            trajectory = null;
+            System.out.println("No path found!");
+            return;
+        }
+        trajectory = new StraightSegmentTrajectory(path, path.getEndVertex().getTime());
+        MovingCircle region = new MovingCircle(trajectory, RADIUS);
+        try {
+            agentTrajectories.set(id, region);
+        } catch (IndexOutOfBoundsException e) {
+            agentTrajectories.add(region);
+        }
     }
 }
