@@ -26,6 +26,10 @@ public class Timer {
         return String.format("%ds %03dms", sec, msec);
     }
 
+    public long getRawElapsedTime() {
+        return this.getNanoTime()-startTime;
+    }
+
     public void reset() {
         startTime = this.getNanoTime();
     }
