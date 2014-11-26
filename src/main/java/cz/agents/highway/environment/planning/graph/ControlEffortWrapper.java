@@ -11,16 +11,21 @@ import tt.euclidtime3i.discretization.Straight;
  * Created by wmatex on 29.10.14.
  */
 public class ControlEffortWrapper extends GraphDelegator<Point, Straight> implements DirectedGraph<Point, Straight> {
-    public ControlEffortWrapper(Graph<Point, Straight> g) {
+    private double movePenaltyPerSec;
+    private double waitPenaltyPerSec;
+
+    public ControlEffortWrapper(Graph<Point, Straight> g, double movePenaltyPerSec, double waitPenaltyPerSec) {
         super(g);
+        this.movePenaltyPerSec = movePenaltyPerSec;
+        this.waitPenaltyPerSec = waitPenaltyPerSec;
     }
 
     @Override
     public double getEdgeWeight(Straight e) {
-        if (e.getStart().getPosition().distance(e.getEnd().getPosition()) < 0.1) {
-            return super.getEdgeWeight(e);
+        if (e.getStart().getPosition().distance(e.getEnd().getPosition()) < 0.01) {
+            return super.getEdgeWeight(e) + waitPenaltyPerSec * (e.duration());
         } else {
-            return e.getStart().getPosition().distance(e.getEnd().getPosition());
+            return super.getEdgeWeight(e) + movePenaltyPerSec * (e.duration());
         }
     }
 }

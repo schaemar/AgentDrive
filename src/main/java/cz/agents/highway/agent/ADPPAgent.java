@@ -5,6 +5,7 @@ import cz.agents.alite.vis.VisManager;
 import cz.agents.alite.vis.layer.VisLayer;
 import cz.agents.alite.vis.layer.toggle.KeyToggleLayer;
 import cz.agents.highway.environment.planning.Timer;
+import cz.agents.highway.environment.planning.graph.ControlEffortWrapper;
 import cz.agents.highway.environment.planning.graph.RoadNetWrapper;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Lane;
@@ -27,10 +28,10 @@ import tt.euclid2i.Line;
 import tt.euclid2i.Point;
 import tt.euclid2i.trajectory.StraightSegmentTrajectory;
 import tt.euclid2i.vis.ProjectionTo2d;
+import tt.euclidtime3i.L2Heuristic;
 import tt.euclidtime3i.Region;
 import tt.euclidtime3i.ShortestPathHeuristic;
 import tt.euclidtime3i.discretization.ConstantSpeedTimeExtension;
-import tt.euclidtime3i.discretization.ControlEffortWrapper;
 import tt.euclidtime3i.discretization.FreeOnTargetWaitExtension;
 import tt.euclidtime3i.discretization.Straight;
 import tt.euclidtime3i.region.MovingCircle;
@@ -102,13 +103,12 @@ public class ADPPAgent extends Agent {
         goal = new Point(Math.round(lastPoint.x), Math.round(lastPoint.y));
         start = new Point(Math.round(navigator.getRoutePoint().x), Math.round(navigator.getRoutePoint().y));
 
-        int speed = (int) (Math.random()*3+1);
-        System.out.println("Agent "+id+" planning, speed = "+speed);
+        System.out.println("Agent "+id+" planning");
 //        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[] {speed}, new ArrayList<Region>(agentTrajectories), 1, 1);
         planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, SPEEDS, new ArrayList<Region>(agentTrajectories), 1, 1);
 //        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, SPEEDS, new ArrayList<Region>(), 1, 1);
         planningGraph = new FreeOnTargetWaitExtension(planningGraph, goal);
-        planningGraph = new ControlEffortWrapper(planningGraph, 1);
+        planningGraph = new ControlEffortWrapper(planningGraph, 1, 10000);
         // Do the planning
         this.plan();
         VisManager.registerLayer(KeyToggleLayer.create(""+id, true, tt.euclidtime3i.vis.RegionsLayer.create(new tt.euclidtime3i.vis.RegionsLayer.RegionsProvider() {
@@ -179,12 +179,12 @@ public class ADPPAgent extends Agent {
         GraphPath<tt.euclidtime3i.Point, Straight> path = AStarShortestPathSimple.findPathBetween(planningGraph,
             //new SpaceTimeHeuristic(goal, start),
 //            new L2Heuristic(goal),
-//            new ShortestPathHeuristic(new EdgeReversedGraph<Point, Line>(spatialGraph), goal),
               heuristicToGoal,
             new tt.euclidtime3i.Point(start.x, start.y, 0), new Goal<tt.euclidtime3i.Point>() {
                 @Override
                 public boolean isGoal(tt.euclidtime3i.Point point) {
                     ++expanded;
+//                    System.out.println("Trying: "+point);
                     return (goal.distance(point.getPosition()) < 1);
                 }
             });
