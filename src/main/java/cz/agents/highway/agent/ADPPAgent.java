@@ -2,7 +2,6 @@ package cz.agents.highway.agent;
 
 import cz.agents.alite.vis.VisManager;
 import cz.agents.alite.vis.layer.VisLayer;
-import cz.agents.highway.environment.graph.ControlEffortWrapper;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.Network;
@@ -21,6 +20,7 @@ import tt.euclid2i.vis.ProjectionTo2d;
 import tt.euclidtime3i.L2Heuristic;
 import tt.euclidtime3i.Region;
 import tt.euclidtime3i.discretization.ConstantSpeedTimeExtension;
+import tt.euclidtime3i.discretization.ControlEffortWrapper;
 import tt.euclidtime3i.discretization.Straight;
 import tt.euclidtime3i.region.MovingCircle;
 import tt.vis.GraphLayer;
@@ -65,7 +65,7 @@ public class ADPPAgent extends Agent {
         System.out.println("Agent "+INDEX+" planning");
         System.out.println("Start: "+start);
         DirectedGraph<tt.euclidtime3i.Point, Straight> graph = new ConstantSpeedTimeExtension(planningGraph, 10000, new int[] {1}, agentTrajectories, 0);
-        graph = new ControlEffortWrapper(graph);
+        graph = new ControlEffortWrapper(graph, 1);
         final GraphPath<tt.euclidtime3i.Point, Straight> path = AStarShortestPathSimple.findPathBetween(graph, new L2Heuristic(goal),
                 new tt.euclidtime3i.Point(start.x, start.y, 0), new Goal<tt.euclidtime3i.Point>() {
             @Override
