@@ -4,7 +4,9 @@ import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.Network;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
+import org.jgrapht.WeightedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.GraphDelegator;
 import tt.euclid2i.Line;
 import tt.euclid2i.Point;
@@ -31,7 +33,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
     public static RoadNetWrapper create(String startingLaneIdx) {
         Network network = Network.getInstance();
         HashSet<String> closedList = new HashSet<String>();
-        DirectedGraph<Point, Line> graph = new DefaultDirectedGraph<Point, Line>(Line.class);
+        DirectedGraph<Point, Line> graph = new DefaultDirectedWeightedGraph<Point, Line>(Line.class);
 
         Lane startingLane = network.getLanes().get(startingLaneIdx);
         // Traverse the lanes using DFS
@@ -78,7 +80,8 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
                     Point2f tmp = neighbourLanePoints.get(i + OVERTAKE_OFFSET);
                     final Point neighbourPoint = new Point(Math.round(tmp.x), Math.round(tmp.y));
                     if (graph.containsVertex(neighbourPoint)) {
-                        graph.addEdge(p, neighbourPoint, new Line(p, neighbourPoint));
+                        Line edge = new Line(p, neighbourPoint);
+                        graph.addEdge(p, neighbourPoint, edge);
                         ++numEdge;
 
                         // Check also reverse edge
@@ -86,7 +89,8 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
                             tmp = neighbourLanePoints.get(i - OVERTAKE_OFFSET);
                             final Point reversePoint = new Point(Math.round(tmp.x), Math.round(tmp.y));
                             if (!graph.containsEdge(reversePoint, p)) {
-                                graph.addEdge(reversePoint, p, new Line(reversePoint, p));
+                                Line reversed = new Line(reversePoint, p);
+                                graph.addEdge(reversePoint, p, reversed);
                                 ++numEdge;
                             }
                         }
@@ -105,5 +109,10 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
                 traverse(outgoing, graph, visited, lastPoint);
             }
         }
+    }
+
+    @Override
+    public double getEdgeWeight(Line edge) {
+        return edge.getDistance();
     }
 }
