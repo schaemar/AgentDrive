@@ -21,6 +21,8 @@ import org.jgrapht.alg.AStarShortestPathSimple;
 import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.util.Goal;
 import org.jgrapht.util.HeuristicToGoal;
+import tt.discrete.Trajectory;
+import tt.discrete.vis.TrajectoryLayer;
 import tt.euclid2i.Line;
 import tt.euclid2i.Point;
 import tt.euclid2i.trajectory.StraightSegmentTrajectory;
@@ -78,12 +80,12 @@ public class ADPPAgent extends Agent {
 
         if (id == 0) {
             VisManager.registerLayer(ParameterControlLayer.create(timeParameter));
-            graphLayer = GraphLayer.create(new GraphLayer.GraphProvider<Point, Line>() {
+            graphLayer = KeyToggleLayer.create("g", true, GraphLayer.create(new GraphLayer.GraphProvider<Point, Line>() {
                 @Override
                 public Graph<Point, Line> getGraph() {
                     return spatialGraph;
                 }
-            }, new ProjectionTo2d(), Color.BLUE, Color.RED, 2, 3);
+            }, new ProjectionTo2d(), Color.BLUE, Color.RED, 2, 3));
             VisManager.registerLayer(graphLayer);
         }
         System.out.println("Building graph: "+timer.getElapsedTime());
@@ -152,8 +154,8 @@ public class ADPPAgent extends Agent {
         }
         // Replan every 10 seconds
         if (time > 0 && time % 10 == 0) {
-            System.out.println("Agent " + id + " replanning...");
-            this.plan();
+//            System.out.println("Agent " + id + " replanning...");
+//            this.plan();
         }
         return actions;
     }
@@ -199,5 +201,12 @@ public class ADPPAgent extends Agent {
         } catch (IndexOutOfBoundsException e) {
             agentTrajectories.add(region);
         }
+        trajectoryLayer = TrajectoryLayer.create(new TrajectoryLayer.TrajectoryProvider<Point>() {
+            @Override
+            public Trajectory<Point> getTrajectory() {
+                return trajectory;
+            }
+        }, new ProjectionTo2d(), AgentColors.getColorForAgent(id), 1, trajectory.getMaxTime(), 't');
+        VisManager.registerLayer(trajectoryLayer);
     }
 }
