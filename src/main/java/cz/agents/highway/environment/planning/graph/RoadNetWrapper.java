@@ -19,7 +19,8 @@ import java.util.Set;
  * Created by wmatex on 18.11.14.
  */
 public class RoadNetWrapper extends GraphDelegator<Point, Line> implements DirectedGraph<Point, Line> {
-    private static final int OVERTAKE_OFFSET = 5;
+    private static final int OVERTAKE_OFFSET = 1;
+    private static long numVertex, numEdge = 0;
     public RoadNetWrapper(Graph<Point, Line> pointLineGraph) {
         super(pointLineGraph);
     }
@@ -28,17 +29,17 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
      * Build the planning graph based on the road network
      */
     public static RoadNetWrapper create(String startingLaneIdx) {
-            Network network = Network.getInstance();
-            HashSet<String> closedList = new HashSet<String>();
-            DirectedGraph<Point, Line> graph = new DefaultDirectedGraph<Point, Line>(Line.class);
+        Network network = Network.getInstance();
+        HashSet<String> closedList = new HashSet<String>();
+        DirectedGraph<Point, Line> graph = new DefaultDirectedGraph<Point, Line>(Line.class);
 
-            Lane startingLane = network.getLanes().get(startingLaneIdx);
-            // Traverse the lanes using DFS
-            RoadNetWrapper.traverse(startingLane, graph, closedList, null);
+        Lane startingLane = network.getLanes().get(startingLaneIdx);
+        // Traverse the lanes using DFS
+        numEdge = numVertex = 0;
+        RoadNetWrapper.traverse(startingLane, graph, closedList, null);
 
-
-            return new RoadNetWrapper(graph);
-
+        System.out.println("Vertex: "+numVertex+", edge: "+numEdge);
+        return new RoadNetWrapper(graph);
     }
 
     private static void traverse(Lane lane, DirectedGraph<Point, Line> graph, Set<String> visited, Point lastPoint) {
@@ -67,6 +68,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
             graph.addVertex(p);
             if (lastPoint != null) {
                 graph.addEdge(lastPoint, p, new Line(lastPoint, p));
+                ++numVertex;
             }
 
             // Generate edges to left and right lanes for overtake
@@ -77,6 +79,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
                     final Point neighbourPoint = new Point(Math.round(tmp.x), Math.round(tmp.y));
                     if (graph.containsVertex(neighbourPoint)) {
                         graph.addEdge(p, neighbourPoint, new Line(p, neighbourPoint));
+                        ++numEdge;
 
                         // Check also reverse edge
                         if (i - OVERTAKE_OFFSET >= 0) {
@@ -84,6 +87,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
                             final Point reversePoint = new Point(Math.round(tmp.x), Math.round(tmp.y));
                             if (!graph.containsEdge(reversePoint, p)) {
                                 graph.addEdge(reversePoint, p, new Line(reversePoint, p));
+                                ++numEdge;
                             }
                         }
                     }
