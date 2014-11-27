@@ -27,7 +27,7 @@ public class Timer {
     }
 
     public long getRawElapsedTime() {
-        return this.getNanoTime()-startTime;
+        return (this.getNanoTime()-startTime)/MICRO;
     }
 
     public void reset() {

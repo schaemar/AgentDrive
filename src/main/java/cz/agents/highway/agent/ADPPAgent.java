@@ -57,6 +57,9 @@ public class ADPPAgent extends Agent {
     private static final int RADIUS = 5;
     private static final int SPEED = 1;
     private static final float[] SPEEDS = new float[] {1};
+    private static final double WAIT_PENALTY = 100;
+    private static final double MOVE_PENALTY = 1;
+    private static final int WAIT_DURATION = 1;
     private static final int MAX_TIME = 10000;
     private static final Timer globalTimer = new Timer(true);
     private static final TimeParameter timeParameter = new TimeParameter();
@@ -72,14 +75,28 @@ public class ADPPAgent extends Agent {
     Point start, goal;
     long expanded = 0;
 
+    // Should we print additional information?
+    boolean verbose = true;
+
     public ADPPAgent(int id) {
+        this(id, SPEEDS, WAIT_PENALTY, MOVE_PENALTY, "perfect", WAIT_DURATION, true, true, false);
+    }
+
+    public ADPPAgent(int id, float[] speeds, double waitPenalty, double movePenalty,
+                     String heuristic, int waitDuration, boolean vis, boolean verbose, boolean emptyTrajectories) {
         super(id);
+        this.verbose = verbose;
+
+        // Empty agent trajectories
+        if (emptyTrajectories) {
+            agentTrajectories.clear();
+        }
 
         timer.reset();
         spatialGraph = RoadNetWrapper.create(navigator.getUniqueLaneIndex());
         VisLayer graphLayer;
 
-        if (id == 0) {
+        if (id == 0 && vis) {
             VisManager.registerLayer(ParameterControlLayer.create(timeParameter));
             graphLayer = KeyToggleLayer.create("g", true, GraphLayer.create(new GraphLayer.GraphProvider<Point, Line>() {
                 @Override
@@ -89,7 +106,7 @@ public class ADPPAgent extends Agent {
             }, new ProjectionTo2d(), Color.BLUE, Color.RED, 2, 3));
             VisManager.registerLayer(graphLayer);
         }
-        System.out.println("Building graph: "+timer.getElapsedTime());
+        print("Building graph: "+timer.getElapsedTime());
 
         Edge lastEdge = navigator.getRoute().get(navigator.getRoute().size()-1);
         Iterator<Lane> laneIterator = lastEdge.getLanes().values().iterator();
@@ -103,14 +120,14 @@ public class ADPPAgent extends Agent {
         goal = new Point(Math.round(lastPoint.x), Math.round(lastPoint.y));
         start = new Point(Math.round(navigator.getRoutePoint().x), Math.round(navigator.getRoutePoint().y));
 
-        System.out.println("Agent "+id+" planning");
+        print("Agent "+id+" planning");
 //        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[] {speed}, new ArrayList<Region>(agentTrajectories), 1, 1);
-        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, SPEEDS, new ArrayList<Region>(agentTrajectories), 1, 1);
+        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, speeds, new ArrayList<Region>(agentTrajectories), 0, 1);
 //        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, SPEEDS, new ArrayList<Region>(), 1, 1);
         planningGraph = new FreeOnTargetWaitExtension(planningGraph, goal);
-        planningGraph = new ControlEffortWrapper(planningGraph, 1, 10000);
+        planningGraph = new ControlEffortWrapper(planningGraph, movePenalty, waitPenalty);
         // Do the planning
-        this.plan();
+        this.plan(heuristic);
         VisManager.registerLayer(KeyToggleLayer.create(""+id, true, tt.euclidtime3i.vis.RegionsLayer.create(new tt.euclidtime3i.vis.RegionsLayer.RegionsProvider() {
 
             @Override
@@ -120,7 +137,7 @@ public class ADPPAgent extends Agent {
                 return regions;
             }
         }, new TimeParameterProjectionTo2d(timeParameter), AgentColors.getColorForAgent(id), AgentColors.getColorForAgent(id))));
-        System.out.println("Sum time: "+globalTimer.getElapsedTime());
+        print("Sum time: "+globalTimer.getElapsedTime());
     }
 
 
@@ -154,7 +171,7 @@ public class ADPPAgent extends Agent {
         }
         // Replan every 10 seconds
         if (time > 0 && time % 10 == 0) {
-//            System.out.println("Agent " + id + " replanning...");
+//            print("Agent " + id + " replanning...");
 //            this.plan();
         }
         return actions;
@@ -164,17 +181,22 @@ public class ADPPAgent extends Agent {
     /**
      * Plan the optimal non-collision trajectory
      */
-    private void plan() {
-        System.out.println("Start: "+start);
-        System.out.println("Goal: "+goal);
+    private void plan(String heuristic) {
+        print("Start: "+start);
+        print("Goal: " + goal);
         expanded = 0;
 
-        timer.reset();
-        DirectedGraph<Point, Line> reversed = new EdgeReversedGraph<Point, Line>(spatialGraph);
-        System.out.println("Reversing graph: "+timer.getElapsedTime());
-        timer.reset();
-        HeuristicToGoal<tt.euclidtime3i.Point> heuristicToGoal = new ShortestPathHeuristic(reversed, goal);
-        System.out.println("Creating heuristic: "+timer.getElapsedTime());
+        HeuristicToGoal<tt.euclidtime3i.Point> heuristicToGoal;
+        if (heuristic.equals("distance")) {
+            heuristicToGoal = new L2Heuristic(goal);
+        } else {
+            timer.reset();
+            DirectedGraph<Point, Line> reversed = new EdgeReversedGraph<Point, Line>(spatialGraph);
+            print("Reversing graph: " + timer.getElapsedTime());
+            timer.reset();
+            heuristicToGoal = new ShortestPathHeuristic(reversed, goal);
+            print("Creating heuristic: " + timer.getElapsedTime());
+        }
         timer.reset();
         GraphPath<tt.euclidtime3i.Point, Straight> path = AStarShortestPathSimple.findPathBetween(planningGraph,
             //new SpaceTimeHeuristic(goal, start),
@@ -184,14 +206,14 @@ public class ADPPAgent extends Agent {
                 @Override
                 public boolean isGoal(tt.euclidtime3i.Point point) {
                     ++expanded;
-//                    System.out.println("Trying: "+point);
+//                    print("Trying: "+point);
                     return (goal.distance(point.getPosition()) < 1);
                 }
             });
-        System.out.println("Planning took: " + timer.getElapsedTime()+", expanded nodes: "+expanded);
+        print("Planning took: " + timer.getElapsedTime()+", expanded nodes: "+expanded);
         if (path == null) {
             trajectory = null;
-            System.out.println("No path found!");
+            print("No path found!");
             return;
         }
         trajectory = new StraightSegmentTrajectory(path, path.getEndVertex().getTime());
@@ -208,5 +230,14 @@ public class ADPPAgent extends Agent {
             }
         }, new ProjectionTo2d(), AgentColors.getColorForAgent(id), 1, trajectory.getMaxTime(), 't');
         VisManager.registerLayer(trajectoryLayer);
+    }
+
+    /**
+     * Print if verbose is set
+     */
+    private void print(String s) {
+        if (verbose) {
+            System.out.println(s);
+        }
     }
 }
