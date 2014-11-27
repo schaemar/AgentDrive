@@ -40,7 +40,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
         numEdge = numVertex = 0;
         RoadNetWrapper.traverse(startingLane, graph, closedList, null);
 
-        System.out.println("Vertex: "+numVertex+", edge: "+numEdge);
+//        System.out.println("Vertex: "+numVertex+", edge: "+numEdge);
         return new RoadNetWrapper(graph);
     }
 
