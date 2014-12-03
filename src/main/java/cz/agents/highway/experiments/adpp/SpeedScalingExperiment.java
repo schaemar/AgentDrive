@@ -7,7 +7,7 @@ import org.apache.commons.cli.CommandLine;
  * Experiment scaling the number of speeds
  * Created by wmatex on 26.11.14.
  */
-public class SpeedScalingExperiment extends Experiment {
+public class SpeedScalingExperiment extends ADPPExperiment {
     /**
      * Run the experiment with the scaling quality
      *
@@ -19,11 +19,4 @@ public class SpeedScalingExperiment extends Experiment {
         return false;
     }
 
-    /**
-     * Initialize the experiment
-     */
-    @Override
-    protected void init() {
-
-    }
 }

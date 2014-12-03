@@ -3,6 +3,7 @@ package cz.agents.highway.experiments.adpp;
 import cz.agents.highway.agent.ADPPAgent;
 import cz.agents.highway.agent.Agent;
 import cz.agents.highway.experiments.Experiment;
+import org.apache.commons.cli.CommandLine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
  * Experiment scaling the number of agents
  * Created by wmatex on 26.11.14.
  */
-public class AgentScalingExperiment extends Experiment {
+public class AgentScalingExperiment extends ADPPExperiment {
     /**
      * Run the experiment with the scaling quality
      *
@@ -28,15 +29,6 @@ public class AgentScalingExperiment extends Experiment {
         for (int i = 0; i < quality; ++i) {
             new ADPPAgent(i, speedArray, waitPenalty, movePenalty, heuristic, waitDuration, false, verbose, (i==0));
         }
-        return false;
+        return true;
     }
-
-    /**
-     * Initialize the experiment
-     */
-    @Override
-    protected void init() {
-
-    }
-
 }
