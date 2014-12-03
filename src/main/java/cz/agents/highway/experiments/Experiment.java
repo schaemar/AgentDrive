@@ -1,15 +1,14 @@
 package cz.agents.highway.experiments;
 
 import cz.agents.highway.environment.roadnet.XMLReader;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
 
 /**
  * General interface for various scaling experiments
  * Created by wmatex on 26.11.14.
  */
-public abstract class Experiment {
-    protected int agents, speeds, waitDuration;
-    protected String heuristic;
-    protected double waitPenalty, movePenalty;
+public interface Experiment {
     /**
      * Run the experiment with the scaling quality
      *
@@ -21,22 +20,6 @@ public abstract class Experiment {
     /**
      * Initialize the experiment
      */
-    protected abstract void init();
+    public void setUp(CommandLine c) throws ParseException;
 
-    public void setUp(int agents, int speeds, int waitDuration, String map, String heuristic,
-                      double waitPenalty, double movePenalty) {
-        this.agents = agents;
-        this.speeds = speeds;
-        this.waitDuration = waitDuration;
-        this.heuristic = heuristic;
-        this.waitPenalty = waitPenalty;
-        this.movePenalty = movePenalty;
-
-        createMap(map);
-        init();
-    }
-
-    private void createMap(String map) {
-        XMLReader.getInstance().read(map);
-    }
 }
