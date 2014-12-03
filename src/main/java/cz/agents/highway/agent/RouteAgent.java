@@ -7,6 +7,7 @@ import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.ManeuverAction;
+import cz.agents.highway.storage.plan.TeleportAction;
 import cz.agents.highway.storage.plan.WPAction;
 
 import javax.vecmath.Point2f;
@@ -164,7 +165,14 @@ public class RouteAgent extends Agent {
         for (int i = 0; i <= maneuver.getPositionOut() || i < wpCount; i++) {
             // move 3 waipoints ahead
             while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
-                navigator.advanceInRoute();
+                boolean abc = navigator.advanceInRoute();
+                if(!abc)
+                {
+                    actions = new LinkedList<Action>();
+                    Point2f initial = navigator.getInitialPosition();
+                    actions.add(new TeleportAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
+                    return actions;
+                }
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);

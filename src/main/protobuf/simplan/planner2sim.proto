@@ -20,6 +20,7 @@ message Action{
 	optional Maneuver maneuver = 1;
 	optional Waypoint waypoint = 2;
 	optional Actuators actuators = 3;
+    optional Teleport teleport = 4;
 
 }
 message Maneuver {
@@ -38,4 +39,8 @@ message Actuators{
 	 optional double gas = 2;
 	 optional double brake = 3;
 	 optional double duration = 4;
+}
+message Teleport{
+	required Vector position = 1;
+	required double speed = 2;
 }

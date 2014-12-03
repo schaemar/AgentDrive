@@ -17,6 +17,7 @@ import cz.agents.highway.storage.RadarData;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.PlansOut;
+import cz.agents.highway.storage.plan.TeleportAction;
 import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -129,6 +130,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             float lastDuration = 0;
             int timestep = Configurator.getParamInt("highway.SimulatorLocal.timestep", 1);
 
+            boolean teleport = false;
             for (Integer carID : plans.getCarIds()) {
                 Collection<Action> plan = plans.getPlan(carID);
                 RoadObject state = currStates.get(carID);
@@ -161,16 +163,31 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         }
                         lastPosition = wpAction.getPosition();
                     }
+                    else if(action.getClass().equals(TeleportAction.class))
+                    {
+                        TeleportAction telAction = (TeleportAction) action;
+                        myPosition = telAction.getPosition();
+                        teleport = true;
+                    }
 
                 }
-
-                Vector3f vel = new Vector3f(state.getPosition());
-                vel.negate();
-                vel.add(myPosition);
-                int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
-                state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
-                radarData.add(state);
-                duration = 0;
+                if(teleport)
+                {
+                    Vector3f vel = new Vector3f(myPosition);
+                    int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
+                    state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
+                    radarData.add(state);
+                    duration = 0;
+                }
+                {
+                    Vector3f vel = new Vector3f(state.getPosition());
+                    vel.negate();
+                    vel.add(myPosition);
+                    int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
+                    state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
+                    radarData.add(state);
+                    duration = 0;
+                }
             }
             //send radar-data to storage with duration delay
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));

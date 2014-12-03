@@ -42,6 +42,7 @@ public class DESDAgent extends RouteAgent {
     private final static int CIRCLE_AROUND_FOR_SEARCH = 5;
     private final static int ANGLE_TO_JUNCTION = 60;
     private final static int DISTANCE_TO_THE_JUNCTION = 100;
+    private final static int CHECKING_DISTANCE = 500;
 
     //FIXME: Determine number of lanes based on agent's current position
     protected int num_of_lines;
@@ -490,7 +491,7 @@ public class DESDAgent extends RouteAgent {
         //removing too far cars and myself from the collection
         for (RoadObject entry : cars) {
 
-            if(entry.getPosition().distance(state.getPosition()) > 500 || state.getPosition().equals(entry.getPosition()))
+            if(entry.getPosition().distance(state.getPosition()) > CHECKING_DISTANCE || state.getPosition().equals(entry.getPosition()))
             {
                 continue;
             }
