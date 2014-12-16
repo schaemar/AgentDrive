@@ -26,6 +26,7 @@ public class ControlEffortWrapper extends GraphDelegator<Point, Straight> implem
             return super.getEdgeWeight(e) + waitPenaltyPerSec * (e.duration());
         } else {
             return super.getEdgeWeight(e) + movePenaltyPerSec * (e.duration());
+//            return super.getEdgeWeight(e);
         }
     }
 }

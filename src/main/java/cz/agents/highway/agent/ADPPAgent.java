@@ -57,8 +57,8 @@ public class ADPPAgent extends Agent {
     private static final int RADIUS = 5;
     private static final int SPEED = 1;
     private static final float[] SPEEDS = new float[] {1};
-    private static final double WAIT_PENALTY = 100;
-    private static final double MOVE_PENALTY = 1;
+    private static final double WAIT_PENALTY = 0;
+    private static final double MOVE_PENALTY = 0;
     private static final int WAIT_DURATION = 1;
     private static final int MAX_TIME = 10000;
     private static final Timer globalTimer = new Timer(true);
@@ -74,6 +74,7 @@ public class ADPPAgent extends Agent {
     VisLayer trajectoryLayer = null;
     Point start, goal;
     long expanded = 0;
+    static long notFound = 0;
 
     // Should we print additional information?
     boolean verbose = true;
@@ -122,7 +123,7 @@ public class ADPPAgent extends Agent {
 
         print("Agent "+id+" planning");
 //        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[] {speed}, new ArrayList<Region>(agentTrajectories), 1, 1);
-        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, speeds, new ArrayList<Region>(agentTrajectories), 0, 1);
+        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, speeds, new ArrayList<Region>(agentTrajectories), waitDuration, 1);
 //        planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, SPEEDS, new ArrayList<Region>(), 1, 1);
         planningGraph = new FreeOnTargetWaitExtension(planningGraph, goal);
         planningGraph = new ControlEffortWrapper(planningGraph, movePenalty, waitPenalty);
@@ -151,6 +152,10 @@ public class ADPPAgent extends Agent {
                 }
             }
         });
+    }
+
+    public long getExpandedNodes() {
+        return expanded;
     }
 
     private List<Action> agentReact() {
@@ -213,9 +218,11 @@ public class ADPPAgent extends Agent {
         print("Planning took: " + timer.getElapsedTime()+", expanded nodes: "+expanded);
         if (path == null) {
             trajectory = null;
-            print("No path found!");
+            ++notFound;
+            print("No path found! Sum: "+notFound);
             return;
         }
+        print("Trajectory end time: "+path.getEndVertex().getTime());
         trajectory = new StraightSegmentTrajectory(path, path.getEndVertex().getTime());
         MovingCircle region = new MovingCircle(trajectory, RADIUS);
         try {
