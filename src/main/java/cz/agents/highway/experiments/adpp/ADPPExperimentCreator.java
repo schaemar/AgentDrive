@@ -16,12 +16,12 @@ public class ADPPExperimentCreator extends ExperimentCreator {
     protected void initExperimentOptions() {
         optionBuilder
         // Experiment-specific options
-        .add("agents"      , "* Number of agents. Must be less or equal to the number of routes configured in selected map", true, true, 1)
-        .add("speeds"      , "* Number of speeds. The speed array is generated from 1 to speeds", true, true, 1)
+        .add("agents"      , "* Number of agents. Must be less or equal to the number of routes configured in selected map", true, true)
+        .add("speeds"      , "* Number of speeds. The speed array is generated from 1 to speeds", true, true)
         .add("map"         , "* Which scenario to use", true, true)
         .add("heuristic"   , "* Which heuristic to use. Choose one of: perfect, distance", true, true)
-        .add("movePenalty" , "* Penalty for moving per seconds", true, true, 1d)
-        .add("waitPenalty" , "* Penalty for waiting per seconds", true, true, 1d)
-        .add("waitDuration", "[1] Duration of the wait edge in time-space graph", true, false, 1);
+        .add("movePenalty" , "* Penalty for moving per seconds", true, true)
+        .add("waitPenalty" , "* Penalty for waiting per seconds", true, true)
+        .add("waitDuration", "[1] Duration of the wait edge in time-space graph", true, false);
     }
 }

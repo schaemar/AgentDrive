@@ -20,15 +20,17 @@ public class AgentScalingExperiment extends ADPPExperiment {
      * @return
      */
     @Override
-    public boolean run(double quality, boolean verbose) {
+    public double run(double quality, boolean verbose) {
         // Quality is number of agents
         float[] speedArray = new float[speeds];
         for (int i = 1; i <= speeds; ++i) {
             speedArray[i-1] = i;
         }
+        double exp = 0;
         for (int i = 0; i < quality; ++i) {
-            new ADPPAgent(i, speedArray, waitPenalty, movePenalty, heuristic, waitDuration, false, verbose, (i==0));
+            ADPPAgent agent = new  ADPPAgent(i, speedArray, waitPenalty, movePenalty, heuristic, waitDuration, false, verbose, (i==0));
+            exp = Math.max(exp, agent.getExpandedNodes());
         }
-        return true;
+        return exp;
     }
 }

@@ -83,17 +83,29 @@ public abstract class  ExperimentCreator {
 
         LogManager.getRootLogger().setLevel(org.apache.log4j.Level.ERROR);
 
+        FileLogger logger = new FileLogger(type);
+
+        // Log useful information about experiment
+        experiment.log(logger);
+
         // Finally run the set of experiments
         Timer timer = new Timer(false);
         for (double quality = start; quality <= end; quality += step) {
-            double sum = 0;
+            double sum = 0, average, res = 0, res_avg;
             for (int j = 0; j < n; ++j) {
                 timer.reset();
-                experiment.run(quality, verbose);
+                res += experiment.run(quality, verbose);
                 sum += timer.getRawElapsedTime();
             }
-            System.out.println("Run "+n+" experiments for quality = "+quality+", average time: "+(sum/n));
+            average = sum/n;
+            res_avg = res/n;
+            logger.addPoint(quality, average);
+            logger.addAltPoint(res_avg);
+            System.out.println("Run "+n+" experiments for quality = "+quality+", average time: "+average);
         }
+
+        logger.plot();
+        logger.close();
 
         return 0;
     }
@@ -112,7 +124,7 @@ public abstract class  ExperimentCreator {
 
         n = Integer.parseInt(c.getOptionValue("n", "1"));
 
-        verbose = Boolean.parseBoolean(c.getOptionValue("v", "false"));
+        verbose = c.hasOption("v");
 //        verbose = true;
     }
 

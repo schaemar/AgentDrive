@@ -21,21 +21,15 @@ public class OptionBuilder {
      * @param description User-friendly description of the option
      * @param hasArg      Whether the option has argument or is boolean
      * @param required    Whether this option is required
-     * @param type        Type of the the option. Instances of this type will be returned.
      * @return
      */
-    public OptionBuilder add(String option, String description, boolean hasArg, boolean required, Object type) {
+    public OptionBuilder add(String option, String description, boolean hasArg, boolean required) {
         Option opt = org.apache.commons.cli.OptionBuilder
                 .withDescription(description)
                 .hasArg(hasArg)
                 .isRequired(required)
-                .withType(type)
                 .create(option);
         options.addOption(opt);
         return this;
-    }
-
-    public OptionBuilder add(String option, String description, boolean hasArg, boolean required) {
-        return add(option, description, hasArg, required, new String());
     }
 }

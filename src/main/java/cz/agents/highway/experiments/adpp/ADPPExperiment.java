@@ -2,6 +2,7 @@ package cz.agents.highway.experiments.adpp;
 
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.experiments.Experiment;
+import cz.agents.highway.experiments.FileLogger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -33,5 +34,17 @@ public abstract class ADPPExperiment implements Experiment {
 
     private void createMap(String map) {
         XMLReader.getInstance().read(map);
+    }
+
+    @Override
+    public void log(FileLogger logger) {
+        logger
+                .addHeaderValue("Agents", agents)
+                .addHeaderValue("Speeds", speeds)
+                .addHeaderValue("WaitDuration", waitDuration)
+                .addHeaderValue("Heuristic", heuristic)
+                .addHeaderValue("Map", map)
+                .addHeaderValue("WaitPenalty", waitPenalty)
+                .addHeaderValue("MovePenalty", movePenalty);
     }
 }

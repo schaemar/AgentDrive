@@ -15,11 +15,16 @@ public interface Experiment {
      * @param quality Current value for the measured quality
      * @return
      */
-    public abstract boolean run(double quality, boolean verbose);
+    public double run(double quality, boolean verbose);
 
     /**
      * Initialize the experiment
      */
     public void setUp(CommandLine c) throws ParseException;
+
+    /**
+     * Log useful information to log file
+     */
+    public void log(FileLogger logger);
 
 }

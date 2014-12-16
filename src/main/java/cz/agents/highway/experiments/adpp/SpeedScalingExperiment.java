@@ -15,8 +15,8 @@ public class SpeedScalingExperiment extends ADPPExperiment {
      * @return
      */
     @Override
-    public boolean run(double quality, boolean verbose) {
-        return false;
+    public double run(double quality, boolean verbose) {
+        return 0;
     }
 
 }
