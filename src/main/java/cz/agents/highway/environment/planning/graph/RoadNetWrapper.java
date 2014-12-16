@@ -21,7 +21,7 @@ import java.util.Set;
  * Created by wmatex on 18.11.14.
  */
 public class RoadNetWrapper extends GraphDelegator<Point, Line> implements DirectedGraph<Point, Line> {
-    private static final int OVERTAKE_OFFSET = 1;
+    private static final int OVERTAKE_OFFSET = 3;
     private static long numVertex, numEdge = 0;
     public RoadNetWrapper(Graph<Point, Line> pointLineGraph) {
         super(pointLineGraph);
@@ -90,6 +90,9 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
                             final Point reversePoint = new Point(Math.round(tmp.x), Math.round(tmp.y));
                             if (!graph.containsEdge(reversePoint, p)) {
                                 Line reversed = new Line(reversePoint, p);
+                                if (!graph.containsVertex(reversePoint)) {
+                                    graph.addVertex(reversePoint);
+                                }
                                 graph.addEdge(reversePoint, p, reversed);
                                 ++numEdge;
                             }
