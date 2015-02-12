@@ -139,6 +139,11 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 for (Action action : plan) {
                     if (action.getClass().equals(WPAction.class)) {
                         WPAction wpAction = (WPAction) action;
+                        if(wpAction.getSpeed() == -1)
+                        {
+                            myPosition = wpAction.getPosition();
+                            teleport = true;
+                        }
                         if (wpAction.getSpeed() < 0.001) {
                             duration += 0.1f;
                         } else {
@@ -178,6 +183,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
                     radarData.add(state);
                     duration = 0;
+                    teleport = false;
                 }
                 {
                     Vector3f vel = new Vector3f(state.getPosition());

@@ -41,7 +41,7 @@ public class DESDAgent extends RouteAgent {
     private final static long   PLANNING_TIME           = 1000;
     private final static int CIRCLE_AROUND_FOR_SEARCH = 5;
     private final static int ANGLE_TO_JUNCTION = 60;
-    private final static int DISTANCE_TO_THE_JUNCTION = 100;
+    private final static int DISTANCE_TO_THE_JUNCTION = 200;
     private final static int CHECKING_DISTANCE = 500;
 
     //FIXME: Determine number of lanes based on agent's current position
@@ -527,7 +527,7 @@ public class DESDAgent extends RouteAgent {
 
                     double maxAngle = ANGLE_TO_JUNCTION * Math.PI / 180;    //Max used angle
                     double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre);
-                    if (ange > maxAngle || Double.isNaN(ange)) {
+                    if (ange > maxAngle) {
 
                     } else {
                         double hypotenuse = entry.getVelocity().length();
@@ -541,6 +541,9 @@ public class DESDAgent extends RouteAgent {
                             //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
                             StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
                             situationPrediction.trySetCarAheadManeuver(man);
+                            situationPrediction.trySetCarRightAheadMan(man);
+                            situationPrediction.trySetCarLeftAheadMan(man);
+
                         }
                     }
 

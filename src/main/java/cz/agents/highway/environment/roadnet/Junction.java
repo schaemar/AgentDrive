@@ -35,4 +35,5 @@ public class Junction extends Sector {
     public ArrayList<String> getIntLanes() {
         return intLanes;
     }
+
 }

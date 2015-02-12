@@ -18,13 +18,13 @@ highway {
 //       folder = "nets/test90/";
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
-      folder = "nets/nartest";
-  //      folder = "nets/x-junction";
-  //      folder = "nets/nadprysk"
+  //    folder = "nets/nartest";
+        folder = "nets/x-junction";
+   //     folder = "nets/nadprysk"
    //     folder = "nets/extest";
    //    folder = "nets/ulesika";
-  //        folder = "nets/jedkriz";
-   //     folder = "nets/map";
+   //       folder = "nets/jedkriz";
+  //     folder = "nets/map";
 
 
 
@@ -101,8 +101,8 @@ highway {
 
         }
 
-      simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
- //   simulatorsToRun = ["SimulatorLite"];
+   //   simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //        simulatorsToRun = ["Empty"];
     }
@@ -117,7 +117,7 @@ highway {
             width = 1;
         }
         crossRoad {
-            view = false;
+            view = true;
             width = 1;
         }
     }

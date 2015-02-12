@@ -166,13 +166,15 @@ public class RouteAgent extends Agent {
             // move 3 waipoints ahead
             while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
                 boolean abc = navigator.advanceInRoute();
-                if(!abc)
+                //TODO Do this better
+              /*  if(!abc)
                 {
                     actions = new LinkedList<Action>();
                     Point2f initial = navigator.getInitialPosition();
-                    actions.add(new TeleportAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
+                    // actions.add(new TeleportAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
+                    actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), -1));
                     return actions;
-                }
+                }*/
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);
