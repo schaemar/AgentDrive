@@ -74,8 +74,14 @@ public class RouteAgent extends Agent {
     }
 
     public List<Action> translate(CarManeuver maneuver) {
+
         if (maneuver == null) {
             LinkedList<Action> actions = new LinkedList<Action>();
+            if(navigator.getLane() == null) {
+                actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+                return actions;
+            }
+            //LinkedList<Action> actions = new LinkedList<Action>();
             Point2f initial = navigator.getInitialPosition();
             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
 
@@ -167,14 +173,14 @@ public class RouteAgent extends Agent {
             while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
                 boolean abc = navigator.advanceInRoute();
                 //TODO Do this better
-              /*  if(!abc)
+                if(!abc)
                 {
                     actions = new LinkedList<Action>();
                     Point2f initial = navigator.getInitialPosition();
                     // actions.add(new TeleportAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
                     actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), -1));
                     return actions;
-                }*/
+                }
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);

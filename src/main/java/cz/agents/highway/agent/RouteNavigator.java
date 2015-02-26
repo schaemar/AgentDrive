@@ -80,9 +80,10 @@ public class RouteNavigator {
         if (pointPtr >= agentLane.getInnerPoints().size() - 1) {
             // We are at the end of the lane
             if (routePtr >= route.size() - 1) { // end of the plan
-                routePtr = 0;
-                pointPtr = 0;
-                agentLane = route.get(0).getLaneByIndex(0);
+                routePtr = -1;
+                pointPtr = -1;
+              //  agentLane = route.get(0).getLaneByIndex(0);
+                agentLane = null;
                 return false;
             } else {
                 Lane nextLane = getNeighbourLane(route.get(routePtr)); //check for neighbour lane

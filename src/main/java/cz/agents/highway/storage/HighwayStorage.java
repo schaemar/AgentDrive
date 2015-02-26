@@ -110,6 +110,10 @@ public class HighwayStorage extends EventBasedStorage {
             getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
         }
     }
+    public void removeAgent(Integer carID)
+    {
+        agents.remove(carID);
+    }
 
 //    public void updateInit(InitIn init) {
 //        getRoadDescription().addPoints(init.getPoints());

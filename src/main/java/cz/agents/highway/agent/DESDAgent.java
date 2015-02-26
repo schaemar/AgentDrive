@@ -89,6 +89,12 @@ public class DESDAgent extends RouteAgent {
         if (currState == null) {
             return null;
         }
+        if(navigator.getLane() == null)
+        {
+            highwayEnvironment.getStorage().removeAgent(this.id);
+            highwayEnvironment.getStorage().getPosCurr().remove(this.id);
+            return null;
+        }
         logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
         logger.debug("Situation: " + situationPrediction);
@@ -136,7 +142,12 @@ public class DESDAgent extends RouteAgent {
                 maneuver = right;
             }
             else{
-
+                //CODE FOR DEBUG
+                if (isSafeMan(currState, acc, situationPrediction))
+                {
+                    System.out.println("Debug now or never");
+                }
+                // END OF A CODE FOR DEBUG
                 if (isSafeMan(currState, right, situationPrediction)) {
                     maneuver = right;
                 }
@@ -168,6 +179,7 @@ public class DESDAgent extends RouteAgent {
                 test = false;
             }
         }*/
+
         logger.info("Planned maneuver for carID " + currState.getId() + " " +maneuver);
         currentManeuver = maneuver;
         return maneuver;
@@ -176,6 +188,7 @@ public class DESDAgent extends RouteAgent {
     private double transGeoToDistance(double x, double y) {
         return sensor.getRoadDescription().distance(new Point2d(x, y));
     }
+    @Deprecated
     protected double transGeoToDistance(Point3f position) {
         return transGeoToDistance(position.x, position.y);
     }
@@ -513,7 +526,7 @@ public class DESDAgent extends RouteAgent {
 
             ArrayList<CarManeuver> predictedManeuvers;
             entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
-            //TODO Fix this if else structur    ;
+            //TODO Fix this if else structur    ; THIS can be computed once
             if(myNearestJunction.equals(highwayEnvironment.getRoadNetwork().getJunctions().get(entryLane.getEdge().getTo()))) {
 
                 if (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1) //distance from the junction, should be determined by max allowed speed on the lane.
@@ -543,7 +556,6 @@ public class DESDAgent extends RouteAgent {
                             situationPrediction.trySetCarAheadManeuver(man);
                             situationPrediction.trySetCarRightAheadMan(man);
                             situationPrediction.trySetCarLeftAheadMan(man);
-
                         }
                     }
 

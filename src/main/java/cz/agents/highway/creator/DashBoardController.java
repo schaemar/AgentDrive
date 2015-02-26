@@ -168,23 +168,31 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         }
                         lastPosition = wpAction.getPosition();
                     }
-                    else if(action.getClass().equals(TeleportAction.class))
+                    /*else if(action.getClass().equals(TeleportAction.class))
                     {
                         TeleportAction telAction = (TeleportAction) action;
                         myPosition = telAction.getPosition();
                         teleport = true;
-                    }
+                    }*/
 
                 }
-                if(teleport)
+                if(teleport) // TODO Probably remove this part of code
                 {
-                    Vector3f vel = new Vector3f(myPosition);
+                    /*Vector3f vel = new Vector3f(myPosition);
                     int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
                     state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
                     radarData.add(state);
                     duration = 0;
+                    teleport = false;*/
+                    System.out.println("aaaaa");
+                    highwayEnvironment.getStorage().removeAgent(carID);
+                    highwayEnvironment.getStorage().getPosCurr().remove(carID);
+                    plannedVehicles.remove(carID);
                     teleport = false;
+
+
                 }
+                else
                 {
                     Vector3f vel = new Vector3f(state.getPosition());
                     vel.negate();
