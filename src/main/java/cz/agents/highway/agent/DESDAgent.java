@@ -170,6 +170,7 @@ public class DESDAgent extends RouteAgent {
         {
             maneuver = dec;
         }
+
         if(currState.getId() == 1 && navigator.getActualPointer() > 140 && test)
         {
             maneuver = dec;
@@ -324,7 +325,8 @@ public class DESDAgent extends RouteAgent {
 
     private double safeDistance(CarManeuver manAhead, CarManeuver manBehind, double safetyReserve) {
         // TODO get the a0 from the car
-        double a0 = -4;
+        // TODO Discover what the hell is a0
+        double a0 = -1;
         double v0 = manBehind.getVelocityOut();
         double v1 = manAhead.getVelocityIn();
         double safeDist = safeDistance(a0, v0, v1, safetyReserve);
@@ -552,7 +554,7 @@ public class DESDAgent extends RouteAgent {
                         float entryDistance = entryPosition.distance(junctionwaypoint);
                         if (entryDistance < myDistance) {
                             //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
-                            StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
+                            DeaccelerationManeuver man = new DeaccelerationManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
                             situationPrediction.trySetCarAheadManeuver(man);
                             situationPrediction.trySetCarRightAheadMan(man);
                             situationPrediction.trySetCarLeftAheadMan(man);
@@ -655,10 +657,10 @@ public class DESDAgent extends RouteAgent {
         ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();
         // TODO add a part of plan that is between from and to
         CarManeuver lastManeuver;
-        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane,rem), (long) (car.getUpdateTime() * 1000));
+        lastManeuver = new DeaccelerationManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane,rem), (long) (car.getUpdateTime() * 1000));
         plan.add(lastManeuver);
         while (lastManeuver.getEndTime() <= to) {
-            lastManeuver = new StraightManeuver(lastManeuver);
+            lastManeuver = new DeaccelerationManeuver(lastManeuver);
             plan.add(lastManeuver);
         }
 
