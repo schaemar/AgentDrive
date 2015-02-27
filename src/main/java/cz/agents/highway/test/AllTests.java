@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.runners.Suite;
 import org.junit.runner.RunWith;
 @RunWith(Suite.class)
-@Suite.SuiteClasses({DESDAgentTest.class, /*TestClass2.class*/})
+@Suite.SuiteClasses({GSDAgentTest.class, /*TestClass2.class*/})
 public class AllTests {
     @Before
     public void setUp() throws Exception {
