@@ -308,6 +308,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     if (i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
                         //  logger.info("OndraTest - created car " + new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
+                        plans.addAction(new WPAction(vehicleID, 0d, new Point3f(next.x, next.y, 0), initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
                         update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));

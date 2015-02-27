@@ -80,7 +80,10 @@ public class RouteAgent extends Agent {
                 return actions;
             }
             Point2f initial = navigator.getInitialPosition();
+            Point2f next = navigator.nextWithReset();
             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
+            actions.add(new WPAction(id, 0d, new Point3f(next.x, next.y, 0), 0));
+
 
             return actions;
         }

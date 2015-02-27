@@ -41,7 +41,7 @@ public class GSDAgent extends RouteAgent {
     private final static long   PLANNING_TIME           = 1000;
     private final static int CIRCLE_AROUND_FOR_SEARCH = 5;
     private final static int ANGLE_TO_JUNCTION = 60;
-    private final static int DISTANCE_TO_THE_JUNCTION = 200;
+    private final static int DISTANCE_TO_THE_JUNCTION = 400;
     private final static int CHECKING_DISTANCE = 500;
 
     //FIXME: Determine number of lanes based on agent's current position
@@ -431,17 +431,16 @@ public class GSDAgent extends RouteAgent {
         Junction myNearestJunction = highwayEnvironment.getRoadNetwork().getJunctions().get(myEdge.getTo());
         Point2f junctionwaypoint = myNearestJunction.getCenter();
 
+        boolean nearTheJunction = (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
+        //distance from the junction, should be determined by max allowed speed on the lane.
         for(RoadObject entry : nearCars) {
-
 
             ArrayList<CarManeuver> predictedManeuvers;
             entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
-            //TODO Fix this if else structur    ; THIS can be computed once
+            //TODO Fix this if else structur
             if(myNearestJunction.equals(highwayEnvironment.getRoadNetwork().getJunctions().get(entryLane.getEdge().getTo()))) {
-
-                if (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1) //distance from the junction, should be determined by max allowed speed on the lane.
+                if (nearTheJunction)
                 {
-
                     Point2f myPosition = convertPoint3ftoPoint2f(state.getPosition());
                     Point2f entryPosition = convertPoint3ftoPoint2f(entry.getPosition());
 
