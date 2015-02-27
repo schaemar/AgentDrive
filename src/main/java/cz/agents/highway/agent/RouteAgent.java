@@ -7,7 +7,6 @@ import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.ManeuverAction;
-import cz.agents.highway.storage.plan.TeleportAction;
 import cz.agents.highway.storage.plan.WPAction;
 
 import javax.vecmath.Point2f;
@@ -74,14 +73,12 @@ public class RouteAgent extends Agent {
     }
 
     public List<Action> translate(CarManeuver maneuver) {
-
         if (maneuver == null) {
             LinkedList<Action> actions = new LinkedList<Action>();
             if(navigator.getLane() == null) {
                 actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
                 return actions;
             }
-            //LinkedList<Action> actions = new LinkedList<Action>();
             Point2f initial = navigator.getInitialPosition();
             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
 
@@ -171,13 +168,11 @@ public class RouteAgent extends Agent {
         for (int i = 0; i <= maneuver.getPositionOut() || i < wpCount; i++) {
             // move 3 waipoints ahead
             while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
-                boolean abc = navigator.advanceInRoute();
-                //TODO Do this better
-                if(!abc)
+                boolean myPlanEnding = navigator.advanceInRoute();
+                if(!myPlanEnding)
                 {
                     actions = new LinkedList<Action>();
                     Point2f initial = navigator.getInitialPosition();
-                    // actions.add(new TeleportAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0));
                     actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), -1));
                     return actions;
                 }

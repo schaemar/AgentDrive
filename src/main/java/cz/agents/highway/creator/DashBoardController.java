@@ -17,7 +17,6 @@ import cz.agents.highway.storage.RadarData;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.PlansOut;
-import cz.agents.highway.storage.plan.TeleportAction;
 import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -121,16 +120,14 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             executePlans(plans);
             plans.clear();
         }
-        int abc=0;
         private void executePlans(PlansOut plans) {
-            System.out.println(++abc);
             Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
             RadarData radarData = new RadarData();
             float duration = 0;
             float lastDuration = 0;
             int timestep = Configurator.getParamInt("highway.SimulatorLocal.timestep", 1);
 
-            boolean teleport = false;
+            boolean removeCar = false;
             for (Integer carID : plans.getCarIds()) {
                 Collection<Action> plan = plans.getPlan(carID);
                 RoadObject state = currStates.get(carID);
@@ -142,7 +139,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         if(wpAction.getSpeed() == -1)
                         {
                             myPosition = wpAction.getPosition();
-                            teleport = true;
+                            removeCar = true;
                         }
                         if (wpAction.getSpeed() < 0.001) {
                             duration += 0.1f;
@@ -168,29 +165,13 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         }
                         lastPosition = wpAction.getPosition();
                     }
-                    /*else if(action.getClass().equals(TeleportAction.class))
-                    {
-                        TeleportAction telAction = (TeleportAction) action;
-                        myPosition = telAction.getPosition();
-                        teleport = true;
-                    }*/
-
                 }
-                if(teleport) // TODO Probably remove this part of code
+                if(removeCar)
                 {
-                    /*Vector3f vel = new Vector3f(myPosition);
-                    int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
-                    state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
-                    radarData.add(state);
-                    duration = 0;
-                    teleport = false;*/
-                    System.out.println("aaaaa");
                     highwayEnvironment.getStorage().removeAgent(carID);
                     highwayEnvironment.getStorage().getPosCurr().remove(carID);
                     plannedVehicles.remove(carID);
-                    teleport = false;
-
-
+                    removeCar = false;
                 }
                 else
                 {
