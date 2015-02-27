@@ -18,19 +18,21 @@ highway {
 //       folder = "nets/test90/";
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
-//      folder = "nets/nartest";
-   //     folder = "nets/x-junction";
+  //    folder = "nets/nartest";
+  //      folder = "nets/x-junction";
    //     folder = "nets/nadprysk"
    //     folder = "nets/extest";
        folder = "nets/ulesika";
    //       folder = "nets/jedkriz";
   //     folder = "nets/map";
+//        folder = "nets/pisek";
+     //   folder = "nets/CharlesSquare";
 
 
 
     }
     safeDistanceAgent {
-        safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
+        safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
         narrowingModeActive = false;
         distanceToActivateNM = 100.0;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated

@@ -142,12 +142,12 @@ public class DESDAgent extends RouteAgent {
                 maneuver = right;
             }
             else{
-                //CODE FOR DEBUG
+                /*//CODE FOR DEBUG
                 if (isSafeMan(currState, acc, situationPrediction))
                 {
                     System.out.println("Debug now or never");
                 }
-                // END OF A CODE FOR DEBUG
+                // END OF A CODE FOR DEBUG*/
                 if (isSafeMan(currState, right, situationPrediction)) {
                     maneuver = right;
                 }
@@ -166,11 +166,11 @@ public class DESDAgent extends RouteAgent {
             }
         }
         //testing scenario
-       /* if(currState.getId() == 3 && navigator.getActualPointer() > 120)
+        /*if(currState.getId() == 0 && navigator.getActualPointer() > 5)
         {
             maneuver = dec;
-        }
-
+        }*/
+/*
         if(currState.getId() == 1 && navigator.getActualPointer() > 140 && test)
         {
             maneuver = dec;
@@ -194,6 +194,7 @@ public class DESDAgent extends RouteAgent {
         return transGeoToDistance(position.x, position.y);
     }
 
+    @Deprecated
     private int getPreferredLane(RoadObject startNode) {
         // double dist = getDistance(startNode);
         // if(dist>100 && dist <=300)return 0;
@@ -213,6 +214,7 @@ public class DESDAgent extends RouteAgent {
         return 0;
     }
 
+    @Deprecated
     private boolean isNarrowingMode(RoadObject state) {
         if(Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", false).equals(false)) return false;
         else if(Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", true).equals(true))
@@ -335,6 +337,7 @@ public class DESDAgent extends RouteAgent {
 
     private double safeDistance(double a0, double v0, double v1) {
         double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
+    //    double safeDist = v0*2;
         return safeDist;
     }
 
@@ -602,7 +605,7 @@ public class DESDAgent extends RouteAgent {
                         situationPrediction.addAll(predictedManeuvers);
                         CarManeuver man = predictedManeuvers.get(0);
 
-                        if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
+                       /* if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
                             //right
                             situationPrediction.trySetCarRightAheadMan(man);
                         } else if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
@@ -611,6 +614,13 @@ public class DESDAgent extends RouteAgent {
                         } else {
                             //same
                             situationPrediction.trySetCarAheadManeuver(man);
+                        }
+                        */
+                        if((Math.abs(state.getLaneIndex() - entry.getLaneIndex()) <= 1))
+                        {
+                            situationPrediction.trySetCarAheadManeuver(man);
+                            situationPrediction.trySetCarLeftAheadMan(man);
+                            situationPrediction.trySetCarRightAheadMan(man);
                         }
                     }
                 }
