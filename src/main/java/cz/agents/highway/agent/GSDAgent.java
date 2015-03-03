@@ -32,7 +32,7 @@ public class GSDAgent extends RouteAgent {
 
     protected static final Logger logger = Logger.getLogger(SDAgent.class);
 
-    private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
+    //private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
     private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance",   4.0  );
     private final static double MAX_SPEED               = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 20.0  );
     private final static double MAX_SPEED_VARIANCE      = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.8 );
@@ -41,9 +41,9 @@ public class GSDAgent extends RouteAgent {
     private final static long   PLANNING_TIME           = 1000;
     private final static int CIRCLE_AROUND_FOR_SEARCH = 5;
     private final static int ANGLE_TO_JUNCTION = 60;
-    private final static int DISTANCE_TO_THE_JUNCTION = 400;
-    private final static int CHECKING_DISTANCE = 500;
 
+    private final static int DISTANCE_TO_THE_JUNCTION = Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400);
+    private final static int CHECKING_DISTANCE = 500;
     //FIXME: Determine number of lanes based on agent's current position
     protected int num_of_lines;
 

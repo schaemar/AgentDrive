@@ -7,7 +7,7 @@ highway {
 //    agent = "SDAgent";
 //   agent = "RouteAgent";
 //    agent = "ORCAAgent";
-   agent = "DESDAgent";
+   agent = "GSDAgent";
 
     net {
 //        folder = "nets/kosik/";
@@ -18,7 +18,7 @@ highway {
 //       folder = "nets/test90/";
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
-  //    folder = "nets/nartest";
+ //     folder = "nets/nartest";
   //      folder = "nets/x-junction";
    //     folder = "nets/nadprysk"
    //     folder = "nets/extest";
@@ -27,15 +27,15 @@ highway {
   //     folder = "nets/map";
 //        folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
-        folder = "nets/artificialX-junction";
+       folder = "nets/artificialX-junction";
 
 
 
     }
     safeDistanceAgent {
-        safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
+        safetyReserveDistance = 5.0;     // [m] - safety distance offset (including vehicle length and separation gap)
         narrowingModeActive = false;
-        distanceToActivateNM = 100.0;
+        distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
         maneuvers {

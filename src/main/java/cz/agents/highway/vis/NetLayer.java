@@ -124,7 +124,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
                     paintLine(canvas,point,prev);
                     prev = point;
                 }
-                paintCircle2(canvas, junction.getCenter(), 400);
+                paintCircle2(canvas, junction.getCenter(), 2*Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400));
             }
         }
     }
