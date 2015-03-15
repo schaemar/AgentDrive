@@ -50,10 +50,10 @@ public class DefaultCreator implements Creator {
 
         String logfile = Configurator.getParamString("cz.highway.configurationFile", "settings/log4j/log4j.properties");
         PropertyConfigurator.configure(logfile);
-        
+
+        logger.setLevel(Level.INFO);
         logger.info("Configuration loaded from: " + CONFIG_FILE);
         logger.info("log4j logger properties loaded from: " + logfile);
-        logger.setLevel(Level.INFO);
 
     }
 
@@ -123,7 +123,7 @@ public class DefaultCreator implements Creator {
     public static void main(String[] args) {
         System.out.print("RUNNING Highway DefaultCreator.java");
         for (int i = 0; i < args.length; i++) {
-            System.out.print(" " + args[0]);
+            System.out.print(" " + args[i]);
         }
         System.out.println(".");
         DefaultCreator creator = new DefaultCreator();

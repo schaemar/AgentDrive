@@ -10,7 +10,6 @@ import cz.agents.highway.environment.HighwayEnvironment;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.event.Event;
-import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
 import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.storage.plan.Action;
@@ -70,6 +69,9 @@ public class HighwayStorage extends EventBasedStorage {
         }/*else if (agentClassName.equals("test")) {
             agent = new testAgent(id);
         }*/
+        } else if (agentClassName.equals("GSDAgent")) {
+            agent = new GSDAgent(id,(HighwayEnvironment)getEnvironment());
+        }
 
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
         VehicleActuator actuator = new VehicleActuator(getEnvironment(), agent, this);
@@ -112,6 +114,10 @@ public class HighwayStorage extends EventBasedStorage {
             logger.debug("HighwayStorage updated vehicles: received " + object);
             getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
         }
+    }
+    public void removeAgent(Integer carID)
+    {
+        agents.remove(carID);
     }
 
 //    public void updateInit(InitIn init) {

@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="CGImap 0.3.3 (5383 thorn-02.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <bounds minlat="39.1782900" minlon="-96.5834900" maxlat="39.1786700" maxlon="-96.5829600"/>
+ <node id="122005382" visible="true" version="3" changeset="4601199" timestamp="2010-05-04T06:05:22Z" user="ToeBee" uid="262151" lat="39.1783748" lon="-96.5717064"/>
+ <node id="122014573" visible="true" version="4" changeset="4601199" timestamp="2010-05-04T05:15:18Z" user="ToeBee" uid="262151" lat="39.1751946" lon="-96.5833961"/>
+ <node id="122014587" visible="true" version="4" changeset="4601199" timestamp="2010-05-04T06:05:20Z" user="ToeBee" uid="262151" lat="39.1784766" lon="-96.5832288"/>
+ <node id="122014584" visible="true" version="5" changeset="4601199" timestamp="2010-05-04T06:05:22Z" user="ToeBee" uid="262151" lat="39.1774337" lon="-96.5832495"/>
+ <node id="122014578" visible="true" version="8" changeset="5354156" timestamp="2010-07-30T12:20:02Z" user="mwesch" uid="305424" lat="39.1753718" lon="-96.5832765">
+  <tag k="class:bicycle" v="1"/>
+  <tag k="highway" v="traffic_signals"/>
+  <tag k="source:highway" v="knowledge"/>
+ </node>
+ <node id="122029830" visible="true" version="3" changeset="4601199" timestamp="2010-05-04T06:05:20Z" user="ToeBee" uid="262151" lat="39.1784871" lon="-96.5844143"/>
+ <node id="122029822" visible="true" version="4" changeset="4601199" timestamp="2010-05-04T06:05:21Z" user="ToeBee" uid="262151" lat="39.1784479" lon="-96.5799745"/>
+ <node id="122029815" visible="true" version="4" changeset="4601199" timestamp="2010-05-04T06:05:22Z" user="ToeBee" uid="262151" lat="39.1784035" lon="-96.5749499"/>
+ <node id="122029810" visible="true" version="4" changeset="4601199" timestamp="2010-05-04T06:05:23Z" user="ToeBee" uid="262151" lat="39.1783891" lon="-96.5733275"/>
+ <node id="122005226" visible="true" version="5" changeset="4601199" timestamp="2010-05-04T06:05:21Z" user="ToeBee" uid="262151" lat="39.1784336" lon="-96.5783644"/>
+ <node id="122013567" visible="true" version="6" changeset="4601199" timestamp="2010-05-04T05:36:14Z" user="ToeBee" uid="262151" lat="39.1763875" lon="-96.5832703"/>
+ <node id="720504224" visible="true" version="1" changeset="4601199" timestamp="2010-05-04T05:15:13Z" user="ToeBee" uid="262151" lat="39.1750284" lon="-96.5835486"/>
+ <node id="121965379" visible="true" version="5" changeset="4601199" timestamp="2010-05-04T06:05:21Z" user="ToeBee" uid="262151" lat="39.1784186" lon="-96.5766585"/>
+ <node id="121995268" visible="true" version="6" changeset="5354156" timestamp="2010-07-30T12:20:30Z" user="mwesch" uid="305424" lat="39.1795453" lon="-96.5832076">
+  <tag k="class:bicycle" v="1"/>
+  <tag k="highway" v="traffic_signals"/>
+  <tag k="source:highway" v="knowledge"/>
+ </node>
+ <node id="122029826" visible="true" version="4" changeset="7209524" timestamp="2011-02-06T20:46:29Z" user="dbldub" uid="288932" lat="39.1784607" lon="-96.5816230"/>
+ <node id="2209402130" visible="true" version="1" changeset="15415758" timestamp="2013-03-19T04:51:09Z" user="ToeBee-Imports" uid="1141157" lat="39.1785944" lon="-96.5834853">
+  <tag k="addr:city" v="Manhattan"/>
+  <tag k="addr:housenumber" v="122"/>
+  <tag k="addr:postcode" v="66502"/>
+  <tag k="addr:street" v="South 17th Street"/>
+ </node>
+ <node id="2716458512" visible="true" version="1" changeset="21092836" timestamp="2014-03-14T04:25:28Z" user="Izzmo" uid="644060" lat="39.1779499" lon="-96.5832393"/>
+ <node id="2716458518" visible="true" version="1" changeset="21092836" timestamp="2014-03-14T04:25:28Z" user="Izzmo" uid="644060" lat="39.1769187" lon="-96.5832597"/>
+ <way id="13227997" visible="true" version="4" changeset="5354156" timestamp="2010-07-30T12:19:02Z" user="mwesch" uid="305424">
+  <nd ref="122005382"/>
+  <nd ref="122029810"/>
+  <nd ref="122029815"/>
+  <nd ref="121965379"/>
+  <nd ref="122005226"/>
+  <nd ref="122029822"/>
+  <nd ref="122029826"/>
+  <nd ref="122014587"/>
+  <nd ref="122029830"/>
+  <tag k="class:bicycle" v="1"/>
+  <tag k="highway" v="residential"/>
+  <tag k="name" v="Houston Street"/>
+  <tag k="tiger:cfcc" v="A41"/>
+  <tag k="tiger:county" v="Riley, KS"/>
+  <tag k="tiger:name_base" v="Houston"/>
+  <tag k="tiger:name_type" v="St"/>
+  <tag k="tiger:separated" v="no"/>
+  <tag k="tiger:source" v="tiger_import_dch_v0.6_20070812"/>
+  <tag k="tiger:tlid" v="27794638:27794641:27794643:27794645:27794648:27794639:27794650:27795750"/>
+  <tag k="tiger:zip_left" v="66502"/>
+  <tag k="tiger:zip_right" v="66502"/>
+ </way>
+ <way id="62343639" visible="true" version="6" changeset="21092836" timestamp="2014-03-14T04:25:34Z" user="Izzmo" uid="644060">
+  <nd ref="720504224"/>
+  <nd ref="122014573"/>
+  <nd ref="122014578"/>
+  <nd ref="122013567"/>
+  <nd ref="2716458518"/>
+  <nd ref="122014584"/>
+  <nd ref="2716458512"/>
+  <nd ref="122014587"/>
+  <nd ref="121995268"/>
+  <tag k="class:bicycle" v="-1"/>
+  <tag k="highway" v="tertiary"/>
+  <tag k="name" v="South 17th Street"/>
+  <tag k="old_ref" v="US 40"/>
+  <tag k="tiger:cfcc" v="A41"/>
+  <tag k="tiger:county" v="Riley, KS"/>
+  <tag k="tiger:name_base" v="17th"/>
+  <tag k="tiger:name_direction_prefix" v="S"/>
+  <tag k="tiger:name_type" v="St"/>
+  <tag k="tiger:reviewed" v="no"/>
+  <tag k="tiger:zip_left" v="66502"/>
+  <tag k="tiger:zip_right" v="66502"/>
+ </way>
+ <relation id="2401488" visible="true" version="28" changeset="22117294" timestamp="2014-05-04T02:42:31Z" user="ToeBee" uid="262151">
+  <member type="way" ref="13075557" role=""/>
+  <member type="way" ref="13073610" role=""/>
+  <member type="way" ref="13075569" role=""/>
+  <member type="way" ref="13075297" role=""/>
+  <member type="way" ref="13075565" role=""/>
+  <member type="way" ref="13074809" role=""/>
+  <member type="way" ref="13075635" role=""/>
+  <member type="way" ref="13075559" role=""/>
+  <member type="way" ref="13075758" role=""/>
+  <member type="way" ref="13075561" role=""/>
+  <member type="way" ref="13073503" role=""/>
+  <member type="way" ref="13075567" role=""/>
+  <member type="way" ref="13073935" role=""/>
+  <member type="way" ref="13075573" role=""/>
+  <member type="way" ref="171003425" role=""/>
+  <member type="way" ref="13373196" role=""/>
+  <member type="way" ref="13362172" role=""/>
+  <member type="way" ref="13362215" role=""/>
+  <member type="way" ref="13371751" role=""/>
+  <member type="way" ref="171586160" role=""/>
+  <member type="way" ref="13373954" role=""/>
+  <member type="way" ref="13366888" role=""/>
+  <member type="way" ref="13057133" role=""/>
+  <member type="way" ref="13057575" role=""/>
+  <member type="way" ref="13057139" role=""/>
+  <member type="way" ref="13042464" role=""/>
+  <member type="way" ref="13062703" role=""/>
+  <member type="way" ref="13057601" role=""/>
+  <member type="way" ref="13060175" role=""/>
+  <member type="way" ref="13042408" role=""/>
+  <member type="way" ref="13060165" role=""/>
+  <member type="way" ref="13042435" role=""/>
+  <member type="way" ref="13229839" role=""/>
+  <member type="way" ref="13234122" role=""/>
+  <member type="way" ref="13234382" role=""/>
+  <member type="way" ref="13234641" role=""/>
+  <member type="way" ref="49170498" role=""/>
+  <member type="way" ref="13233661" role=""/>
+  <member type="way" ref="13233592" role=""/>
+  <member type="way" ref="143329973" role=""/>
+  <member type="way" ref="13231023" role=""/>
+  <member type="way" ref="179944109" role=""/>
+  <member type="way" ref="13234389" role=""/>
+  <member type="way" ref="13057608" role=""/>
+  <member type="way" ref="13057132" role=""/>
+  <member type="way" ref="13057642" role=""/>
+  <member type="way" ref="13057916" role=""/>
+  <member type="way" ref="13057062" role=""/>
+  <member type="way" ref="13057385" role=""/>
+  <member type="way" ref="13046455" role=""/>
+  <member type="way" ref="13060257" role=""/>
+  <member type="way" ref="13235732" role=""/>
+  <member type="way" ref="13235737" role=""/>
+  <member type="way" ref="13237727" role=""/>
+  <member type="way" ref="13235369" role=""/>
+  <member type="way" ref="13235375" role=""/>
+  <member type="way" ref="13235739" role=""/>
+  <member type="way" ref="179944134" role=""/>
+  <member type="way" ref="13235374" role=""/>
+  <member type="way" ref="179944132" role=""/>
+  <member type="way" ref="179944100" role=""/>
+  <member type="way" ref="13234035" role=""/>
+  <member type="way" ref="144849985" role=""/>
+  <member type="way" ref="13234336" role=""/>
+  <member type="way" ref="13236084" role=""/>
+  <member type="way" ref="218367826" role=""/>
+  <member type="way" ref="13236079" role=""/>
+  <member type="way" ref="213516585" role=""/>
+  <member type="way" ref="213516586" role=""/>
+  <member type="way" ref="218367827" role=""/>
+  <member type="way" ref="218367831" role=""/>
+  <member type="way" ref="218367829" role=""/>
+  <member type="way" ref="218367828" role=""/>
+  <member type="way" ref="218367830" role=""/>
+  <member type="way" ref="13041490" role=""/>
+  <member type="way" ref="218367820" role=""/>
+  <member type="way" ref="13037956" role=""/>
+  <member type="way" ref="218367841" role=""/>
+  <member type="way" ref="13024295" role=""/>
+  <member type="way" ref="13040456" role=""/>
+  <member type="way" ref="218367844" role=""/>
+  <member type="way" ref="218367843" role=""/>
+  <member type="way" ref="218367848" role=""/>
+  <member type="way" ref="13024289" role=""/>
+  <member type="way" ref="13037071" role=""/>
+  <member type="way" ref="218367854" role=""/>
+  <member type="way" ref="13037080" role=""/>
+  <member type="way" ref="13040553" role=""/>
+  <member type="way" ref="218367837" role=""/>
+  <member type="way" ref="218367838" role=""/>
+  <member type="way" ref="218367839" role=""/>
+  <member type="way" ref="13037963" role=""/>
+  <member type="way" ref="218367833" role=""/>
+  <member type="way" ref="218367835" role=""/>
+  <member type="way" ref="218367834" role=""/>
+  <member type="way" ref="13041187" role=""/>
+  <member type="way" ref="13041817" role=""/>
+  <member type="way" ref="13037930" role=""/>
+  <member type="way" ref="13024272" role=""/>
+  <member type="way" ref="13037926" role=""/>
+  <member type="way" ref="218367842" role=""/>
+  <member type="way" ref="218367846" role=""/>
+  <member type="way" ref="218367849" role=""/>
+  <member type="way" ref="218367858" role=""/>
+  <member type="way" ref="218367856" role=""/>
+  <member type="way" ref="218367857" role=""/>
+  <member type="way" ref="13041485" role=""/>
+  <member type="way" ref="13037954" role=""/>
+  <member type="way" ref="218367823" role=""/>
+  <member type="way" ref="13037939" role=""/>
+  <member type="way" ref="164393338" role=""/>
+  <member type="way" ref="164393340" role=""/>
+  <member type="way" ref="13078263" role=""/>
+  <member type="way" ref="218370258" role=""/>
+  <member type="way" ref="179944107" role=""/>
+  <member type="way" ref="179944106" role=""/>
+  <member type="way" ref="13078354" role=""/>
+  <member type="way" ref="139811076" role="forward"/>
+  <member type="way" ref="179944128" role="forward"/>
+  <member type="way" ref="143329972" role="forward"/>
+  <member type="way" ref="139811085" role="forward"/>
+  <member type="way" ref="139811082" role="forward"/>
+  <member type="way" ref="139811075" role="forward"/>
+  <member type="way" ref="143329965" role="forward"/>
+  <member type="way" ref="139811080" role="forward"/>
+  <member type="way" ref="139811077" role=""/>
+  <member type="way" ref="13076913" role=""/>
+  <member type="way" ref="178114991" role=""/>
+  <member type="way" ref="178114990" role=""/>
+  <member type="way" ref="178114989" role=""/>
+  <member type="way" ref="49170513" role=""/>
+  <member type="way" ref="49170514" role=""/>
+  <member type="way" ref="13076880" role=""/>
+  <member type="way" ref="13075926" role=""/>
+  <member type="way" ref="179944093" role=""/>
+  <member type="way" ref="179944092" role=""/>
+  <member type="way" ref="13073971" role=""/>
+  <member type="way" ref="13065138" role=""/>
+  <member type="way" ref="73978477" role=""/>
+  <member type="way" ref="73978468" role=""/>
+  <member type="way" ref="13065066" role=""/>
+  <member type="way" ref="55946932" role=""/>
+  <member type="way" ref="13227499" role=""/>
+  <member type="way" ref="77514019" role=""/>
+  <member type="way" ref="77513974" role=""/>
+  <member type="way" ref="13228249" role=""/>
+  <member type="way" ref="256262335" role=""/>
+  <member type="way" ref="179944086" role=""/>
+  <member type="way" ref="198979089" role=""/>
+  <member type="way" ref="13221817" role=""/>
+  <member type="way" ref="179944124" role=""/>
+  <member type="way" ref="179944123" role=""/>
+  <member type="way" ref="179944115" role=""/>
+  <member type="way" ref="62343661" role=""/>
+  <member type="way" ref="179944088" role=""/>
+  <member type="way" ref="62343645" role=""/>
+  <member type="way" ref="62343642" role=""/>
+  <member type="way" ref="62343641" role=""/>
+  <member type="way" ref="179944085" role=""/>
+  <member type="way" ref="62343675" role=""/>
+  <member type="way" ref="62343657" role=""/>
+  <member type="way" ref="62343639" role=""/>
+  <member type="way" ref="66186685" role=""/>
+  <member type="way" ref="222019521" role=""/>
+  <member type="way" ref="179944110" role=""/>
+  <member type="way" ref="13224965" role=""/>
+  <member type="way" ref="62343660" role=""/>
+  <member type="way" ref="13228221" role=""/>
+  <member type="way" ref="222019535" role=""/>
+  <member type="way" ref="160693866" role=""/>
+  <member type="way" ref="70733893" role=""/>
+  <member type="way" ref="70733886" role=""/>
+  <member type="way" ref="160693870" role=""/>
+  <member type="way" ref="160693865" role=""/>
+  <member type="way" ref="160693875" role=""/>
+  <member type="way" ref="160693868" role=""/>
+  <member type="way" ref="160693872" role=""/>
+  <member type="way" ref="80216730" role=""/>
+  <member type="way" ref="80216736" role=""/>
+  <member type="way" ref="13219591" role=""/>
+  <member type="way" ref="205422475" role=""/>
+  <member type="way" ref="118297061" role=""/>
+  <member type="way" ref="118297078" role=""/>
+  <member type="way" ref="205422464" role=""/>
+  <member type="way" ref="205422470" role=""/>
+  <member type="way" ref="205422472" role=""/>
+  <member type="way" ref="205422466" role=""/>
+  <member type="way" ref="205422465" role=""/>
+  <member type="way" ref="205422471" role=""/>
+  <member type="way" ref="13217516" role=""/>
+  <member type="way" ref="13219603" role=""/>
+  <member type="way" ref="205422467" role=""/>
+  <member type="way" ref="205422463" role=""/>
+  <member type="way" ref="205422469" role=""/>
+  <member type="way" ref="205422473" role=""/>
+  <member type="way" ref="205422476" role=""/>
+  <member type="way" ref="205422474" role=""/>
+  <member type="way" ref="205422468" role=""/>
+  <member type="way" ref="206618228" role=""/>
+  <member type="way" ref="206618227" role=""/>
+  <member type="way" ref="13215091" role=""/>
+  <member type="way" ref="206618205" role=""/>
+  <member type="way" ref="13219597" role=""/>
+  <member type="way" ref="206618225" role=""/>
+  <member type="way" ref="206618224" role=""/>
+  <member type="way" ref="206618223" role=""/>
+  <member type="way" ref="79458564" role=""/>
+  <member type="way" ref="208509508" role=""/>
+  <member type="way" ref="208509511" role=""/>
+  <member type="way" ref="279275508" role=""/>
+  <member type="way" ref="208509513" role=""/>
+  <member type="way" ref="279275460" role=""/>
+  <member type="way" ref="79458432" role=""/>
+  <member type="way" ref="13249445" role=""/>
+  <member type="way" ref="208509514" role=""/>
+  <member type="way" ref="208509512" role=""/>
+  <member type="way" ref="208509509" role=""/>
+  <member type="way" ref="208509510" role=""/>
+  <member type="way" ref="279275511" role=""/>
+  <member type="way" ref="13263400" role=""/>
+  <member type="way" ref="208509497" role=""/>
+  <member type="way" ref="13250448" role=""/>
+  <member type="way" ref="208659418" role=""/>
+  <member type="way" ref="208659419" role=""/>
+  <member type="way" ref="279275446" role=""/>
+  <member type="way" ref="208659423" role=""/>
+  <member type="way" ref="208659424" role=""/>
+  <member type="way" ref="179944127" role=""/>
+  <member type="way" ref="179944096" role=""/>
+  <member type="way" ref="13262248" role=""/>
+  <member type="way" ref="179944105" role=""/>
+  <member type="way" ref="117906244" role=""/>
+  <member type="way" ref="194380162" role=""/>
+  <member type="way" ref="194380164" role=""/>
+  <member type="way" ref="194380163" role=""/>
+  <member type="way" ref="13253567" role=""/>
+  <member type="way" ref="13262219" role=""/>
+  <member type="way" ref="198501542" role=""/>
+  <member type="way" ref="83861019" role=""/>
+  <member type="way" ref="198547911" role=""/>
+  <member type="way" ref="179944103" role=""/>
+  <member type="way" ref="13243485" role=""/>
+  <member type="way" ref="198666690" role=""/>
+  <member type="way" ref="198666691" role=""/>
+  <member type="way" ref="198547908" role=""/>
+  <member type="way" ref="198501541" role=""/>
+  <member type="way" ref="61673336" role=""/>
+  <member type="way" ref="13265043" role=""/>
+  <member type="way" ref="196337205" role=""/>
+  <member type="way" ref="179944126" role=""/>
+  <member type="way" ref="194460111" role=""/>
+  <member type="way" ref="13263938" role=""/>
+  <member type="way" ref="13251474" role=""/>
+  <member type="way" ref="198490230" role=""/>
+  <member type="way" ref="194460107" role=""/>
+  <member type="way" ref="60867179" role=""/>
+  <member type="way" ref="61488900" role=""/>
+  <member type="way" ref="61673277" role=""/>
+  <member type="way" ref="61673276" role=""/>
+  <member type="way" ref="212735550" role=""/>
+  <member type="way" ref="61673275" role=""/>
+  <member type="way" ref="61673278" role=""/>
+  <member type="way" ref="194460106" role=""/>
+  <member type="way" ref="194460104" role=""/>
+  <member type="way" ref="194460103" role=""/>
+  <member type="way" ref="194574567" role=""/>
+  <member type="way" ref="194460105" role=""/>
+  <member type="way" ref="194457611" role=""/>
+  <member type="way" ref="194457612" role=""/>
+  <member type="way" ref="217136023" role=""/>
+  <member type="way" ref="217136022" role=""/>
+  <member type="way" ref="198635794" role=""/>
+  <member type="way" ref="198635795" role=""/>
+  <tag k="is_in:state" v="KS"/>
+  <tag k="note" v="last pre-freeway alignment of US 40 (Oakley-Topeka)"/>
+  <tag k="old_ref" v="US 40"/>
+  <tag k="route" v="road"/>
+  <tag k="source" v="old USGS topos"/>
+  <tag k="type" v="route"/>
+ </relation>
+</osm>

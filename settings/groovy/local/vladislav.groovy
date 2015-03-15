@@ -1,14 +1,15 @@
 highway {
 
-//    agent = "SDAgent";
     agent = "RouteAgent";
 //    agent = "ORCAAgent";
 
     net {
+//        folder = "nets/kosik/";
+        folder = "nets/x-junction/";
 //        folder = "nets/junction-big/";
-        folder = "nets/highway-straight/";
+//        folder = "nets/highway-bidirectional/";
+//        folder = "nets/highway-straight/";
     }
-
 
     vis {               //visualization
         isOn = true;
@@ -26,17 +27,25 @@ highway {
             SimulatorLite {
                 launch = "launchers/simulator-lite.sh"
             }
+            Empty {
+                launch = "launchers/empty.sh"
+            }
 
         }
+        // simulatorToRun is an array of simulators you wish to run,
+        // Set of simulators to run can be seen above, note that you need to create a script for each od the simlators.
+        //The path to the relevant scripts is to be specified above too.
 
 //        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
         simulatorsToRun = ["SimulatorLite"];
+//        simulatorsToRun = ["OpenDS"];
+//        simulatorsToRun = ["Empty"];
     }
 
     netLayer {
         lane {
             view = true;
-            width = 4;
+            width = 10;
         }
         edge {
             view = false;

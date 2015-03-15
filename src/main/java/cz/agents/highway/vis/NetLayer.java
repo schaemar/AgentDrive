@@ -15,7 +15,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import javax.vecmath.Point2f;
 import javax.vecmath.Vector2f;
-
+import java.util.Random;
 
 
 /**
@@ -49,7 +49,18 @@ public class NetLayer extends GroupLayer implements VisLayer {
         canvas.scale(Vis.getZoomFactor(), Vis.getZoomFactor());
 
         float offset = size / 2 ;
-        canvas.fillOval((int) (- offset),(int) (- offset), size, size);
+        canvas.fillOval((int) (-offset), (int) (-offset), size, size);
+        canvas.setTransform(t);
+    }
+    void paintCircle2(Graphics2D canvas, Point2f p, int size){
+        AffineTransform t = canvas.getTransform();
+        int x = Vis.transX(p.x);
+        int y = Vis.transY(p.y);
+        canvas.translate(x, y);
+        canvas.scale(Vis.getZoomFactor(), Vis.getZoomFactor());
+
+        float offset = size / 2 ;
+        canvas.drawOval((int) (-offset), (int) (-offset), size, size);
         canvas.setTransform(t);
     }
 
@@ -113,8 +124,8 @@ public class NetLayer extends GroupLayer implements VisLayer {
                     paintLine(canvas,point,prev);
                     prev = point;
                 }
+                paintCircle2(canvas, junction.getCenter(), 2*Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400));
             }
         }
-
     }
 }

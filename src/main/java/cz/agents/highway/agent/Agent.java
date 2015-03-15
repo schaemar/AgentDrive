@@ -1,12 +1,10 @@
 package cz.agents.highway.agent;
 
-import org.apache.log4j.Logger;
-
 import cz.agents.alite.common.entity.Entity;
 import cz.agents.highway.storage.VehicleActuator;
 import cz.agents.highway.storage.VehicleSensor;
+import org.apache.log4j.Logger;
 
-import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 
@@ -18,7 +16,7 @@ public class Agent extends Entity {
     protected VehicleSensor sensor;
     protected VehicleActuator actuator;
     protected final RouteNavigator navigator;
-    
+
 
     public Agent(int id) {
         super("" + id);
@@ -35,7 +33,6 @@ public class Agent extends Entity {
     public void addActuator(VehicleActuator actuator) {
         this.actuator = actuator;
         logger.info("Actuator added: " + actuator);
-
     }
 
     public RouteNavigator getNavigator() {
@@ -43,11 +40,11 @@ public class Agent extends Entity {
     }
 
     public Point3f getInitialPosition() {
-        return new Point3f(0,0,0);
+        return new Point3f(0, 0, 0);
     }
 
-    public Vector3f getInitialVelocity(){
-        return new Vector3f(1, 1, 0);
+    public Vector3f getInitialVelocity() {
+        return navigator.getInitialVelocity();
     }
 
 }

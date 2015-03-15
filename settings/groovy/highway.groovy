@@ -80,6 +80,9 @@ highway {
             }
 
         }
+        // simulatorToRun is an array of simulators you wish to run,
+        // Set of simulators to run can be seen above, note that you need to create a script for each od the simlators.
+        //The path to the relevant scripts is to be specified above too.
 
 //        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
         simulatorsToRun = ["SimulatorLite"];
@@ -98,5 +101,8 @@ highway {
             view = false;
             width = 1;
         }
+    }
+    SimulatorLocal{
+        timestep=1;
     }
 }
