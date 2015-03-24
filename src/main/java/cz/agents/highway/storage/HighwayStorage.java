@@ -1,18 +1,20 @@
 package cz.agents.highway.storage;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
+import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.storage.plan.Action;
+
+import javax.vecmath.Point3f;
 
 public class HighwayStorage extends EventBasedStorage {
 
@@ -22,6 +24,8 @@ public class HighwayStorage extends EventBasedStorage {
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
+    private Map<Integer, Queue<Float>> distances = new LinkedHashMap<Integer, Queue<Float>>();
+
 
     private Agent queen;
 
@@ -99,15 +103,63 @@ public class HighwayStorage extends EventBasedStorage {
         return actions;
     }
 
+    Point3f refcar = new Point3f(0,0,0);
     public void updateCars(RadarData object) {
         if(!object.getCars().isEmpty()) {
+            if (object.getCars().size() == 1)
+            {
+                logger.info("Number of collisions is " + calculateNumberOfCollisions()/2 + "\n");
+                FileUtil.getInstance().writeDistancesToFile(distances);
+                getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
+                System.out.println("Sedim na kameni a cekam");
+            }
             for (RoadObject car : object.getCars()) {
                 updateCar(car);
             }
             logger.debug("HighwayStorage updated vehicles: received " + object);
+
+
+            for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet())
+            {
+                Queue<Float> original = distances.get(entry.getKey());
+                if(original == null)
+                    original = new LinkedList<Float>();
+                Float dist = entry.getValue().getPosition().distance(new Point3f(0f,0f,0f));
+                /*
+                try {
+                    Point3f temp = posCurr.get(4).getPosition();
+                    refcar = temp;
+                }
+                catch(NullPointerException exp)
+                {
+                    //TODO Fix this structure
+                }
+                 Float dist = entry.getValue().getPosition().distance(refcar);
+                 */
+                if(original.isEmpty() || dist < original.peek()) {
+                    original.add(dist);
+                }
+                distances.put(entry.getKey(), original);
+            }
             getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
         }
     }
+    private int calculateNumberOfCollisions() {
+        int num =0;
+        Iterator it = agents.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            if (pair.getValue() instanceof GSDAgent)
+            {
+                num +=((GSDAgent) pair.getValue()).getNumberOfColisions();
+            }
+            //System.out.println(pair.getKey() + " = " + pair.getValue());
+            it.remove(); // avoids a ConcurrentModificationException
+        }
+        return num;
+    }
+
+
     public void removeAgent(Integer carID)
     {
         agents.remove(carID);

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/routes_file.xsd">
-    <!--
     <vehicle id="0" depart="0.0">
         <route edges="0 2" />
     </vehicle>
@@ -22,7 +21,7 @@
         <route edges="0 1" />
     </vehicle>
     -->
-    <!--<vehicle id="0" depart="0.0">
+   <!-- <vehicle id="0" depart="0.0">
         <route edges="0 2" />
     </vehicle>
     <vehicle id="1" depart="0.0">
@@ -51,7 +50,7 @@
         <route edges="0 1" />
     </vehicle>
 -->
-   <!--<vehicle id="10" depart="0.0">
+   <vehicle id="10" depart="0.0">
         <route edges="5 3" />
     </vehicle>
 
@@ -71,23 +70,23 @@
         <route edges="5 2" />
     </vehicle>
     -->
-    <vehicle id="10" depart="0.0">
-        <route edges="5 4" />
+   <!-- <vehicle id="10" depart="0.0">
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="11" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="12" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="13" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="14" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="15" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>-->
     <!--
     <vehicle id="16" depart="0.0">
@@ -100,7 +99,7 @@
         <route edges="5 2" />
     </vehicle>
 -->
-   <!-- <vehicle id="20" depart="0.0">
+    <vehicle id="20" depart="0.0">
         <route edges="6 4" />
     </vehicle>
 
@@ -120,8 +119,7 @@
         <route edges="6 3" />
     </vehicle>
     -->
-
-   <!-- <vehicle id="20" depart="0.0">
+    <!--<vehicle id="20" depart="0.0">
         <route edges="6 4" />
     </vehicle>
     <vehicle id="21" depart="0.0">
@@ -150,7 +148,7 @@
         <route edges="6 1" />
     </vehicle>300
     -->
-    <!--
+
     <vehicle id="30" depart="0.0">
         <route edges="7 1" />
     </vehicle>
@@ -171,15 +169,12 @@
         <route edges="7 4" />
     </vehicle>
     -->
-
-    <vehicle id="30" depart="0.0">
+    <!--<vehicle id="30" depart="0.0">
         <route edges="7 1" />
     </vehicle>
-
     <vehicle id="31" depart="0.0">
         <route edges="7 1" />
     </vehicle>
-
     <vehicle id="32" depart="0.0">
         <route edges="7 1" />
     </vehicle>

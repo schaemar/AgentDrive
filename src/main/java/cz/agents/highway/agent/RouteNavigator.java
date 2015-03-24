@@ -96,6 +96,7 @@ public class RouteNavigator {
                         pointPtr = 0;
                         routePtr++;
                         agentLane = nextLane;
+                        //TODO fix when this happens too soon
                     } else {
                         // TODO: This or neigbour lanes don't continue to the route edge
                     }

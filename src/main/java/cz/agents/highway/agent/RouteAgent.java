@@ -1,6 +1,7 @@
 package cz.agents.highway.agent;
 
 import cz.agents.alite.common.event.Event;
+import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.maneuver.*;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.RoadObject;
@@ -23,8 +24,7 @@ import java.util.List;
 public class RouteAgent extends Agent {
     ///
     private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly correspond to the actual wayPoint distance, used to make circle around the car
-    private static float MAX_SPEED = 20;
-
+    private final static double MAX_SPEED   = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0);
     private static final float WP_COUNT_CONST = 0.2f;
     private double lastUpateTime;
     private static int RIGHT = -1;
@@ -107,13 +107,14 @@ public class RouteAgent extends Agent {
 
     //TODO Code duplicate with route agent
     //TODO use point close enough method from original Maneuver Translator
+    //TODO bug when changing edge too early co narrowing mode stops working because car think that it is already on the another route but it is not
     private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
 
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
-        int wpCount = (int) me.getVelocity().length() + 1; // how many waypoints before me will be calculated.
+        int wpCount = (int) me.getVelocity().length() * 2 + 1; // how many waypoints before me will be calculated.
         points = new ArrayList<Point3f>();
         navigator.setCheckpoint();
 
@@ -166,7 +167,7 @@ public class RouteAgent extends Agent {
         waypoint = navigator.getRoutePoint();
 
 
-        float minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
+        double minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         //TODO fix than distance of waipoints is different than 1
         for (int i = 0; i <= maneuver.getPositionOut() || i < wpCount; i++) {
             // move 3 waipoints ahead
@@ -186,7 +187,7 @@ public class RouteAgent extends Agent {
             Vector3f toNextPoint = new Vector3f(waypoint.x - me.getPosition().x, waypoint.y - me.getPosition().y, 0);
             Vector3f velocity = me.getVelocity();
             float angle = velocity.angle(toNextPoint); // angle between my velocity and vector to the next point
-            float speed;
+            double speed;
             if (Float.isNaN(angle)) {
                 speed = 1;
             } else {
@@ -202,7 +203,7 @@ public class RouteAgent extends Agent {
         if (minSpeed > maneuver.getVelocityOut()) {
             minSpeed = (float) maneuver.getVelocityOut();
         }
-        float speedChangeConst = (me.getVelocity().length() - minSpeed) / wpCount;
+        double speedChangeConst = (me.getVelocity().length() - minSpeed) / wpCount;
         for (int i = 0; i < wpCount; i++) // actual filling my outgoing actions
         {
             //scaling speed to the lowest
@@ -272,7 +273,7 @@ public class RouteAgent extends Agent {
         waypoint = navigator.getRoutePoint();
 
 
-        float minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
+        double minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         //TODO fix than distance of waipoints is different than 1
         for (int i = 0; i < wpCount; i++) {
             // move 3 waipoints ahead
@@ -285,7 +286,7 @@ public class RouteAgent extends Agent {
             Vector3f toNextPoint = new Vector3f(waypoint.x - me.getPosition().x, waypoint.y - me.getPosition().y, 0);
             Vector3f velocity = me.getVelocity();
             float angle = velocity.angle(toNextPoint); // angle between my velocity and vector to the next point
-            float speed;
+            double speed;
             if (Float.isNaN(angle)) {
                 speed = 1;
             } else {
@@ -298,7 +299,7 @@ public class RouteAgent extends Agent {
             if (speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
             points.add(i, new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
         }
-        float speedChangeConst = (me.getVelocity().length() - minSpeed) / wpCount;
+        double speedChangeConst = (me.getVelocity().length() - minSpeed) / wpCount;
         for (int i = 0; i < wpCount; i++) // actual filling my outgoing actions
         {
             //scaling speed to the lowest

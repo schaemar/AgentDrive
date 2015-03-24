@@ -22,7 +22,7 @@
         <route edges="0 1" />
     </vehicle>
     -->
-    <!--<vehicle id="0" depart="0.0">
+    <vehicle id="0" depart="0.0">
         <route edges="0 2" />
     </vehicle>
     <vehicle id="1" depart="0.0">
@@ -72,22 +72,22 @@
     </vehicle>
     -->
     <vehicle id="10" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="11" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="12" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="13" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="14" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>
     <vehicle id="15" depart="0.0">
-        <route edges="5 4" />
+        <route edges="5 3" />
     </vehicle>-->
     <!--
     <vehicle id="16" depart="0.0">
@@ -121,7 +121,7 @@
     </vehicle>
     -->
 
-   <!-- <vehicle id="20" depart="0.0">
+    <vehicle id="20" depart="0.0">
         <route edges="6 4" />
     </vehicle>
     <vehicle id="21" depart="0.0">
@@ -175,11 +175,9 @@
     <vehicle id="30" depart="0.0">
         <route edges="7 1" />
     </vehicle>
-
     <vehicle id="31" depart="0.0">
         <route edges="7 1" />
     </vehicle>
-
     <vehicle id="32" depart="0.0">
         <route edges="7 1" />
     </vehicle>
