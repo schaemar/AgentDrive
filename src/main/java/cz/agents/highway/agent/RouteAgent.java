@@ -128,7 +128,7 @@ public class RouteAgent extends Agent {
         //how many waiponts ahead will be chcecked depending on the update time
         maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
         if (maxMove < 10) maxMove = 10;
-        String uniqueIndex = navigator.getUniqueLaneIndex();
+    /*    String uniqueIndex = navigator.getUniqueLaneIndex();
         // finding the nearest wayipont, if changing lane, set the first of the new lane.
         while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
             navigator.advanceInRoute();
@@ -142,7 +142,7 @@ public class RouteAgent extends Agent {
             while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
-            navigator.setCheckpoint();
+         //   navigator.setCheckpoint();
 
         }
 
@@ -153,10 +153,20 @@ public class RouteAgent extends Agent {
             while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
-            navigator.setCheckpoint();
+        //    navigator.setCheckpoint();
         }
-
-
+    */
+        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+            navigator.advanceInRoute();
+        }
+        if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+            navigator.resetToCheckpoint();
+        } else {
+            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                navigator.advanceInRoute();
+            }
+            //    navigator.setCheckpoint();
+        }
         if (relativeLane == RIGHT) {
             navigator.changeLaneRight();
             navigator.setCheckpoint();
@@ -164,8 +174,11 @@ public class RouteAgent extends Agent {
             navigator.changeLaneLeft();
             navigator.setCheckpoint();
         }
+        else
+        {
+            navigator.setCheckpoint();
+        }
         waypoint = navigator.getRoutePoint();
-
 
         double minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         //TODO fix than distance of waipoints is different than 1

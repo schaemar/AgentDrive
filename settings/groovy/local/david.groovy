@@ -33,7 +33,7 @@ highway {
 
     }
     safeDistanceAgent {
-        safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
+        safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
         narrowingModeActive = false;
         distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
@@ -104,7 +104,7 @@ highway {
 
         }
 
-//     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+  //   simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
     simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];

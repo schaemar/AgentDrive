@@ -427,8 +427,11 @@ public class GSDAgent extends RouteAgent {
 
        // logger.debug("GenerateSS:");
         Collection<RoadObject> nearCars = new Vector<RoadObject>();
-
+        //FAST SOLUTION
         myLane = navigator.getLane();
+        //SLOW
+       // myLane = highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
+
         myEdge = myLane.getEdge();
         num_of_lines = myEdge.getLanes().size();
         int myIndexOnRoute=getNearestWaipointIndex(state,myLane);
