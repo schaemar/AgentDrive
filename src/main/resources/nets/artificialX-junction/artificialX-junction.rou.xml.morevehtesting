@@ -173,24 +173,24 @@
     -->
 
     <vehicle id="30" depart="0.0">
-        <route edges="7 2" />
+        <route edges="7 1" />
     </vehicle>
 
     <vehicle id="31" depart="0.0">
-        <route edges="7 2" />
+        <route edges="7 1" />
     </vehicle>
 
     <vehicle id="32" depart="0.0">
-        <route edges="7 2" />
+        <route edges="7 1" />
     </vehicle>
     <vehicle id="33" depart="0.0">
-        <route edges="7 2" />
+        <route edges="7 1" />
     </vehicle>
     <vehicle id="34" depart="0.0">
-        <route edges="7 2" />
+        <route edges="7 1" />
     </vehicle>
     <vehicle id="35" depart="0.0">
-        <route edges="7 2" />
+        <route edges="7 1" />
     </vehicle>-->
     <!--
     <vehicle id="36" depart="0.0">

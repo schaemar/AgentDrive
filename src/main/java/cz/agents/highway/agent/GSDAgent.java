@@ -403,7 +403,7 @@ public class GSDAgent extends RouteAgent {
     }
     // Returns 1 if the lines intersect, otherwise 0. In addition, if the lines
     // intersect the intersection point may be stored in the floats i_x and i_y.
-    private boolean isColision(float p0_x, float p0_y, float p1_x, float p1_y,
+    private Point2f isColision(float p0_x, float p0_y, float p1_x, float p1_y,
                                float p2_x, float p2_y, float p3_x, float p3_y)
     {
         float s1_x, s1_y, s2_x, s2_y;
@@ -416,10 +416,11 @@ public class GSDAgent extends RouteAgent {
 
         if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
         {
-            // Collision detected
-            return true;
+            float i_x = p0_x + (t * s1_x);
+            float i_y = p0_y + (t * s1_y);
+            return new Point2f(i_x,i_y);
         }
-        return false; // No collision
+        return null; // No collision
     }
     public HighwaySituation generateSS(RoadObject state, Collection<RoadObject> cars, long from, long to) {
 
@@ -456,14 +457,16 @@ public class GSDAgent extends RouteAgent {
         Lane entryLane =null;
         int numberOfLanes = myEdge.getLanes().size();
         Junction myNearestJunction = highwayEnvironment.getRoadNetwork().getJunctions().get(myEdge.getTo());
-        Point2f junctionwaypoint = myNearestJunction.getCenter();
 
-        boolean nearTheJunction = (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
         //TODO use config for this
+        Point2f junctionwaypoint = myNearestJunction.getCenter();
+        boolean nearTheJunction = (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
         if(myNearestJunction.getId().equals("preparation")) nearTheJunction = false;
         //distance from the junction, should be determined by max allowed speed on the lane.
         for(RoadObject entry : nearCars) {
 
+
+            Point2f intersectionWaypoint = junctionwaypoint;
             ArrayList<CarManeuver> predictedManeuvers;
             entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
             //TODO Fix this if else structur
@@ -475,26 +478,34 @@ public class GSDAgent extends RouteAgent {
                     //TODO Optimilize to run this once
                     Map<Integer, Agent> agents = highwayEnvironment.getStorage().getAgents();
                     GSDAgent entryAgent = (GSDAgent)agents.get(entry.getId());
-                    if(!entryAgent.navigator.getFollowingEdgesInPlan().isEmpty() && !navigator.getFollowingEdgesInPlan().isEmpty())
-                    {
+                    if(!entryAgent.navigator.getFollowingEdgesInPlan().isEmpty() && !navigator.getFollowingEdgesInPlan().isEmpty()) {
                         Edge entryNextEdge = entryAgent.navigator.getFollowingEdgesInPlan().iterator().next();
                         Edge myNextEdge = navigator.getFollowingEdgesInPlan().iterator().next();
 
-                        Point2f p0 = myLane.getInnerPoints().get(navigator.getLane().getInnerPoints().size()-1);
-                        Point2f p1 = myNextEdge.getLaneByIndex(0).getInnerPoints().get(myNextEdge.getLaneByIndex(0).getInnerPoints().size()-1);
-                        Point2f p2 = entryLane.getInnerPoints().get(entryLane.getInnerPoints().size()-1);
-                        Point2f p3 = entryNextEdge.getLaneByIndex(0).getInnerPoints().get( entryNextEdge.getLaneByIndex(0).getInnerPoints().size()-1);
-                        if(!isColision(p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,p3.x,p3.y) && !myLane.equals(entryLane))
-                        {
+                        Point2f p0 = myLane.getInnerPoints().get(myLane.getInnerPoints().size() - 1);
+                        Point2f p1 = myNextEdge.getLaneByIndex(0).getInnerPoints().get(0);
+                        Point2f p2 = entryLane.getInnerPoints().get(entryLane.getInnerPoints().size() - 1);
+                        Point2f p3 = entryNextEdge.getLaneByIndex(0).getInnerPoints().get(0);
+
+                        Point2f newCenter = isColision(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+                        if (newCenter == null && !myLane.equals(entryLane)) {
                             continue;
+                        } else if (newCenter != null && !myLane.equals(entryLane)) {
+                            //TODO fix this hotfix, probably in route agent.
+                            if (junctionwaypoint.distance(newCenter) < 10) {
+                                intersectionWaypoint = new Point2f((newCenter.x + junctionwaypoint.x) / 2, (newCenter.y + junctionwaypoint.y) / 2);
+                            }
+                            /*else {
+                                System.out.println("Something is terribly wrong");
+                            }*/
                         }
                     }
 
                     Point2f myPosition = convertPoint3ftoPoint2f(state.getPosition());
                     Point2f entryPosition = convertPoint3ftoPoint2f(entry.getPosition());
 
-                    Vector2f toTheCentre = new Vector2f((junctionwaypoint.x - convertPoint3ftoPoint2f(entry.getPosition()).x),
-                            (junctionwaypoint.y - convertPoint3ftoPoint2f(entry.getPosition()).y));
+                    Vector2f toTheCentre = new Vector2f((intersectionWaypoint.x - convertPoint3ftoPoint2f(entry.getPosition()).x),
+                            (intersectionWaypoint.y - convertPoint3ftoPoint2f(entry.getPosition()).y));
 
                     double maxAngle = ANGLE_TO_JUNCTION * Math.PI / 180;    //Max used angle
                     double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre);
@@ -506,8 +517,8 @@ public class GSDAgent extends RouteAgent {
                         if (Double.isNaN(d)) d = 0;
                         toTheCentre.normalize();
                         Vector2f resultant = new Vector2f((float) toTheCentre.x * (float) d, (float) toTheCentre.y * (float) d);
-                        float myDistance = myPosition.distance(junctionwaypoint);
-                        float entryDistance = entryPosition.distance(junctionwaypoint);
+                        float myDistance = myPosition.distance(intersectionWaypoint);
+                        float entryDistance = entryPosition.distance(intersectionWaypoint);
                         if (entryDistance < myDistance) {
                             //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
                             StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));

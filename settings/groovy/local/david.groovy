@@ -11,7 +11,7 @@ highway {
 
     net {
 //        folder = "nets/kosik/";
-//        folder = "nets/x-junction/";
+  //      folder = "nets/x-junction/";
 //     folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
 //        folder = "nets/highway-straight/";
@@ -105,7 +105,7 @@ highway {
         }
 
   //   simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-    simulatorsToRun = ["SimulatorLite"];
+   simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
     }
