@@ -13,12 +13,11 @@ highway {
 //        folder = "nets/CharlesSquare";
 //        folder = "nets/junction-big";
 //        folder = "nets/graz";
-//        folder = "nets/vysehrad";
 //        folder = "nets/pisek";
-//        folder = "nets/test";
 //        folder = "nets/test90";
-//        folder = "nets/test91";
-        folder = "nets/test92";
+//        folder = "nets/super-collision";
+//          folder = "nets/artificialX-junction";
+        folder = "nets/artificialX-junction-smaller";
     }
 
     dashboard {
