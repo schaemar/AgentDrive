@@ -7,25 +7,35 @@ highway {
 //    agent = "SDAgent";
 //   agent = "RouteAgent";
 //    agent = "ORCAAgent";
-   agent = "DESDAgent";
+   agent = "GSDAgent";
 
     net {
 //        folder = "nets/kosik/";
 //        folder = "nets/x-junction/";
- //    folder = "nets/junction-big/";
+//     folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
 //        folder = "nets/highway-straight/";
 //       folder = "nets/test90/";
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
-        folder = "nets/nartest";
+ //     folder = "nets/nartest";
+  //      folder = "nets/x-junction";
+   //     folder = "nets/nadprysk"
+   //     folder = "nets/extest";
+  //     folder = "nets/ulesika";
+   //       folder = "nets/jedkriz";
+  //     folder = "nets/map";
+//        folder = "nets/pisek";
+     //   folder = "nets/CharlesSquare";
+       folder = "nets/artificialX-junction";
+
 
 
     }
     safeDistanceAgent {
-        safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
-        narrowingModeActive = true;
-        distanceToActivateNM = 100.0;
+        safetyReserveDistance = 5.0;     // [m] - safety distance offset (including vehicle length and separation gap)
+        narrowingModeActive = false;
+        distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
         maneuvers {
@@ -94,10 +104,10 @@ highway {
 
         }
 
- //     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-     simulatorsToRun = ["SimulatorLite"];
+   //   simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
-//        simulatorsToRun = ["Empty"];
+//     simulatorsToRun = ["Empty"];
     }
 
     netLayer {
@@ -110,7 +120,7 @@ highway {
             width = 1;
         }
         crossRoad {
-            view = false;
+            view = true;
             width = 1;
         }
     }

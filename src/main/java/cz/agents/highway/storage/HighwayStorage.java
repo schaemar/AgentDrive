@@ -13,6 +13,9 @@ import cz.agents.alite.common.event.Event;
 import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.storage.plan.Action;
+import tt.euclid2i.Trajectory;
+import tt.euclidtime3i.Region;
+import tt.euclidtime3i.region.MovingCircle;
 
 public class HighwayStorage extends EventBasedStorage {
 
@@ -22,6 +25,7 @@ public class HighwayStorage extends EventBasedStorage {
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
+    private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
 
     private Agent queen;
 
@@ -41,6 +45,15 @@ public class HighwayStorage extends EventBasedStorage {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
             updateCars(radar_data);
+        } else if (event.isType(HighwayEventType.TRAJECTORY_UPDATED)) {
+            Map.Entry<Integer, Region> agentTrajectory = (Map.Entry<Integer, Region>) event.getContent();
+            MovingCircle stored = (MovingCircle) trajectories.get(agentTrajectory.getKey());
+            MovingCircle inc    = (MovingCircle) agentTrajectory.getValue();
+            if (stored == null || !stored.getTrajectory().equals(inc.getTrajectory())) {
+                trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
+                logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
+                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
+            }
         }
 
     }
@@ -106,6 +119,10 @@ public class HighwayStorage extends EventBasedStorage {
         return actions;
     }
 
+    public Map<Integer, Region> getTrajectories() {
+        return trajectories;
+    }
+
     public void updateCars(RadarData object) {
         if(!object.getCars().isEmpty()) {
             for (RoadObject car : object.getCars()) {
@@ -115,6 +132,11 @@ public class HighwayStorage extends EventBasedStorage {
             getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
         }
     }
+    public void removeAgent(Integer carID)
+    {
+        agents.remove(carID);
+    }
+
 
 //    public void updateInit(InitIn init) {
 //        getRoadDescription().addPoints(init.getPoints());

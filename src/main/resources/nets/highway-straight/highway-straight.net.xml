@@ -3,10 +3,17 @@
 <net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
 
     <location netOffset="0.0,0.0" convBoundary="0.00,0.00,665.37,811.53" origBoundary="14.388600,50.068250,14.516399,50.128835" projParameter="+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
+    <edge id="0" from="nowhere" to="cross" priority="7" type="highway.secondary" shape="-10,0.0 -10,5000.0 10,5000.0 10,0.0">
+        <lane id="0_0" index="0" speed="42" length="16.72" shape="2.0,0.0 2.0,200.0"/>
+    </edge>
 
-    <edge id="0" from="0" to="1" priority="7" type="highway.secondary" shape="-10,0.0 -10,5000.0 10,5000.0 10,0.0">
-        <lane id="0_0" index="0" speed="42" length="16.72" shape="2.0,0.0 2.0,5000.0"/>
-        <lane id="0_1" index="1" speed="42" length="16.72" shape="-2.0,0.0 -2.0,5000.0"/>
+
+    <edge id="1" from="cross" to="deadend" priority="7" type="highway.secondary" shape="-10,0.0 -10,5000.0 10,5000.0 10,0.0">
+        <lane id="1_0" index="0" speed="42" length="16.72" shape="2.0,200.0 2.0,5000.0"/>
+       <!-- <lane id="0_1" index="1" speed="42" length="16.72" shape="-2.0,0.0 -2.0,5000.0"/>-->
 
     </edge>
-  </net>
+    <junction id="deadend" type="dead_end" x="00.00" y="5000.00" incLanes="1_0" intLanes="" shape=""/>
+    <junction id="cross" type="unregulated" x="2.0" y="200.00" incLanes="0_0" intLanes="1_0" shape=""/>
+    <connection from="0" to="1" fromLane="0" toLane="0" dir="s" state="M"/>
+</net>

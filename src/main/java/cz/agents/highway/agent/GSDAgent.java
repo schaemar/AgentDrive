@@ -6,7 +6,9 @@ import javax.vecmath.*;
 
 import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
+import cz.agents.highway.environment.roadnet.Junction;
 import cz.agents.highway.environment.roadnet.Lane;
+import cz.agents.highway.protobuf.generated.simplan.VectorProto;
 import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Logger;
 
@@ -26,11 +28,11 @@ import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.ManeuverAction;
 
-public class DESDAgent extends RouteAgent {
+public class GSDAgent extends RouteAgent {
 
     protected static final Logger logger = Logger.getLogger(SDAgent.class);
 
-    private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
+    //private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
     private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance",   4.0  );
     private final static double MAX_SPEED               = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 20.0  );
     private final static double MAX_SPEED_VARIANCE      = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.8 );
@@ -38,6 +40,10 @@ public class DESDAgent extends RouteAgent {
     private final static double LANE_SPEED_RATIO        = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio",            0.1);
     private final static long   PLANNING_TIME           = 1000;
     private final static int CIRCLE_AROUND_FOR_SEARCH = 5;
+    private final static int ANGLE_TO_JUNCTION = 60;
+
+    private final static int DISTANCE_TO_THE_JUNCTION = Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400);
+    private final static int CHECKING_DISTANCE = 500;
     //FIXME: Determine number of lanes based on agent's current position
     protected int num_of_lines;
 
@@ -62,7 +68,7 @@ public class DESDAgent extends RouteAgent {
         return new ManeuverAction(sensor.getId(), man.getStartTime() / 1000.0, man.getVelocityOut(), man.getLaneOut(), man.getDuration());
     }
 
-    public DESDAgent(int id, HighwayEnvironment hgw) { // TODO don't use whole HighwayEnviroment in agent
+    public GSDAgent(int id, HighwayEnvironment hgw) { // TODO don't use whole HighwayEnviroment in agent
         super(id);
         num_of_lines = 1;
         this.highwayEnvironment = hgw;
@@ -83,16 +89,19 @@ public class DESDAgent extends RouteAgent {
         if (currState == null) {
             return null;
         }
+        if(navigator.getLane() == null)
+        {
+            highwayEnvironment.getStorage().removeAgent(this.id);
+            highwayEnvironment.getStorage().getPosCurr().remove(this.id);
+            return null;
+        }
         logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
         logger.debug("Situation: " + situationPrediction);
 
         int lane = currState.getLaneIndex();
         double velocity = currState.getVelocity().length();
-        double distance = transGeoToDistance(currState.getPosition());
         long updateTime = (long) (currState.getUpdateTime() * 1000);
-
-
         // I am point zero so distance to me is 0
         CarManeuver acc   = new AccelerationManeuver  (lane, velocity, 0, updateTime);
         CarManeuver str   = new StraightManeuver      (lane, velocity, 0, updateTime);
@@ -100,59 +109,35 @@ public class DESDAgent extends RouteAgent {
         CarManeuver right = new LaneRightManeuver     (lane, velocity, 0, updateTime);
         CarManeuver dec   = new DeaccelerationManeuver(lane, velocity, 0, updateTime);
 
-        int preferredLane = getPreferredLane(currState);
+        int preferredLane = 0;
         logger.debug("PreferredLane: " + preferredLane);
-        if (isNarrowingMode(currState)) {
-            logger.debug("Narrowing mode activated");
-            CarManeuver preferredMan = null;
-            if (preferredLane < currState.getLaneIndex()) {
-                preferredMan = right;
-            } else if (preferredLane > currState.getLaneIndex()) {
-                preferredMan = left;
-            }
-            if (preferredMan != null && isSafeMan(currState, preferredMan, situationPrediction)) {
-                maneuver = preferredMan;
+
+        if (currentManeuver != null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
+            maneuver = left;
+        } else if (currentManeuver != null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
+            maneuver = right;
+        } else {
+            if (isSafeMan(currState, right, situationPrediction)) {
+                maneuver = right;
             } else if (isSafeMan(currState, acc, situationPrediction)) {
                 maneuver = acc;
             } else if (isSafeMan(currState, str, situationPrediction)) {
                 maneuver = str;
+            } else if (isSafeMan(currState, left, situationPrediction)) {
+                maneuver = left;
             } else if (isSafeMan(currState, dec, situationPrediction)) {
                 maneuver = dec;
             } else {
+                logger.info("Nothing is safe, shouldnt happen!");
                 maneuver = dec;
-            }
-        } else { // Not narrowingMode
-            //performing changing lane?
-            if(currentManeuver !=null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
-                maneuver = left;
-            }
-            else if(currentManeuver !=null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
-                maneuver = right;
-            }
-            else{
-
-                if (isSafeMan(currState, right, situationPrediction)) {
-                    maneuver = right;
-                }
-                else if (isSafeMan(currState, acc, situationPrediction)) {
-                    maneuver = acc;
-                } else if (isSafeMan(currState, str, situationPrediction)) {
-                    maneuver = str;
-                }else  if (isSafeMan(currState, left, situationPrediction)) {
-                    maneuver = left;
-                } else if (isSafeMan(currState, dec, situationPrediction)) {
-                    maneuver = dec;
-                } else {
-                    logger.info("Nothing is safe, shouldnt happen!");
-                    maneuver = dec;
-                }
             }
         }
         //testing scenario
-        if(currState.getId() == 3 && navigator.getActualPointer() > 120)
+        /*if(currState.getId() == 0 && navigator.getActualPointer() > 5)
         {
             maneuver = dec;
-        }
+        }*/
+/*
         if(currState.getId() == 1 && navigator.getActualPointer() > 140 && test)
         {
             maneuver = dec;
@@ -161,7 +146,8 @@ public class DESDAgent extends RouteAgent {
             {
                 test = false;
             }
-        }
+        }*/
+
         logger.info("Planned maneuver for carID " + currState.getId() + " " +maneuver);
         currentManeuver = maneuver;
         return maneuver;
@@ -170,56 +156,11 @@ public class DESDAgent extends RouteAgent {
     private double transGeoToDistance(double x, double y) {
         return sensor.getRoadDescription().distance(new Point2d(x, y));
     }
+    @Deprecated
     protected double transGeoToDistance(Point3f position) {
         return transGeoToDistance(position.x, position.y);
     }
-
-    private int getPreferredLane(RoadObject startNode) {
-        // double dist = getDistance(startNode);
-        // if(dist>100 && dist <=300)return 0;
-        // else if(dist>300)return 1;
-        // else return 0;
-
-       /* double distance = 1000;
-        while (distance >= 200) {
-            for (int lane = 1; lane <= 2; lane++) {
-                if (isLaneGoingOn(getDistance(startNode), distance, lane)) {
-                    return lane;
-                }
-
-                distance -= 200;
-            }
-        }*/
-        return 0;
-    }
-
-    private boolean isNarrowingMode(RoadObject state) {
-        if(Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", false).equals(false)) return false;
-        else if(Configurator.getParamBool("highway.safeDistanceAgent.narrowingModeActive", true).equals(true))
-            if(myEdge.getId().equals("0"))
-            return true;
-        else return false;
-
-        int lane = state.getLaneIndex();
-        double distance = getDistance(state);
-
-        // following is universal
-        boolean myLaneEnding = !isLaneGoingOn(distance, DISTANCE_TO_ACTIVATE_NM, lane);
-        int lastLane = state.getLaneIndex() - 1;
-        boolean leftLaneEnding = lane != lastLane
-                && !isLaneGoingOn(distance, DISTANCE_TO_ACTIVATE_NM, lane + 1);
-        boolean rightLaneEnding = lane != 0
-                && !isLaneGoingOn(distance, DISTANCE_TO_ACTIVATE_NM, lane - 1);
-        if (myLaneEnding)
-            logger.debug("myLaneEnding");
-        if (leftLaneEnding)
-            logger.debug("leftLaneEnding");
-        if (rightLaneEnding)
-            logger.debug("rightLaneEnding");
-        return myLaneEnding || leftLaneEnding || rightLaneEnding;
-
-    }
-
+    @Deprecated
     private boolean isLaneGoingOn(double position, double distance, int lane) {
         Collection<RoadObject> obstacles = sensor.senseObstacles();
         for (RoadObject obs : obstacles) {
@@ -239,8 +180,6 @@ public class DESDAgent extends RouteAgent {
     }
 
     private boolean isSafeMan(RoadObject state, CarManeuver man, HighwaySituation situation) {
-        boolean narrowingMode = isNarrowingMode(state);
-
         if (isHighwayCollision(state, man)) {
             if(id ==2) logger.info("Highway Collision detected!" + man);
             return false;
@@ -258,20 +197,7 @@ public class DESDAgent extends RouteAgent {
         if (man.getClass().equals(AccelerationManeuver.class)
                 || man.getClass().equals(StraightManeuver.class)) {
 
-            return isInSafeDistance(situation.getCarAheadMan(), man)// sufficient if not narrowing
-                    && (!narrowingMode || (isInSafeDistance(situation.getCarLeftAheadMan(), man) || (situation
-                    .getCarLeftAheadMan() != null && situation.getCarLeftAheadMan()
-                    .getVelocityOut() == 0.0)) // if narrowingMode check also cars in left
-                    // lane
-                    && (!narrowingMode || (isInSafeDistance(
-                    situation.getCarRightAheadMan(), man) || (situation
-                    .getCarRightAheadMan() != null && situation
-                    .getCarRightAheadMan().getVelocityOut() == 0.0))));// if
-            // narrowingMode
-            // check also
-            // cars in
-            // right lane
-
+            return isInSafeDistance(situation.getCarAheadMan(), man);// sufficient if not narrowing
         } else if (man.getClass().equals(LaneLeftManeuver.class)) {
             if(id ==2) logger.info("LEFT_MAN_OUTPUT: " + isInSafeDistance(situation.getCarLeftAheadMan(), man)
                     + " " + isInSafeDistance(man, situation.getCarLeftMan()));
@@ -289,12 +215,13 @@ public class DESDAgent extends RouteAgent {
     private boolean isHighwayCollision(RoadObject state, CarManeuver man) {
         if (!canPerformManeuver(man)) {
             return true;
-        } else if (!isLaneGoingOn(man.getPositionOut(), safeDistance(man, SAFETY_RESERVE), state.getLaneIndex())) {
+            // NOT USED, code for obstacles on the road
+        } /*else if (!isLaneGoingOn(man.getPositionOut(), safeDistance(man, SAFETY_RESERVE), state.getLaneIndex())) {
             return true;
-        } else
+        }*/ else
             return false;
     }
-
+    @Deprecated
     private double safeDistance(CarManeuver man, double safetyReserve) {
         // TODO get the a0 from the car
         double a0 = -4;
@@ -305,7 +232,8 @@ public class DESDAgent extends RouteAgent {
 
     private double safeDistance(CarManeuver manAhead, CarManeuver manBehind, double safetyReserve) {
         // TODO get the a0 from the car
-        double a0 = -4;
+        // TODO Discover what the hell is a0
+        double a0 = -1;
         double v0 = manBehind.getVelocityOut();
         double v1 = manAhead.getVelocityIn();
         double safeDist = safeDistance(a0, v0, v1, safetyReserve);
@@ -314,6 +242,7 @@ public class DESDAgent extends RouteAgent {
 
     private double safeDistance(double a0, double v0, double v1) {
         double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
+    //    double safeDist = v0*2;
         return safeDist;
     }
 
@@ -485,7 +414,7 @@ public class DESDAgent extends RouteAgent {
         //removing too far cars and myself from the collection
         for (RoadObject entry : cars) {
 
-            if(entry.getPosition().distance(state.getPosition()) > 500 || state.getPosition().equals(entry.getPosition()))
+            if(entry.getPosition().distance(state.getPosition()) > CHECKING_DISTANCE || state.getPosition().equals(entry.getPosition()))
             {
                 continue;
             }
@@ -499,70 +428,107 @@ public class DESDAgent extends RouteAgent {
 
         Lane entryLane =null;
         int numberOfLanes = myEdge.getLanes().size();
+        Junction myNearestJunction = highwayEnvironment.getRoadNetwork().getJunctions().get(myEdge.getTo());
+        Point2f junctionwaypoint = myNearestJunction.getCenter();
 
-        for(RoadObject entry : nearCars)
-        {
+        boolean nearTheJunction = (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
+        //distance from the junction, should be determined by max allowed speed on the lane.
+        for(RoadObject entry : nearCars) {
+
             ArrayList<CarManeuver> predictedManeuvers;
             entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
-            if(!entryLane.getEdge().equals(myEdge))
-            {
-             // TODO situation where car is in the different road
+            //TODO Fix this if else structur
+            if(myNearestJunction.equals(highwayEnvironment.getRoadNetwork().getJunctions().get(entryLane.getEdge().getTo()))) {
+                if (nearTheJunction)
+                {
+                    Point2f myPosition = convertPoint3ftoPoint2f(state.getPosition());
+                    Point2f entryPosition = convertPoint3ftoPoint2f(entry.getPosition());
+
+                    Vector2f toTheCentre = new Vector2f((junctionwaypoint.x - convertPoint3ftoPoint2f(entry.getPosition()).x),
+                            (junctionwaypoint.y - convertPoint3ftoPoint2f(entry.getPosition()).y));
+
+                    double maxAngle = ANGLE_TO_JUNCTION * Math.PI / 180;    //Max used angle
+                    double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre);
+                    if (ange > maxAngle) {
+
+                    } else {
+                        double hypotenuse = entry.getVelocity().length();
+                        double d = hypotenuse * Math.cos(ange);
+                        if (Double.isNaN(d)) d = 0;
+                        toTheCentre.normalize();
+                        Vector2f resultant = new Vector2f((float) toTheCentre.x * (float) d, (float) toTheCentre.y * (float) d);
+                        float myDistance = myPosition.distance(junctionwaypoint);
+                        float entryDistance = entryPosition.distance(junctionwaypoint);
+                        if (entryDistance < myDistance) {
+                            //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
+                            DeaccelerationManeuver man = new DeaccelerationManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
+                            situationPrediction.trySetCarAheadManeuver(man);
+                            situationPrediction.trySetCarRightAheadMan(man);
+                            situationPrediction.trySetCarLeftAheadMan(man);
+                        }
+                    }
+
+                } else {
+                    if (entryLane.getEdge().equals(myEdge)) {
+                        predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, null);
+                        situationPrediction.addAll(predictedManeuvers);
+
+                        CarManeuver man = predictedManeuvers.get(0);
+
+                        int entryNearestWaipoint = getNearestWaipointIndex(entry, entryLane);
+                        if (myLane.getLaneId().equals(entryLane.getLaneId())) {
+                            if (entryNearestWaipoint > myIndexOnRoute) {
+                                situationPrediction.trySetCarAheadManeuver(man);
+                            }
+                        } else {
+                            if (entryNearestWaipoint < myIndexOnRoute) {
+                                if (myLane.getIndex() - entryLane.getIndex() == -1) {
+                                    situationPrediction.trySetCarLeftMan(man);
+                                } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
+                                    situationPrediction.trySetCarRightMan(man);
+                                }
+                            } else {
+                                if (myLane.getIndex() - entryLane.getIndex() == -1) {
+                                    situationPrediction.trySetCarLeftAheadMan(man);
+                                } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
+                                    situationPrediction.trySetCarRightAheadMan(man);
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+            if (!entryLane.getEdge().equals(myEdge)) {
+                // TODO situation where car is in the different road
                 List<Edge> rem = navigator.getFollowingEdgesInPlan();
                 logger.info("Checking this entry " + entry);
-                for(Edge planned : rem)
-                {
-                    if(planned.equals(entryLane.getEdge()))
-                    {
-                        predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to,rem);
+                for (Edge planned : rem) {
+                    if (planned.equals(entryLane.getEdge())) {
+                        predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, rem);
                         situationPrediction.addAll(predictedManeuvers);
                         CarManeuver man = predictedManeuvers.get(0);
 
-                        if((state.getLaneIndex() - entry.getLaneIndex()) == 1)
-                        {
+                       /* if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
                             //right
                             situationPrediction.trySetCarRightAheadMan(man);
-                        }
-                        else if ((state.getLaneIndex() - entry.getLaneIndex()) == 1)
-                        {
+                        } else if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
                             // left
                             situationPrediction.trySetCarLeftAheadMan(man);
-                        }
-                        else
-                        {
+                        } else {
                             //same
                             situationPrediction.trySetCarAheadManeuver(man);
+                        }
+                        */
+                        if((Math.abs(state.getLaneIndex() - entry.getLaneIndex()) <= 1))
+                        {
+                            situationPrediction.trySetCarAheadManeuver(man);
+                            situationPrediction.trySetCarLeftAheadMan(man);
+                            situationPrediction.trySetCarRightAheadMan(man);
                         }
                     }
                 }
                 continue;
-            }
-            else {
-                predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to,null);
-                situationPrediction.addAll(predictedManeuvers);
-
-                CarManeuver man = predictedManeuvers.get(0);
-
-                int entryNearestWaipoint = getNearestWaipointIndex(entry, entryLane);
-                if (myLane.getLaneId().equals(entryLane.getLaneId())) {
-                    if (entryNearestWaipoint > myIndexOnRoute) {
-                        situationPrediction.trySetCarAheadManeuver(man);
-                    }
-                } else {
-                    if (entryNearestWaipoint < myIndexOnRoute) {
-                        if (myLane.getIndex() - entryLane.getIndex() == -1) {
-                            situationPrediction.trySetCarLeftMan(man);
-                        } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
-                            situationPrediction.trySetCarRightMan(man);
-                        }
-                    } else {
-                        if (myLane.getIndex() - entryLane.getIndex() == -1) {
-                            situationPrediction.trySetCarLeftAheadMan(man);
-                        } else if (myLane.getIndex() - entryLane.getIndex() == 1) {
-                            situationPrediction.trySetCarRightAheadMan(man);
-                        }
-                    }
-                }
-
             }
         }
         return situationPrediction;
@@ -605,10 +571,10 @@ public class DESDAgent extends RouteAgent {
         ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();
         // TODO add a part of plan that is between from and to
         CarManeuver lastManeuver;
-        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane,rem), (long) (car.getUpdateTime() * 1000));
+        lastManeuver = new DeaccelerationManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane,rem), (long) (car.getUpdateTime() * 1000));
         plan.add(lastManeuver);
         while (lastManeuver.getEndTime() <= to) {
-            lastManeuver = new StraightManeuver(lastManeuver);
+            lastManeuver = new DeaccelerationManeuver(lastManeuver);
             plan.add(lastManeuver);
         }
 
@@ -723,7 +689,7 @@ public class DESDAgent extends RouteAgent {
         Point2f myPosition = convertPoint3ftoPoint2f(me.getPosition());
         Point2f innerPoint = myLane.getInnerPoints().get(0);
         int i=0;
-        while((!pointCloseEnough(innerPoint,myPosition,convertVector3ftoVector2f(me.getVelocity())) && i<myLane.getInnerPoints().size()))
+        while((!pointCloseEnough(innerPoint, myPosition, convertVector3ftoVector2f(me.getVelocity())) && i<myLane.getInnerPoints().size()))
         {
 
             innerPoint = myLane.getInnerPoints().get(i);

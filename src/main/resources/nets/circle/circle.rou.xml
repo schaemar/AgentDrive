@@ -13,5 +13,4 @@
     <vehicle id="4" depart="5.0">
         <route edges="0 1" />
     </vehicle>
-    -->
 </routes>

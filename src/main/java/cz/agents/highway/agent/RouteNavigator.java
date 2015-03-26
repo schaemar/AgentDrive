@@ -76,13 +76,15 @@ public class RouteNavigator {
      * Method for advancing in route. First it checks if there is the end of the lane, if it is than try to switch lanes.
      * if this does not succeed than tries to switch to the another edge.
      */
-    public void advanceInRoute() {
+    public boolean advanceInRoute() {
         if (pointPtr >= agentLane.getInnerPoints().size() - 1) {
             // We are at the end of the lane
             if (routePtr >= route.size() - 1) { // end of the plan
-                routePtr = 0;
-                pointPtr = 0;
-                agentLane = route.get(0).getLaneByIndex(0);
+                routePtr = -1;
+                pointPtr = -1;
+              //  agentLane = route.get(0).getLaneByIndex(0);
+                agentLane = null;
+                return false;
             } else {
                 Lane nextLane = getNeighbourLane(route.get(routePtr)); //check for neighbour lane
 
@@ -105,7 +107,7 @@ public class RouteNavigator {
         } else {
             pointPtr++;
         }
-
+    return true;
     }
 
     private int getDesiredNeighbourLinePoint(Lane nextLane) {
@@ -224,8 +226,9 @@ public class RouteNavigator {
 
     public List<Edge> getFollowingEdgesInPlan() {
         List<Edge> rem = new ArrayList<Edge>();
-
-        for (int i = routePtr + 1; i < route.size(); i++) {
+        int maxNumber = 5;
+        for(int i = routePtr +1;i<route.size() && i < maxNumber;i++)
+        {
             rem.add(route.get(i));
         }
         return rem;

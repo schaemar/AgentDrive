@@ -120,15 +120,14 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             executePlans(plans);
             plans.clear();
         }
-
         private void executePlans(PlansOut plans) {
-
             Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
             RadarData radarData = new RadarData();
             float duration = 0;
             float lastDuration = 0;
             int timestep = Configurator.getParamInt("highway.SimulatorLocal.timestep", 1);
 
+            boolean removeCar = false;
             for (Integer carID : plans.getCarIds()) {
                 Collection<Action> plan = plans.getPlan(carID);
                 RoadObject state = currStates.get(carID);
@@ -137,6 +136,11 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 for (Action action : plan) {
                     if (action.getClass().equals(WPAction.class)) {
                         WPAction wpAction = (WPAction) action;
+                        if(wpAction.getSpeed() == -1)
+                        {
+                            myPosition = wpAction.getPosition();
+                            removeCar = true;
+                        }
                         if (wpAction.getSpeed() < 0.001) {
                             duration += 0.1f;
                         } else {
@@ -161,16 +165,24 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         }
                         lastPosition = wpAction.getPosition();
                     }
-
                 }
-
-                Vector3f vel = new Vector3f(state.getPosition());
-                vel.negate();
-                vel.add(myPosition);
-                int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
-                state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
-                radarData.add(state);
-                duration = 0;
+                if(removeCar)
+                {
+                    highwayEnvironment.getStorage().removeAgent(carID);
+                    highwayEnvironment.getStorage().getPosCurr().remove(carID);
+                    plannedVehicles.remove(carID);
+                    removeCar = false;
+                }
+                else
+                {
+                    Vector3f vel = new Vector3f(state.getPosition());
+                    vel.negate();
+                    vel.add(myPosition);
+                    int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
+                    state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
+                    radarData.add(state);
+                    duration = 0;
+                }
             }
             //send radar-data to storage with duration delay
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
@@ -230,6 +242,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     agent = storage.createAgent(vehicleID);
                 }
                 Point2f position = agent.getNavigator().next();
+                //TODO FIX when lane is too short
                 for (int j = 0; j < initPos.size(); j++) {
                     while (!saveDistance(initPos.get(j), position)) {
                         position = agent.getNavigator().next();
@@ -295,6 +308,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     if (i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
                         //  logger.info("OndraTest - created car " + new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
+                        plans.addAction(new WPAction(vehicleID, 0d, new Point3f(next.x, next.y, 0), initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
                         update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));

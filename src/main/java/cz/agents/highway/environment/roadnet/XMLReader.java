@@ -366,7 +366,7 @@ public class XMLReader {
 
     private String getFile(URL folderPath, String suffix) {
         try {
-            System.out.println("GetFile URL: "+folderPath);
+            log.debug("GetFile URL: "+folderPath);
             File folder = new File(folderPath.toURI());
             if (folder.isDirectory()) {
                 File[] files = folder.listFiles();
