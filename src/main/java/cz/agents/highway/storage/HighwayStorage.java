@@ -6,6 +6,7 @@ import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
+import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
 
@@ -14,7 +15,10 @@ import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.storage.plan.Action;
 
+import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
 
 public class HighwayStorage extends EventBasedStorage {
 
@@ -25,6 +29,7 @@ public class HighwayStorage extends EventBasedStorage {
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
     private Map<Integer, Queue<Float>> distances = new LinkedHashMap<Integer, Queue<Float>>();
+    private final float SAVE_DISTANCE = 10;
 
 
     private Agent queen;
@@ -165,6 +170,66 @@ public class HighwayStorage extends EventBasedStorage {
         agents.remove(carID);
     }
 
+    public void recreate(int id) {
+
+    }
+    int numberOfCarsInSimulation;
+    private LinkedList<Point2f> initPos = new LinkedList<Point2f>();
+    public RadarData initTraffic() {
+
+        final XMLReader reader = XMLReader.getInstance();
+        // All vehicle id's
+        final Collection<Integer> vehicles = reader.getRoutes().keySet();
+        // final int size = vehicles.size();
+        final int size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
+        numberOfCarsInSimulation = size;
+        final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
+        //   final HighwayStorage storage = highwayEnvironment.getStorage();
+        Map<Integer, Point2f> initialPositions = reader.getInitialPositions();
+        RadarData update = new RadarData();
+        if (simulatorCount == 0) {
+            //Simulatorlocal initialization - FIXME remove duplicate code with ConnectCallback.invoke()
+
+            Iterator<Integer> vehicleIt = vehicles.iterator();
+            Map<Integer, Agent> agents = getAgents();
+
+            // Iterate over all configured vehicles
+            for (int i = 0; i < size; i++) {
+                int vehicleID = vehicleIt.next();
+                // Create agent for every single vehicle
+                Agent agent;
+                if (agents.containsKey(vehicleID)) {
+                    agent = agents.get(vehicleID);
+                } else {
+                    agent = createAgent(vehicleID);
+                }
+                Point2f position = agent.getNavigator().next();
+                //TODO FIX when lane is too short
+                for (int j = 0; j < initPos.size(); j++) {
+                    while (!saveDistance(initPos.get(j), position)) {
+                        position = agent.getNavigator().next();
+                    }
+                }
+                initPos.add(position);
+                Point3f initialPosition = new Point3f(position.x, position.y, 0);
+                Point2f pos = initialPositions.get(vehicleID);
+                if (pos != null) {
+                    initialPosition.setX(pos.x);
+                    initialPosition.setY(pos.y);
+                }
+                // FIXME!!!
+                Vector3f initialVelocity = agent.getInitialVelocity();
+
+                update.add(new RoadObject(vehicleID, 0d, /*lane*/ 0, initialPosition, initialVelocity));
+
+            }
+        }
+        return update;
+    }
+    private boolean saveDistance(Point2f p1, Point2f p2) {
+        Vector2f v = new Vector2f(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
+        return v.length() > SAVE_DISTANCE;
+    }
 //    public void updateInit(InitIn init) {
 //        getRoadDescription().addPoints(init.getPoints());
 //
