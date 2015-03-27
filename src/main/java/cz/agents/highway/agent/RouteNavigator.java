@@ -1,5 +1,6 @@
 package cz.agents.highway.agent;
 
+import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.Network;
@@ -31,7 +32,14 @@ public class RouteNavigator {
 
     public RouteNavigator(int id) {
         this.id = id;
-        initRoute();
+        if (Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
+            initRoute();
+        }
+        else
+        {
+            initRoute(id);
+        }
+
     }
 
     public void reset() {
@@ -43,7 +51,13 @@ public class RouteNavigator {
     {
         pointPtr = 0;
         route = new ArrayList<Edge>();
-        initRoute();
+        if (Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
+            initRoute();
+        }
+        else
+        {
+            initRoute(id);
+        }
     }
     /**
      * Generate list of edges from route definition

@@ -71,6 +71,7 @@ highway {
             timeHorizonObst = 100.0;
             orcaSpeedConstant = 1.0;
             maxNeighbors = 100;
+            randomRoutes = true;
         }
 
 
@@ -104,8 +105,8 @@ highway {
 
         }
 
-     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
- //  simulatorsToRun = ["SimulatorLite"];
+ //    simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+   simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
        // numberOfCarsInSimulation = 5;
