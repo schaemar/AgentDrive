@@ -46,7 +46,7 @@ public class HighwayStorage extends EventBasedStorage {
 
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             logger.debug("HighwayStorage: handled simulation START");
-        }else if(event.isType(HighwayEventType.RADAR_DATA)){
+        } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
             updateCars(radar_data);
@@ -72,7 +72,7 @@ public class HighwayStorage extends EventBasedStorage {
         } else if (agentClassName.equals("SDAgent")) {
             agent = new SDAgent(id);
         } else if (agentClassName.equals("GSDAgent")) {
-            agent = new GSDAgent(id,(HighwayEnvironment)getEnvironment());
+            agent = new GSDAgent(id, (HighwayEnvironment) getEnvironment());
         }
 
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
@@ -87,7 +87,9 @@ public class HighwayStorage extends EventBasedStorage {
     public void act(int carId, Action action) {
         actions.put(carId, action);
 
-    }public void act(int carId, List<Action> action) {
+    }
+
+    public void act(int carId, List<Action> action) {
         actions.put(carId, action.get(0));
 
     }
@@ -108,12 +110,12 @@ public class HighwayStorage extends EventBasedStorage {
         return actions;
     }
 
-    Point3f refcar = new Point3f(0,0,0);
+    Point3f refcar = new Point3f(0, 0, 0);
+
     public void updateCars(RadarData object) {
-        if(!object.getCars().isEmpty()) {
-            if (object.getCars().size() == 1)
-            {
-                logger.info("Number of collisions is " + calculateNumberOfCollisions()/2 + "\n");
+        if (!object.getCars().isEmpty()) {
+            if (object.getCars().size() == 1) {
+                logger.info("Number of collisions is " + calculateNumberOfCollisions() / 2 + "\n");
                 FileUtil.getInstance().writeDistancesToFile(distances);
                 getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
                 System.out.println("Sedim na kameni a cekam");
@@ -124,12 +126,11 @@ public class HighwayStorage extends EventBasedStorage {
             logger.debug("HighwayStorage updated vehicles: received " + object);
 
 
-            for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet())
-            {
+            for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet()) {
                 Queue<Float> original = distances.get(entry.getKey());
-                if(original == null)
+                if (original == null)
                     original = new LinkedList<Float>();
-                Float dist = entry.getValue().getPosition().distance(new Point3f(0f,0f,0f));
+                Float dist = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
                 /*
                 try {
                     Point3f temp = posCurr.get(4).getPosition();
@@ -141,7 +142,7 @@ public class HighwayStorage extends EventBasedStorage {
                 }
                  Float dist = entry.getValue().getPosition().distance(refcar);
                  */
-                if(original.isEmpty() || dist < original.peek()) {
+                if (original.isEmpty() || dist < original.peek()) {
                     original.add(dist);
                 }
                 distances.put(entry.getKey(), original);
@@ -149,14 +150,14 @@ public class HighwayStorage extends EventBasedStorage {
             getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
         }
     }
+
     private int calculateNumberOfCollisions() {
-        int num =0;
+        int num = 0;
         Iterator it = agents.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-            if (pair.getValue() instanceof GSDAgent)
-            {
-                num +=((GSDAgent) pair.getValue()).getNumberOfColisions();
+            Map.Entry pair = (Map.Entry) it.next();
+            if (pair.getValue() instanceof GSDAgent) {
+                num += ((GSDAgent) pair.getValue()).getNumberOfColisions();
             }
             //System.out.println(pair.getKey() + " = " + pair.getValue());
             it.remove(); // avoids a ConcurrentModificationException
@@ -165,73 +166,18 @@ public class HighwayStorage extends EventBasedStorage {
     }
 
 
-    public void removeAgent(Integer carID)
-    {
+    public void removeAgent(Integer carID) {
         agents.remove(carID);
     }
 
     public void recreate(int id) {
-
+        agents.get(id).getNavigator().hardReset();
     }
-    int numberOfCarsInSimulation;
+
     private LinkedList<Point2f> initPos = new LinkedList<Point2f>();
-    public RadarData initTraffic() {
-
-        final XMLReader reader = XMLReader.getInstance();
-        // All vehicle id's
-        final Collection<Integer> vehicles = reader.getRoutes().keySet();
-        // final int size = vehicles.size();
-        final int size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
-        numberOfCarsInSimulation = size;
-        final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
-        //   final HighwayStorage storage = highwayEnvironment.getStorage();
-        Map<Integer, Point2f> initialPositions = reader.getInitialPositions();
-        RadarData update = new RadarData();
-        if (simulatorCount == 0) {
-            //Simulatorlocal initialization - FIXME remove duplicate code with ConnectCallback.invoke()
-
-            Iterator<Integer> vehicleIt = vehicles.iterator();
-            Map<Integer, Agent> agents = getAgents();
-
-            // Iterate over all configured vehicles
-            for (int i = 0; i < size; i++) {
-                int vehicleID = vehicleIt.next();
-                // Create agent for every single vehicle
-                Agent agent;
-                if (agents.containsKey(vehicleID)) {
-                    agent = agents.get(vehicleID);
-                } else {
-                    agent = createAgent(vehicleID);
-                }
-                Point2f position = agent.getNavigator().next();
-                //TODO FIX when lane is too short
-                for (int j = 0; j < initPos.size(); j++) {
-                    while (!saveDistance(initPos.get(j), position)) {
-                        position = agent.getNavigator().next();
-                    }
-                }
-                initPos.add(position);
-                Point3f initialPosition = new Point3f(position.x, position.y, 0);
-                Point2f pos = initialPositions.get(vehicleID);
-                if (pos != null) {
-                    initialPosition.setX(pos.x);
-                    initialPosition.setY(pos.y);
-                }
-                // FIXME!!!
-                Vector3f initialVelocity = agent.getInitialVelocity();
-
-                update.add(new RoadObject(vehicleID, 0d, /*lane*/ 0, initialPosition, initialVelocity));
-
-            }
-        }
-        return update;
-    }
-    private boolean saveDistance(Point2f p1, Point2f p2) {
-        Vector2f v = new Vector2f(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
-        return v.length() > SAVE_DISTANCE;
-    }
 //    public void updateInit(InitIn init) {
 //        getRoadDescription().addPoints(init.getPoints());
 //
 //    }
+
 }

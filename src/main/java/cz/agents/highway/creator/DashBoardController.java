@@ -223,7 +223,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         final int size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
-        Map<Integer, Point2f> initialPositions = reader.getInitialPositions();
         // Divide vehicles evenly to the simulators
          //
           ConnectCallback col = new ConnectCallback() {
@@ -236,7 +235,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 RadarData update = new RadarData();
                 Map<Integer, Agent> agents = storage.getAgents();
                 Set<Integer> plannedVehicles = new HashSet<Integer>();
-                Map<Integer, Point2f> initialPositions = reader.getInitialPositions();
 
                 // Iterate over all configured vehicles
 
