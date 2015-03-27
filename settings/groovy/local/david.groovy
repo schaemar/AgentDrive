@@ -71,7 +71,7 @@ highway {
             timeHorizonObst = 100.0;
             orcaSpeedConstant = 1.0;
             maxNeighbors = 100;
-            randomRoutes = true;
+            randomRoutes = false;
         }
 
 
