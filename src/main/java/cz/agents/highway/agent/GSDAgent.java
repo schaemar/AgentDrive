@@ -95,8 +95,8 @@ public class GSDAgent extends RouteAgent {
             logger.info("My id is " + this.id + " number of colisions is " + numberOfCollisions);
 
           /*  highwayEnvironment.getStorage().removeAgent(this.id);*/
-            highwayEnvironment.getStorage().getPosCurr().remove(this.id);
-         //   highwayEnvironment.getStorage().recreate(this.id);
+          //  highwayEnvironment.getStorage().getPosCurr().remove(this.id);
+            highwayEnvironment.getStorage().recreate(this.id);
             return null;
         }
        // logger.debug("Startnode: " + currState);

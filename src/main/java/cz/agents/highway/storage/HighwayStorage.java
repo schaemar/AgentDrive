@@ -63,7 +63,11 @@ public class HighwayStorage extends EventBasedStorage {
                 logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
                 getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
             }
+        } else if (event.isType(EventProcessorEventType.STOP)) {
+            logger.info("Number of collisions is " + calculateNumberOfCollisions() / 2 + "\n");
+            FileUtil.getInstance().writeDistancesToFile(distances);
         }
+
 
     }
 
@@ -184,6 +188,15 @@ public class HighwayStorage extends EventBasedStorage {
         agents.remove(carID);
     }
     public void recreate(int id) {
-        agents.get(id).getNavigator().hardReset();
+        Agent agent = agents.get(id);
+        agent.getNavigator().hardReset();
+        RoadObject newRoadObject = posCurr.get(id);
+        Point2f position =  agent.getNavigator().next();
+        Point3f initialPosition = new Point3f(position.x, position.y, 0);
+        Point2f next = agent.getNavigator().nextWithReset();
+        Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
+        newRoadObject.setPosition(initialPosition);
+        newRoadObject.setVelocity(initialVelocity);
+        updateCar(newRoadObject);
     }
 }
