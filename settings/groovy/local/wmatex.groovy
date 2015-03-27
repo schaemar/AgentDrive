@@ -3,12 +3,21 @@
  * Created by wmatex on 21.7.14.
  */
 highway {
-    agent = "RouteAgent";
+    //agent = "RouteAgent";
+    agent = "ADPPAgent";
+    SimulatorLocal {
+        timestep = 1;
+    }
     net {
 //        folder = "nets/highway-straight";
 //        folder = "nets/CharlesSquare";
 //        folder = "nets/junction-big";
-        folder = "nets/pisek";
+//        folder = "nets/graz";
+//        folder = "nets/pisek";
+//        folder = "nets/test90";
+//        folder = "nets/super-collision";
+//          folder = "nets/artificialX-junction";
+        folder = "nets/artificialX-junction-smaller";
     }
 
     dashboard {
@@ -19,9 +28,12 @@ highway {
             Dummy {
                 launch = "launchers/dummy.sh"
             }
+            SimulatorLite {
+                launch = "launchers/simulator-lite.sh"
+            }
         }
 
-        simulatorsToRun = ["OpenDS_devel"];
+        simulatorsToRun = [];
     }
 }
 

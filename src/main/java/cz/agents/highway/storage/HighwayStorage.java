@@ -14,6 +14,9 @@ import cz.agents.alite.common.event.Event;
 import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.storage.plan.Action;
+import tt.euclid2i.Trajectory;
+import tt.euclidtime3i.Region;
+import tt.euclidtime3i.region.MovingCircle;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -30,7 +33,8 @@ public class HighwayStorage extends EventBasedStorage {
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
     private Map<Integer, Queue<Float>> distances = new LinkedHashMap<Integer, Queue<Float>>();
     private final float SAVE_DISTANCE = 10;
-
+    Point3f refcar = new Point3f(0, 0, 0);
+    private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
 
     private Agent queen;
 
@@ -50,6 +54,15 @@ public class HighwayStorage extends EventBasedStorage {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
             updateCars(radar_data);
+        } else if (event.isType(HighwayEventType.TRAJECTORY_UPDATED)) {
+            Map.Entry<Integer, Region> agentTrajectory = (Map.Entry<Integer, Region>) event.getContent();
+            MovingCircle stored = (MovingCircle) trajectories.get(agentTrajectory.getKey());
+            MovingCircle inc    = (MovingCircle) agentTrajectory.getValue();
+            if (stored == null || !stored.getTrajectory().equals(inc.getTrajectory())) {
+                trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
+                logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
+                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
+            }
         }
 
     }
@@ -73,8 +86,10 @@ public class HighwayStorage extends EventBasedStorage {
             agent = new SDAgent(id);
         } else if (agentClassName.equals("GSDAgent")) {
             agent = new GSDAgent(id, (HighwayEnvironment) getEnvironment());
-        }
 
+        } else if (agentClassName.equals("ADPPAgent")) {
+            agent = new ADPPAgent(id);
+        }
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
         VehicleActuator actuator = new VehicleActuator(getEnvironment(), agent, this);
         agent.addSensor(sensor);
@@ -110,8 +125,9 @@ public class HighwayStorage extends EventBasedStorage {
         return actions;
     }
 
-    Point3f refcar = new Point3f(0, 0, 0);
-
+    public Map<Integer, Region> getTrajectories() {
+        return trajectories;
+    }
     public void updateCars(RadarData object) {
         if (!object.getCars().isEmpty()) {
             if (object.getCars().size() == 1) {
@@ -164,20 +180,10 @@ public class HighwayStorage extends EventBasedStorage {
         }
         return num;
     }
-
-
     public void removeAgent(Integer carID) {
         agents.remove(carID);
     }
-
     public void recreate(int id) {
         agents.get(id).getNavigator().hardReset();
     }
-
-    private LinkedList<Point2f> initPos = new LinkedList<Point2f>();
-//    public void updateInit(InitIn init) {
-//        getRoadDescription().addPoints(init.getPoints());
-//
-//    }
-
 }

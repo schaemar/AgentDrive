@@ -2,6 +2,8 @@ package cz.agents.highway.storage;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import cz.agents.alite.common.entity.Entity;
 import cz.agents.alite.common.event.Event;
@@ -9,6 +11,7 @@ import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
 import cz.agents.alite.environment.eventbased.EventBasedSensor;
 import cz.agents.highway.agent.Reaction;
 import cz.agents.highway.util.Utils;
+import tt.euclidtime3i.Region;
 
 public class VehicleSensor extends EventBasedSensor {
 
@@ -27,8 +30,9 @@ public class VehicleSensor extends EventBasedSensor {
 
     @Override
     public void handleEvent(Event event) {
-        
+        if (reaction != null) {
             reaction.react(event);
+        }
        
     }
 
@@ -68,6 +72,10 @@ public class VehicleSensor extends EventBasedSensor {
 
     public RoadDescription getRoadDescription() {
         return storage.getRoadDescription();
+    }
+
+    public Map<Integer, Region> senseTrajectories() {
+        return storage.getTrajectories();
     }
 
 }
