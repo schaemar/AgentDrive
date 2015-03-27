@@ -5,7 +5,6 @@ import cz.agents.highway.experiments.Experiment;
 import cz.agents.highway.experiments.FileLogger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
-
 /**
  * General ADPPExperiment
  * Created by wmatex on 27.11.14.

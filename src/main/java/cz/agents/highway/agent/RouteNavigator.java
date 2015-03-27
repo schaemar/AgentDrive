@@ -10,6 +10,7 @@ import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Class used for car navigation on given route
@@ -26,11 +27,11 @@ public class RouteNavigator {
     private Lane agentLane;
 
     /// Route represented as a list of edges, that the car should visit
-    private final List<Edge> route = new ArrayList<Edge>();
+    private List<Edge> route = new ArrayList<Edge>();
 
     public RouteNavigator(int id) {
         this.id = id;
-        initRoute(id);
+        initRoute();
     }
 
     public void reset() {
@@ -38,12 +39,18 @@ public class RouteNavigator {
         routePtr = 0;
         agentLane = route.get(0).getLaneByIndex(0);
     }
-
+    public void hardReset()
+    {
+        pointPtr = 0;
+        route = new ArrayList<Edge>();
+        initRoute();
+    }
     /**
      * Generate list of edges from route definition
      *
      * @param id Id of the vehicle
      */
+    //TODO Add random route
     private void initRoute(int id) {
         Network network = Network.getInstance();
         XMLReader reader = XMLReader.getInstance();
@@ -54,6 +61,22 @@ public class RouteNavigator {
             route.add(edges.get(edge));
         }
 
+        routePtr = 0;
+        agentLane = route.get(0).getLaneByIndex(0);
+    }
+    private void initRoute() {
+        Network network = Network.getInstance();
+        XMLReader reader = XMLReader.getInstance();
+        Map<Integer, List<String>> routes = reader.getRoutes();
+        Map<String, Edge> edges = network.getEdges();
+
+        Random rand = new Random();
+        Object[] values = routes.values().toArray();
+        List<String> randomValue = (List<String>)values[rand.nextInt(values.length)];
+        //int id = rand.nextInt(routes.size()-1);
+        for (String edge : /*routes.get(id)*/ randomValue) {
+            route.add(edges.get(edge));
+        }
         routePtr = 0;
         agentLane = route.get(0).getLaneByIndex(0);
     }
@@ -96,6 +119,7 @@ public class RouteNavigator {
                         pointPtr = 0;
                         routePtr++;
                         agentLane = nextLane;
+                        //TODO fix when this happens too soon
                     } else {
                         // TODO: This or neigbour lanes don't continue to the route edge
                     }

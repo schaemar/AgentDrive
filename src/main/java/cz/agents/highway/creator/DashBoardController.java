@@ -38,7 +38,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
 
     private final float SAVE_DISTANCE = 10;
     private LinkedList<Point2f> initPos = new LinkedList<Point2f>();
-
+    private  int numberOfCarsInSimulation;
     /**
      * This class is responsible for sending simulator an appropriate plans and updates
      */
@@ -219,55 +219,13 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         final XMLReader reader = XMLReader.getInstance();
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();
-        final int size = vehicles.size();
+       // final int size = vehicles.size();
+        final int size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
-        Map<Integer, Point2f> initialPositions = reader.getInitialPositions();
-
-        if (simulatorCount == 0) {
-            //Simulatorlocal initialization - FIXME remove duplicate code with ConnectCallback.invoke()
-
-            Iterator<Integer> vehicleIt = vehicles.iterator();
-            RadarData update = new RadarData();
-            Map<Integer, Agent> agents = storage.getAgents();
-
-            // Iterate over all configured vehicles
-            for (int i = 0; i < size; i++) {
-                int vehicleID = vehicleIt.next();
-                // Create agent for every single vehicle
-                Agent agent;
-                if (agents.containsKey(vehicleID)) {
-                    agent = agents.get(vehicleID);
-                } else {
-                    agent = storage.createAgent(vehicleID);
-                }
-                Point2f position = agent.getNavigator().next();
-                //TODO FIX when lane is too short
-                for (int j = 0; j < initPos.size(); j++) {
-                    while (!saveDistance(initPos.get(j), position)) {
-                        position = agent.getNavigator().next();
-                    }
-                }
-                initPos.add(position);
-                Point3f initialPosition = new Point3f(position.x, position.y, 0);
-                Point2f pos = initialPositions.get(vehicleID);
-                if (pos != null) {
-                    initialPosition.setX(pos.x);
-                    initialPosition.setY(pos.y);
-                }
-                // FIXME!!!
-                Vector3f initialVelocity = agent.getInitialVelocity();
-
-                int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
-                update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
-
-            }
-            simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(vehicles)));
-            storage.updateCars(update);
-        }
-
         // Divide vehicles evenly to the simulators
-        communicator.registerConnectCallback(new ConnectCallback() {
+         //
+          ConnectCallback col = new ConnectCallback() {
             private int section = 1;
 
             @Override
@@ -277,7 +235,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 RadarData update = new RadarData();
                 Map<Integer, Agent> agents = storage.getAgents();
                 Set<Integer> plannedVehicles = new HashSet<Integer>();
-                Map<Integer, Point2f> initialPositions = reader.getInitialPositions();
 
                 // Iterate over all configured vehicles
 
@@ -305,7 +262,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
 
 
-                    if (i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
+                    if (factory!= null && i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
                         //  logger.info("OndraTest - created car " + new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
                         plans.addAction(new WPAction(vehicleID, 0d, new Point3f(next.x, next.y, 0), initialVelocity.length()));
@@ -313,50 +270,38 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     } else {
                         update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
                     }
-
-//
-//                    Point2f pos = initialPositions.get(vehicleID);
-//                    Point3f initialPosition = agent.getInitialPosition();
-//                    if (pos != null) {
-//                        initialPosition.setX(pos.x);
-//                        initialPosition.setY(pos.y);
-//                    }
-//                    // FIXME!!!
-//                    Vector3f initialVelocity = new Vector3f(1, 1, 0);
-//                    int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
-//
-//                    // If the simulator should simulate this vehicle
-//                    // This divides the id's to even parts
-//                    if (i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
-//                          logger.info("OndraTest - created car "+new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
-//                        plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
-//                        plannedVehicles.add(vehicleID);
-//                    } else {
-//                        update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
-//                    }
                 }
+                    if(factory != null)
+                    {
+                    // Create new simulator handler
+                    simulatorHandlers.add(new SimulatorHandler(factory, plannedVehicles));
 
-                // Create new simulator handler
-                simulatorHandlers.add(new SimulatorHandler(factory, plannedVehicles));
-
-                try {
-                    // Send client the 'init'
-                    factory.send(plans);
-                    factory.send(update);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                // This is the last simulator, start the simulation
-                if (section >= simulatorCount) {
-                    synchronized (simulation) {
-                        simulation.notify();
+                    try {
+                        // Send client the 'init'
+                        factory.send(plans);
+                        factory.send(update);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+
+                    // This is the last simulator, start the simulation
+                    if (section >= simulatorCount) {
+                        synchronized (simulation) {
+                            simulation.notify();
+                        }
+                    }
+                    // Increase the section so the next simulator will simulate different vehicles
+                    section++;
                 }
-                // Increase the section so the next simulator will simulate different vehicles
-                section++;
+                else
+                {
+                    simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(vehicles)));
+                    storage.updateCars(update);
+                }
             }
-        });
+        };
+        if(simulatorCount == 0) col.invoke(null);
+        communicator.registerConnectCallback(col);
     }
 
     @Override

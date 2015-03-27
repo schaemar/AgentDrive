@@ -29,5 +29,9 @@ public class VehicleActuator extends EventBasedAction {
         storage.act(id, actions);
         getEventProcessor().addEvent(HighwayEventType.NEW_PLAN, null, null, actions);
     }
+    public void reportColisions(int colNumber)
+    {
+
+    }
 
 }
