@@ -35,6 +35,8 @@ public class HighwayStorage extends EventBasedStorage {
     private final float SAVE_DISTANCE = 10;
     Point3f refcar = new Point3f(0, 0, 0);
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
+    private Queue<Integer> vehiclesForInsert = new LinkedList<Integer>();
+    private final float CHECKING_DISTANCE = 500;
 
     private Agent queen;
 
@@ -54,6 +56,7 @@ public class HighwayStorage extends EventBasedStorage {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
             updateCars(radar_data);
+
         } else if (event.isType(HighwayEventType.TRAJECTORY_UPDATED)) {
             Map.Entry<Integer, Region> agentTrajectory = (Map.Entry<Integer, Region>) event.getContent();
             MovingCircle stored = (MovingCircle) trajectories.get(agentTrajectory.getKey());
@@ -133,13 +136,13 @@ public class HighwayStorage extends EventBasedStorage {
         return trajectories;
     }
     public void updateCars(RadarData object) {
-        if (!object.getCars().isEmpty()) {
-            if (object.getCars().size() == 1) {
+     //   if (!object.getCars().isEmpty()) {
+          /*  if (object.getCars().size() == 1) {
                 logger.info("Number of collisions is " + calculateNumberOfCollisions() / 2 + "\n");
                 FileUtil.getInstance().writeDistancesToFile(distances);
                 getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
                 System.out.println("Sedim na kameni a cekam");
-            }
+            }*/
             for (RoadObject car : object.getCars()) {
                 updateCar(car);
             }
@@ -167,8 +170,9 @@ public class HighwayStorage extends EventBasedStorage {
                 }
                 distances.put(entry.getKey(), original);
             }
-            getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
-        }
+        recreate();
+        getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
+     //   }
     }
 
     private int calculateNumberOfCollisions() {
@@ -187,16 +191,58 @@ public class HighwayStorage extends EventBasedStorage {
     public void removeAgent(Integer carID) {
         agents.remove(carID);
     }
-    public void recreate(int id) {
-        Agent agent = agents.get(id);
-        agent.getNavigator().hardReset();
-        RoadObject newRoadObject = posCurr.get(id);
-        Point2f position =  agent.getNavigator().next();
-        Point3f initialPosition = new Point3f(position.x, position.y, 0);
-        Point2f next = agent.getNavigator().nextWithReset();
-        Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-        newRoadObject.setPosition(initialPosition);
-        newRoadObject.setVelocity(initialVelocity);
-        updateCar(newRoadObject);
+    public void addForInsert(int id)
+    {
+        vehiclesForInsert.add(id);
+    }
+    public void recreate() {
+        Queue<Integer> notInsertedVehicles = new LinkedList<Integer>();
+        while(vehiclesForInsert.peek() != null)
+        {
+            int id = vehiclesForInsert.poll();
+            Agent agent = agents.get(id);
+            agent.getNavigator().hardReset();
+            RoadObject newRoadObject = posCurr.get(id);
+            Point2f position = agent.getNavigator().next();
+            Point3f initialPosition = new Point3f(position.x, position.y, 0);
+            Point2f next = agent.getNavigator().nextWithReset();
+            Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
+            newRoadObject.setPosition(initialPosition);
+            newRoadObject.setVelocity(initialVelocity);
+            if (isSafe(newRoadObject)) {
+                updateCar(newRoadObject);
+
+            } else
+                notInsertedVehicles.add(id);
+        }
+        while(notInsertedVehicles.peek() != null)
+        {
+            vehiclesForInsert.add(notInsertedVehicles.poll());
+        }
+        if(vehiclesForInsert.isEmpty() && posCurr.isEmpty())
+        {
+            getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
+        }
+    }
+    public boolean isSafe(RoadObject state)
+    {
+        for (Map.Entry<Integer, RoadObject> obj : posCurr.entrySet()) {
+            RoadObject entry = obj.getValue();
+            float distanceToSecondCar = entry.getPosition().distance(state.getPosition());
+            if(distanceToSecondCar < CHECKING_DISTANCE || !state.getPosition().equals(entry.getPosition()))
+            {
+                if (agents.get(state.getId()).getNavigator().getLane().equals(agents.get(entry.getId()).getNavigator().getLane()))
+                {
+                    double safedist = safeDistance(-4,entry.getVelocity().length(),0);
+                    if(safedist < distanceToSecondCar) return false;
+                }
+            }
+
+        }
+        return true;
+    }
+    private double safeDistance(double a0, double v0, double v1) {
+        double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
+        return safeDist;
     }
 }

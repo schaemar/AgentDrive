@@ -166,7 +166,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         lastPosition = wpAction.getPosition();
                     }
                 }
-                if(removeCar)
+              /*  if(removeCar)
                 {
                     highwayEnvironment.getStorage().removeAgent(carID);
                     highwayEnvironment.getStorage().getPosCurr().remove(carID);
@@ -174,7 +174,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     removeCar = false;
                 }
                 else
-                {
+                {*/
                     Vector3f vel = new Vector3f(state.getPosition());
                     vel.negate();
                     vel.add(myPosition);
@@ -182,7 +182,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
                     radarData.add(state);
                     duration = 0;
-                }
+            //    }
             }
             //send radar-data to storage with duration delay
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
@@ -271,6 +271,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
                     }
                 }
+
                     if(factory != null)
                     {
                     // Create new simulator handler

@@ -22,12 +22,12 @@ highway {
   //      folder = "nets/x-junction";
    //     folder = "nets/nadprysk"
    //     folder = "nets/extest";
-  //     folder = "nets/ulesika";
+       folder = "nets/ulesika";
    //       folder = "nets/jedkriz";
   //     folder = "nets/map";
 //        folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
-       folder = "nets/artificialX-junction";
+    //   folder = "nets/artificialX-junction";
   //      folder = "nets/artificialHighway-funnel";
 
 
@@ -109,7 +109,7 @@ highway {
    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-       // numberOfCarsInSimulation = 5;
+        numberOfCarsInSimulation = 5;
     }
 
     netLayer {
