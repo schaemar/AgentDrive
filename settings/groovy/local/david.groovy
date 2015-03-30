@@ -71,7 +71,7 @@ highway {
             timeHorizonObst = 100.0;
             orcaSpeedConstant = 1.0;
             maxNeighbors = 100;
-            randomRoutes = false;
+            randomRoutes = true;
         }
 
 
@@ -109,7 +109,7 @@ highway {
    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 5;
+        numberOfCarsInSimulation = 25;
     }
 
     netLayer {

@@ -6,6 +6,7 @@ import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
+import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
@@ -219,10 +220,10 @@ public class HighwayStorage extends EventBasedStorage {
         {
             vehiclesForInsert.add(notInsertedVehicles.poll());
         }
-        if(vehiclesForInsert.isEmpty() && posCurr.isEmpty())
+     /*   if(vehiclesForInsert.isEmpty() && posCurr.isEmpty())
         {
             getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
-        }
+        }*/
     }
     public boolean isSafe(RoadObject state)
     {
@@ -231,10 +232,12 @@ public class HighwayStorage extends EventBasedStorage {
             float distanceToSecondCar = entry.getPosition().distance(state.getPosition());
             if(distanceToSecondCar < CHECKING_DISTANCE || !state.getPosition().equals(entry.getPosition()))
             {
-                if (agents.get(state.getId()).getNavigator().getLane().equals(agents.get(entry.getId()).getNavigator().getLane()))
-                {
-                    double safedist = safeDistance(-4,entry.getVelocity().length(),0);
-                    if(safedist < distanceToSecondCar) return false;
+                List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();
+                for (Edge e : followingEdgesInPlan) {
+                    if (agents.get(state.getId()).getNavigator().getLane().equals(e)) {
+                        double safedist = safeDistance(-4, entry.getVelocity().length(), 0);
+                        if (safedist < distanceToSecondCar) return false;
+                    }
                 }
             }
 
