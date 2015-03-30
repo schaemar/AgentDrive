@@ -166,15 +166,13 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         lastPosition = wpAction.getPosition();
                     }
                 }
-              /*  if(removeCar)
+                if(removeCar)
                 {
-                    highwayEnvironment.getStorage().removeAgent(carID);
-                    highwayEnvironment.getStorage().getPosCurr().remove(carID);
                     plannedVehicles.remove(carID);
                     removeCar = false;
                 }
                 else
-                {*/
+                {
                     Vector3f vel = new Vector3f(state.getPosition());
                     vel.negate();
                     vel.add(myPosition);
@@ -182,7 +180,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
                     radarData.add(state);
                     duration = 0;
-            //    }
+                }
             }
             //send radar-data to storage with duration delay
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
@@ -268,6 +266,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         plans.addAction(new WPAction(vehicleID, 0d, new Point3f(next.x, next.y, 0), initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
+                        plannedVehicles.add(vehicleID);
                         update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
                     }
                 }
@@ -296,7 +295,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 }
                 else
                 {
-                    simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(vehicles)));
+                    simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(plannedVehicles)));
                     storage.updateCars(update);
                 }
             }

@@ -232,6 +232,7 @@ public class HighwayStorage extends EventBasedStorage {
             float distanceToSecondCar = entry.getPosition().distance(state.getPosition());
             if(distanceToSecondCar < CHECKING_DISTANCE || !state.getPosition().equals(entry.getPosition()))
             {
+                if (distanceToSecondCar < 10) return false;
                 List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();
                 for (Edge e : followingEdgesInPlan) {
                     if (agents.get(state.getId()).getNavigator().getLane().equals(e)) {
