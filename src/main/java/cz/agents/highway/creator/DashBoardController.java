@@ -67,7 +67,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         }
 
         public boolean isReady() {
-            return plans.getCarIds().size() >= plannedVehicles.size();
+            return plans.getCarIds().size() >= highwayEnvironment.getStorage().getPosCurr().size();
         }
 
         public int numberOfVehicles() {
@@ -230,7 +230,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             public void invoke(ProtobufFactory factory) {
                 Iterator<Integer> vehicleIt = vehicles.iterator();
                 PlansOut plans = new PlansOut();
-                RadarData update = new RadarData();
+             //   RadarData update = ;
                 Map<Integer, Agent> agents = storage.getAgents();
                 Set<Integer> plannedVehicles = new HashSet<Integer>();
                 int sizeL = size;
@@ -239,52 +239,18 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
 
                 for (int i = 0; i < sizeL; i++) {
                     int vehicleID = vehicleIt.next();
-                    // Create agent for every single vehicle
-                    Agent agent;
-                    if (agents.containsKey(vehicleID)) {
-                        agent = agents.get(vehicleID);
-                    } else {
-                        agent = storage.createAgent(vehicleID);
-                    }
-
-                    Point2f position = agent.getNavigator().next();
-                    for (int j = 0; j < initPos.size(); j++) {
-                        while (!saveDistance(initPos.get(j), position)) {
-                            position = agent.getNavigator().next();
-                        }
-                    }
-                    initPos.add(position);
-                    Point3f initialPosition = new Point3f(position.x, position.y, 0);
-                    Point2f next = agent.getNavigator().nextWithReset();
-                    Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-                    logger.info("" + initialVelocity);
-                    int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
-
-
+                    storage.addForInsert(vehicleID);
                     if (factory!= null && i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
-                        //  logger.info("OndraTest - created car " + new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
-                        plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
-                        plans.addAction(new WPAction(vehicleID, 0d, new Point3f(next.x, next.y, 0), initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
                         plannedVehicles.add(vehicleID);
-                        update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
                     }
                 }
 
-                    if(factory != null)
-                    {
+                if(factory != null)
+                {
                     // Create new simulator handler
                     simulatorHandlers.add(new SimulatorHandler(factory, plannedVehicles));
-
-                    try {
-                        // Send client the 'init'
-                        factory.send(plans);
-                        factory.send(update);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
                     // This is the last simulator, start the simulation
                     if (section >= simulatorCount) {
                         synchronized (simulation) {
@@ -297,8 +263,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 else
                 {
                     simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(plannedVehicles)));
-                    storage.updateCars(update);
                 }
+                storage.updateCars(new RadarData());
             }
         };
         if(simulatorCount == 0) col.invoke(null);

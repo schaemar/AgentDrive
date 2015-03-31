@@ -38,6 +38,7 @@ public class HighwayStorage extends EventBasedStorage {
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
     private Queue<Integer> vehiclesForInsert = new LinkedList<Integer>();
     private final float CHECKING_DISTANCE = 500;
+    private final float SAFETY_RESERVE = 12;
 
     private Agent queen;
 
@@ -206,15 +207,52 @@ public class HighwayStorage extends EventBasedStorage {
                 notInsertedVehicles.add(id);
                 continue;
             }
-            Agent agent = agents.get(id);
+            RouteNavigator routeNavigator = new RouteNavigator(id);
+           /* Agent agent;
+            if (agents.containsKey(id)) {
+                agent = agents.get(id);
+            } else {
+                agent = createAgent(id);
+            }
             agent.getNavigator().hardReset();
             Point2f position = agent.getNavigator().next();
             Point3f initialPosition = new Point3f(position.x, position.y, 0);
             Point2f next = agent.getNavigator().nextWithReset();
             Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-            RoadObject oldRoadObject = posCurr.get(id);
-            RoadObject newRoadObject = new RoadObject(id,oldRoadObject.getUpdateTime(),agent.getNavigator().getLane().getIndex(),initialPosition,initialVelocity);
-            if (isSafe(newRoadObject)) {
+            */
+            Point2f position = routeNavigator.next();
+            Point3f initialPosition = new Point3f(position.x, position.y, 0);
+            Point2f next = routeNavigator.nextWithReset();
+            Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
+            double updateTime = 0d;
+            if(posCurr.containsKey(id)) {
+                updateTime = posCurr.get(id).getUpdateTime();
+            }
+            int numberOftryes = 10;
+            int prom = 0;
+            while (!isSafe(id,initialPosition,routeNavigator) && prom < numberOftryes)
+            {
+
+                for(int i=0 ; i < 4 ;i++)
+                {
+                    position = routeNavigator.next();
+                }
+                position = routeNavigator.next();
+                initialPosition.setX(position.x);
+                initialPosition.setY(position.y);
+                prom++;
+            }
+
+            if (prom < 10) {
+                Agent agent;
+                if (agents.containsKey(id)) {
+                    agent = agents.get(id);
+                } else {
+                    agent = createAgent(id);
+                }
+                agent.setNavigator(routeNavigator);
+                RoadObject newRoadObject = new RoadObject(id,updateTime,
+                        agent.getNavigator().getLane().getIndex(),initialPosition,initialVelocity);
                 agent.getNavigator().setMyLifeEnds(false);
                 updateCar(newRoadObject);
             } else
@@ -237,19 +275,21 @@ public class HighwayStorage extends EventBasedStorage {
         }
         return true;
     }
-    public boolean isSafe(RoadObject state)
+    public boolean isSafe(int stateId,Point3f statePosition,RouteNavigator stateNavigator)
     {
         for (Map.Entry<Integer, RoadObject> obj : posCurr.entrySet()) {
             RoadObject entry = obj.getValue();
-            float distanceToSecondCar = entry.getPosition().distance(state.getPosition());
-            if(distanceToSecondCar < CHECKING_DISTANCE || !state.getPosition().equals(entry.getPosition()))
+            float distanceToSecondCar = entry.getPosition().distance(statePosition);
+            if(distanceToSecondCar < CHECKING_DISTANCE)
             {
-                if (distanceToSecondCar < 10) return false;
+                if (distanceToSecondCar < SAFETY_RESERVE) return false;
                 List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();
                 for (Edge e : followingEdgesInPlan) {
-                    if (agents.get(state.getId()).getNavigator().getLane().equals(e)) {
-                        double safedist = safeDistance(-4, entry.getVelocity().length(), 0);
-                        if (safedist < distanceToSecondCar) return false;
+                    if (stateNavigator.getLane().equals(e)) {
+                        if(agents.get(entry.getId()).getNavigator().getActualPointer() < stateNavigator.getActualPointer()) {
+                            double safedist = safeDistance(-4, entry.getVelocity().length(), 0);
+                            if (safedist + SAFETY_RESERVE < distanceToSecondCar) return false;
+                        }
                     }
                 }
             }
