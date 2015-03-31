@@ -41,6 +41,8 @@ public class XMLReader {
     private final static Logger log = Logger.getLogger(XMLReader.class);
     private HashMap<Integer, List<String>> routes;
     private final Map<Integer, Point2f> initalPositions = new HashMap<Integer, Point2f>();
+    private final Map<Integer, Float> departures = new HashMap<Integer, Float>();
+
 
 
     private XMLReader() {
@@ -218,6 +220,7 @@ public class XMLReader {
                     Element l = (Element) lNode;
                     int id = Integer.parseInt(l.getAttribute("id"));
                     float depart = Float.valueOf(l.getAttribute("depart"));
+                    departures.put(id,depart);
                     String initPosition = l.getAttribute("initialPosition");
                     if (initPosition != null && !initPosition.isEmpty()) {
                         Point2f initialPosition = getShape(initPosition).get(0);
@@ -396,5 +399,9 @@ public class XMLReader {
 
     private enum MultilevelJunctionEdge {
         tunnels, bridges
+    }
+
+    public Map<Integer, Float> getDepartures() {
+        return departures;
     }
 }

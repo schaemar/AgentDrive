@@ -4,9 +4,10 @@
     <vehicle id="1" depart="0.0">
         <route edges="0 2" />
     </vehicle>
-    <vehicle id="2" depart="0.0">
+    <vehicle id="2" depart="20000.0">
         <route edges="0 3" />
     </vehicle>
+    <!--
     <vehicle id="3" depart="0.0">
         <route edges="0 3" />
     </vehicle>
@@ -46,6 +47,7 @@
         <route edges="0 1" />
     </vehicle>
 -->
+    <!--
    <vehicle id="10" depart="0.0">
         <route edges="5 3" />
     </vehicle>
@@ -95,6 +97,7 @@
         <route edges="5 2" />
     </vehicle>
 -->
+    <!--
     <vehicle id="20" depart="0.0">
         <route edges="6 4" />
     </vehicle>
@@ -144,7 +147,7 @@
         <route edges="6 1" />
     </vehicle>300
     -->
-
+<!--
     <vehicle id="30" depart="0.0">
         <route edges="7 1" />
     </vehicle>

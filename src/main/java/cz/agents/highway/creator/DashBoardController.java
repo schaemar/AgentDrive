@@ -217,8 +217,17 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         final XMLReader reader = XMLReader.getInstance();
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();
-       // final int size = vehicles.size();
-        final int size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
+        final Map<Integer, Float> departures = reader.getDepartures();
+        // final int size = vehicles.size();
+        final int size;
+        if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+        {
+            size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
+        }
+        else
+        {
+            size = vehicles.size();
+        }
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
         // Divide vehicles evenly to the simulators
@@ -239,7 +248,13 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
 
                 for (int i = 0; i < sizeL; i++) {
                     int vehicleID = vehicleIt.next();
-                    storage.addForInsert(vehicleID);
+                    if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+                    {
+                        storage.addForInsert(vehicleID,departures.get(vehicleID));
+                    }
+                    else {
+                        storage.addForInsert(vehicleID);
+                    }
                     if (factory!= null && i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
                         plannedVehicles.add(vehicleID);
                     } else {

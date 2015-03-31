@@ -53,7 +53,7 @@ public class RouteNavigator {
         pointPtr = 0;
         route = new ArrayList<Edge>();
         myLifeEnds = false;
-        if (Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
+        if (!Configurator.getParamBool("highway.dashboard.sumoSimulation",true) && Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
             initRoute();
         }
         else

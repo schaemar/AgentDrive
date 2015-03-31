@@ -9,6 +9,7 @@ import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.util.FileUtil;
+import javafx.util.Pair;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.event.Event;
@@ -36,7 +37,7 @@ public class HighwayStorage extends EventBasedStorage {
     private final float SAVE_DISTANCE = 10;
     Point3f refcar = new Point3f(0, 0, 0);
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
-    private Queue<Integer> vehiclesForInsert = new LinkedList<Integer>();
+    private Queue<Pair<Integer,Float>> vehiclesForInsert;
     private final float CHECKING_DISTANCE = 500;
     private final float SAFETY_RESERVE = 12;
 
@@ -46,7 +47,8 @@ public class HighwayStorage extends EventBasedStorage {
         super(environment);
         environment.getEventProcessor().addEventHandler(this);
         roadDescription = new RoadDescription(environment.getRoadNetwork());
-
+        Comparator<Pair<Integer,Float>> comparator = new QueueComparator();
+        vehiclesForInsert = new PriorityQueue<Pair<Integer, Float>>(comparator);
     }
 
     @Override
@@ -195,41 +197,45 @@ public class HighwayStorage extends EventBasedStorage {
     }
     public void addForInsert(int id)
     {
-        vehiclesForInsert.add(id);
+        vehiclesForInsert.add(new Pair<Integer, Float>(id, Float.MAX_VALUE));
+    }
+    public void addForInsert(int id,float time)
+    {
+        vehiclesForInsert.add(new Pair<Integer, Float>(id,time));
     }
     public void recreate(RadarData object) {
-        Queue<Integer> notInsertedVehicles = new LinkedList<Integer>();
+        Queue<Pair<Integer,Float>> notInsertedVehicles = new PriorityQueue<Pair<Integer, Float>>();
         while(vehiclesForInsert.peek() != null)
         {
-            int id = vehiclesForInsert.poll();
+            Pair<Integer,Float> vehicle = vehiclesForInsert.poll();
+            int id = vehicle.getKey();
             if(isDeleted(object,id) == false)
             {
-                notInsertedVehicles.add(id);
+                notInsertedVehicles.add(vehicle);
+                continue;
+            }
+            double updateTime = 0d;
+            double randomUpdateTime = 0d;
+            if(posCurr.containsKey(id)) {
+                updateTime = posCurr.get(id).getUpdateTime();
+            }
+            if(!posCurr.isEmpty()) {
+                randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
+            }
+            if(vehicle.getValue() > randomUpdateTime)
+            {
+                notInsertedVehicles.add(vehicle);
                 continue;
             }
             RouteNavigator routeNavigator = new RouteNavigator(id);
-           /* Agent agent;
-            if (agents.containsKey(id)) {
-                agent = agents.get(id);
-            } else {
-                agent = createAgent(id);
-            }
-            agent.getNavigator().hardReset();
-            Point2f position = agent.getNavigator().next();
-            Point3f initialPosition = new Point3f(position.x, position.y, 0);
-            Point2f next = agent.getNavigator().nextWithReset();
-            Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-            */
             Point2f position = routeNavigator.next();
             Point3f initialPosition = new Point3f(position.x, position.y, 0);
             Point2f next = routeNavigator.nextWithReset();
             Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-            double updateTime = 0d;
-            if(posCurr.containsKey(id)) {
-                updateTime = posCurr.get(id).getUpdateTime();
-            }
+
             int numberOftryes = 10;
             int prom = 0;
+
             while (!isSafe(id,initialPosition,routeNavigator) && prom < numberOftryes)
             {
 
@@ -256,7 +262,7 @@ public class HighwayStorage extends EventBasedStorage {
                 agent.getNavigator().setMyLifeEnds(false);
                 updateCar(newRoadObject);
             } else
-                notInsertedVehicles.add(id);
+                notInsertedVehicles.add(vehicle);
         }
         while(notInsertedVehicles.peek() != null)
         {
@@ -300,5 +306,20 @@ public class HighwayStorage extends EventBasedStorage {
     private double safeDistance(double a0, double v0, double v1) {
         double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
         return safeDist;
+    }
+    private class QueueComparator implements Comparator<Pair<Integer,Float>>
+    {
+        @Override
+        public int compare(Pair<Integer, Float> o1, Pair<Integer, Float> o2) {
+            if(o1.getValue() < o2.getValue())
+            {
+                return -1;
+            }
+            if(o1.getValue() > o2.getValue())
+            {
+                return 1;
+            }
+            return 0;
+        }
     }
 }
