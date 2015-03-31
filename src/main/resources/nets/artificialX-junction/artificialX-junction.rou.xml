@@ -4,7 +4,7 @@
     <vehicle id="1" depart="0.0">
         <route edges="0 2" />
     </vehicle>
-    <vehicle id="2" depart="20000.0">
+    <vehicle id="2" depart="2.0">
         <route edges="0 3" />
     </vehicle>
     <!--

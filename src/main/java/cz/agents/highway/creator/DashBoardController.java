@@ -220,7 +220,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         final Map<Integer, Float> departures = reader.getDepartures();
         // final int size = vehicles.size();
         final int size;
-        if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+        if(!Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
         {
             size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
         }

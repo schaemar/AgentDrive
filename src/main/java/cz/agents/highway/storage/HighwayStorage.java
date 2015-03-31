@@ -40,6 +40,7 @@ public class HighwayStorage extends EventBasedStorage {
     private Queue<Pair<Integer,Float>> vehiclesForInsert;
     private final float CHECKING_DISTANCE = 500;
     private final float SAFETY_RESERVE = 12;
+    Comparator<Pair<Integer,Float>> comparator;
 
     private Agent queen;
 
@@ -47,7 +48,7 @@ public class HighwayStorage extends EventBasedStorage {
         super(environment);
         environment.getEventProcessor().addEventHandler(this);
         roadDescription = new RoadDescription(environment.getRoadNetwork());
-        Comparator<Pair<Integer,Float>> comparator = new QueueComparator();
+        comparator = new QueueComparator();
         vehiclesForInsert = new PriorityQueue<Pair<Integer, Float>>(comparator);
     }
 
@@ -204,11 +205,12 @@ public class HighwayStorage extends EventBasedStorage {
         vehiclesForInsert.add(new Pair<Integer, Float>(id,time));
     }
     public void recreate(RadarData object) {
-        Queue<Pair<Integer,Float>> notInsertedVehicles = new PriorityQueue<Pair<Integer, Float>>();
+        Queue<Pair<Integer,Float>> notInsertedVehicles = new PriorityQueue<Pair<Integer, Float>>(comparator);
         while(vehiclesForInsert.peek() != null)
         {
             Pair<Integer,Float> vehicle = vehiclesForInsert.poll();
             int id = vehicle.getKey();
+
             if(isDeleted(object,id) == false)
             {
                 notInsertedVehicles.add(vehicle);
@@ -218,11 +220,17 @@ public class HighwayStorage extends EventBasedStorage {
             double randomUpdateTime = 0d;
             if(posCurr.containsKey(id)) {
                 updateTime = posCurr.get(id).getUpdateTime();
+                if(Configurator.getParamBool("highway.dashboard.sumoSimulation", true))
+                {
+                    posCurr.remove(id);
+                    continue;
+                }
             }
             if(!posCurr.isEmpty()) {
                 randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
             }
-            if(vehicle.getValue() > randomUpdateTime)
+            if(vehicle.getValue() > randomUpdateTime/10000 ||
+                    (posCurr.size() >= Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", agents.size())))
             {
                 notInsertedVehicles.add(vehicle);
                 continue;
