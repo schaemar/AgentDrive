@@ -233,10 +233,11 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 RadarData update = new RadarData();
                 Map<Integer, Agent> agents = storage.getAgents();
                 Set<Integer> plannedVehicles = new HashSet<Integer>();
-
+                int sizeL = size;
+                if(size > vehicles.size()) sizeL = vehicles.size();
                 // Iterate over all configured vehicles
 
-                for (int i = 0; i < size; i++) {
+                for (int i = 0; i < sizeL; i++) {
                     int vehicleID = vehicleIt.next();
                     // Create agent for every single vehicle
                     Agent agent;

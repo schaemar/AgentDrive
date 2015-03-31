@@ -171,7 +171,7 @@ public class HighwayStorage extends EventBasedStorage {
                 }
                 distances.put(entry.getKey(), original);
             }
-        recreate();
+        recreate(object);
         getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
      //   }
     }
@@ -196,23 +196,27 @@ public class HighwayStorage extends EventBasedStorage {
     {
         vehiclesForInsert.add(id);
     }
-    public void recreate() {
+    public void recreate(RadarData object) {
         Queue<Integer> notInsertedVehicles = new LinkedList<Integer>();
         while(vehiclesForInsert.peek() != null)
         {
             int id = vehiclesForInsert.poll();
+            if(isDeleted(object,id) == false)
+            {
+                notInsertedVehicles.add(id);
+                continue;
+            }
             Agent agent = agents.get(id);
             agent.getNavigator().hardReset();
-            RoadObject newRoadObject = posCurr.get(id);
             Point2f position = agent.getNavigator().next();
             Point3f initialPosition = new Point3f(position.x, position.y, 0);
             Point2f next = agent.getNavigator().nextWithReset();
             Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-            newRoadObject.setPosition(initialPosition);
-            newRoadObject.setVelocity(initialVelocity);
+            RoadObject oldRoadObject = posCurr.get(id);
+            RoadObject newRoadObject = new RoadObject(id,oldRoadObject.getUpdateTime(),agent.getNavigator().getLane().getIndex(),initialPosition,initialVelocity);
             if (isSafe(newRoadObject)) {
+                agent.getNavigator().setMyLifeEnds(false);
                 updateCar(newRoadObject);
-
             } else
                 notInsertedVehicles.add(id);
         }
@@ -224,6 +228,14 @@ public class HighwayStorage extends EventBasedStorage {
         {
             getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
         }*/
+    }
+    private boolean isDeleted(RadarData object,int id)
+    {
+        for (RoadObject car : object.getCars()) {
+            if(car.getId() == id)
+                return false;
+        }
+        return true;
     }
     public boolean isSafe(RoadObject state)
     {
