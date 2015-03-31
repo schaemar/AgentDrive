@@ -33,7 +33,7 @@ public class RouteNavigator {
 
     public RouteNavigator(int id) {
         this.id = id;
-        if (Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
+        if (!Configurator.getParamBool("highway.dashboard.sumoSimulation",true) && Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
             initRoute();
         }
         else
