@@ -23,7 +23,7 @@ public class ControlEffortWrapper extends GraphDelegator<Point, Straight> implem
     @Override
     public double getEdgeWeight(Straight e) {
         if (e.getStart().getPosition().distance(e.getEnd().getPosition()) < 0.01) {
-            return super.getEdgeWeight(e) + waitPenaltyPerSec * (e.duration());
+            return waitPenaltyPerSec * (e.duration());
         } else {
             return super.getEdgeWeight(e) + movePenaltyPerSec * (e.duration());
 //            return super.getEdgeWeight(e);

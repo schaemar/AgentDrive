@@ -48,20 +48,20 @@ public class TrafficRulesPriorityRelation implements PriorityRelation {
         Map<Integer, Region> trajectories = sensor.senseTrajectories();
         for (int id: trajectories.keySet()) {
             if (id > agentId) {
-                if (agentId == 20 && id == 21) continue;
-                if (agentId == 22 && id == 23) continue;
-                if (agentId == 24 && id == 25) continue;
+//                if (agentId == 20 && id == 21) continue;
+//                if (agentId == 22 && id == 23) continue;
+//                if (agentId == 24 && id == 25) continue;
 
                 higherPriority.add(id);
             }
         }
-        if (agentId == 21 && trajectories.containsKey(20)) {
-            higherPriority.add(20);
-        } else  if (agentId == 23 && trajectories.containsKey(22)) {
-            higherPriority.add(22);
-        } else if (agentId == 25 && trajectories.containsKey(24)) {
-            higherPriority.add(24);
-        }
+//        if (agentId == 21 && trajectories.containsKey(20)) {
+//            higherPriority.add(20);
+//        } else  if (agentId == 23 && trajectories.containsKey(22)) {
+//            higherPriority.add(22);
+//        } else if (agentId == 25 && trajectories.containsKey(24)) {
+//            higherPriority.add(24);
+//        }
         return higherPriority;
     }
 

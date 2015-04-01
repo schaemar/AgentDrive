@@ -1,0 +1,302 @@
+#!/bin/bash
+
+# Utility for easier manipulation with the SUMO network/routes files
+
+# Directory where SUMO has all his files
+SUMO_HOME=/opt/sumo-0.21.0
+# Class of edges which should be ommited while exporting from OSM
+OMIT_EDGES="hov,taxi,bus,delivery,transport,lightrail,cityrail,rail_slow,rail_fast,motorcycle,bicycle,pedestrian"
+# SUMO scripts
+NETCONVERT=netconvert
+GENERATE_TURNS="/tools/turn-defs/generateTurnDefs.py"
+JTRROUTER=jtrrouter
+DUAROUTER=duarouter
+RANDOM_TRIPS="/tools/trip/randomTrips.py"
+
+# Temporary directory
+TEMP=/tmp/sumo-generator
+
+
+print_usage() {
+  echo -e "Usage: $0 <command> [options]"
+  echo -e "Convert or modify SUMO related files in given directory."
+  echo
+  echo -e "Availible commands:"
+  echo -e "\thelp [command]\t\tShow help for given command"
+  echo -e "\tconvert\t\t\tConvert landscape data to SUMO .net.xml file"
+  echo -e "\troutes\t\t\tGenerate routes (.rou.xml) for given .net.xml file"
+  echo
+  echo -e "Global options:"
+  echo -e "\t-s, --sumo\t\tSet the path to SUMO. (default $SUMO_HOME)"
+  exit 1
+}
+
+show_help() {
+  case "$1" in
+    con|convert)
+      echo -e "Usage: $0 convert [options] -f <file>"
+      echo -e "Converts landscape data stored in <file> to SUMO road network files."
+      echo -e "By default the exported files are stored in the same directory as the landscape data."
+      echo
+      echo -e "Options:"
+      echo -e "\t-f, --file FILE\t\tConvert the given file"
+      echo -e "\t-n, --name NAME\t\tOverride default naming of the exported files"
+      echo -e "\t-d, --directory DIR\tStore the exported files in the given directory"
+      echo -e "\t-b, --boundary BOUNDS\tOnly keep edges which are located within the given boundary (given either as GEODETIC corner coordinates <lon-min,lat-min,lon-max,lat-max> or as polygon <lon0,lat0,lon1,lat1,...>)"
+      echo -e "\t--osm\t\t\tSet the type of the landscape data (overrides default type guesssing)"
+      echo -e "\t--no-routes\t\tDo not generate any routes"
+      ;;
+
+    rou|routes)
+      echo -e "Usage: $0 routes [options] -f <net_file>"
+      echo -e "Generates/updates routes from the given .net.xml file"
+      echo
+      echo -e "Options:"
+      echo -e "\t-f, --file FILE\t\tSUMO .net.xml file"
+      echo -e "\t-o, --output FILE\tWrite output to the file specified instead of the default"
+      echo -e "\t-g, --generate\t\tGenerate uniform probability distribution at each junction"
+      echo -e "\t-t, --type TYPE\t\tUse given type of route generation. Currently supported are 'random' - random routes (default), 'turns' - turn probabilities"
+      echo -e "\t--turns TURNFILE\tRead the turn probabilities from given file"
+      echo -e "\t--flows FLOWFILE\tRead the flow definitions from given file"
+      ;;
+
+    *)
+      print_usage
+      ;;
+    esac
+  exit 0
+}
+
+check_temp() {
+  if [ ! -d $TEMP ]; then
+    mkdir -p $TEMP
+  fi
+}
+
+check_success() {
+  local ret_code=$?
+  [[ $ret_code != 0 ]] && exit $ret_code
+}
+
+# Guess the type of the landscape data
+guess_type() {
+  local fileType=$(file -b $1)
+  case "$fileType" in
+    "OpenStreetMap XML data") echo "--osm-files";;
+  esac
+}
+
+# Check the given file for existence
+check_file() {
+  if [ -z "$1" ]; then
+    echo -e "\e[1;31mError:\e[0m no file given"
+    exit 1
+  fi
+  if [ ! -f "$1" ]; then
+    echo -e "\e[1;31mError:\e[21m $1:\e[0m file not found"
+    exit 1
+  fi
+}
+
+sumo_exec() {
+  echo -e "\e[1;34mExecuting: \e[0m\e[21;93m$@\e[0m"
+  $@
+  check_success
+}
+
+fix_ids() {
+  local n=0
+  local tempFile=$(tempfile)
+  IFS=
+  while read line; do
+    if [ -n "$(echo $line | grep -e '<vehicle id="[^"]*"')" ]; then
+      n=$((++n)) &&  echo $line|sed -e 's/\(<vehicle id="\)[^"]*/\1'$n'/' ;
+    else
+      echo $line
+    fi
+  done < $1 >> $tempFile
+  mv $tempFile $1
+}
+
+# Generates routes
+routes() {
+  # SUMO .net.xml file
+  local file=""
+  # Flows file definitions
+  local flowsFile=""
+  # Turns file definitions
+  local turnsFile=""
+  # Output file
+  local output=""
+  # Type of the routes
+  local routeType="random"
+  # Whether to generate uniform probability distribution from net
+  local generate=false
+
+  # Parse command line options
+  while [ -n "$1" ]; do
+    case "$1" in
+      -f|--file) file=$2; shift;;
+      -g|--generate) generate=true; ;;
+      -t|--type) routeType=$2; shift;;
+      -o|--output) output=$2; shift;;
+      --flows) flowsFile=$2; shift;;
+      --turns) turnsFile=$2; shift;;
+    esac
+    shift
+  done
+
+  check_file $file
+
+  if [[ $generate == true ]]; then
+    # Generate uniform probability distribution and quit
+    check_temp
+
+    if [ -z "$output" ]; then
+      output="${file%%.net.xml}.turns.xml"
+    fi
+
+    local plain=${file%%.net.xml}
+    sumo_exec $NETCONVERT -s $file --plain-output-prefix $plain
+    sumo_exec $SUMO_HOME$GENERATE_TURNS -c "${plain}.con.xml" -t $output
+  else
+    if [ -z "$output" ]; then
+      output="${file%%.net.xml}.rou.xml"
+    fi
+    case $routeType in
+      turns)
+        if [ -z "$flowsFile" ]; then
+          flowsFile="${file%%.net.xml}.flows.xml"
+        fi
+        check_file $flowsFile
+        if [ -z "$turnsFile" ]; then
+          turnsFile="${file%%.net.xml}.turns.xml"
+        fi
+        check_file $turnsFile
+
+        sumo_exec $JTRROUTER --net-file $file --flow-files $flowsFile --turn-ratio-files $turnsFile --output-file $output --ignore-errors
+        fix_ids $output
+        ;;
+
+      random)
+        local tripsFile="${file%%.net.xml}.trips.xml"
+        sumo_exec $SUMO_HOME$RANDOM_TRIPS -n $file -e 50 -p 0.1 -L -l -o $tripsFile
+        sumo_exec $DUAROUTER --trip-files=$tripsFile --net=$file  --output-file=$output --ignore-errors --routing-algorithm=astar -W
+        ;;
+    esac
+
+    # Create the SUMO config file for simulation
+    local sumoCfg="${file%%.net.xml}.sumo.cfg"
+    echo '<?xml version="1.0" encoding="iso-8859-1"?>
+
+    <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/sumoConfiguration.xsd">
+
+        <input>
+            <net-file value="'$file'"/>
+            <route-files value="'$output'"/>
+        </input>
+
+        <report>
+            <no-duration-log value="true"/>
+            <no-step-log value="true"/>
+        </report>
+
+        <!--time>
+          <step-length>1</step-length>
+      </time-->
+
+    </configuration>'> $sumoCfg
+  fi
+}
+
+convert() {
+  # Name of the exported project
+  local name=""
+  # Directory to store the exported files
+  local dir=""
+  # Type of the imported files
+  local typeSwitch=""
+  # Boundary
+  local bounding=""
+  # File to convert
+  local file=""
+  # Generate random routes?
+  local randomRoutes=true
+
+  # Parse command line options
+  while [ -n "$1" ]; do
+    case "$1" in
+      -n|--name) name=$2; shift;;
+      -d|--directory) directory=$2; shift;;
+      -b|--bounding) bounding=$2; shift;;
+      -f|--file) file=$2; shift;;
+      --no-routes) randomRoutes=false; ;;
+      --osm) typeSwitch="--osm-files"; ;;
+    esac
+    shift
+  done
+
+  check_file $file
+
+  local boundarySwitch=""
+  if [ -n "$bounding" ]; then
+    boundarySwitch="--keep-edges.in-geo-boundary $bounding"
+  fi
+  if [ -z "$typeSwitch" ]; then
+    typeSwitch=$(guess_type $file)
+  fi
+  if [ -z "$directory" ]; then
+    directory=$(dirname $file)
+  fi
+  if [ -z "$name" ]; then
+    name=$(basename $directory)
+  fi
+
+  if [ ! -d "$directory" ]; then
+    mkdir -p "$directory"
+  fi
+
+  # Convert file
+  sumo_exec $NETCONVERT  $typeSwitch $file -o $directory/$name.net.xml --tls.join --remove-edges.by-vclass $OMIT_EDGES --no-internal-links $boundarySwitch --no-turnarounds 
+
+  if [[ $randomRoutes == true ]]; then
+    routes -f $directory/$name.net.xml --type random
+  fi
+
+  exit 0
+}
+
+# Parse global options
+cmd=$1
+shift
+
+options=()
+while [ -n "$1" ]; do
+  case "$1" in
+    -s|--sumo) SUMO_HOME=$2; ;;
+  esac
+  options+=("$1")
+  shift
+done
+
+case "$cmd" in
+  h|help)
+    show_help "${options[@]}"
+    ;;
+
+  con|convert)
+    convert "${options[@]}"
+    ;;
+
+  rou|routes)
+    routes "${options[@]}"
+    ;;
+
+  *)
+    print_usage
+    ;;
+
+esac
+exit 0
+
+
