@@ -168,7 +168,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 }
                 if(removeCar)
                 {
-                    plannedVehicles.remove(carID);
+                    if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+                        plannedVehicles.remove(carID);
                     removeCar = false;
                 }
                 else

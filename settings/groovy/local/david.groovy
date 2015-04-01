@@ -27,7 +27,7 @@ highway {
   //     folder = "nets/map";
 //        folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
-  //     folder = "nets/artificialX-junction";
+    //   folder = "nets/artificialX-junction";
   //      folder = "nets/artificialHighway-funnel";
 
 
@@ -105,12 +105,12 @@ highway {
 
         }
 
-  //   simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-   simulatorsToRun = ["SimulatorLite"];
+     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+ //  simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 4;
-        sumoSimulation = true;
+        numberOfCarsInSimulation = 50;
+        sumoSimulation = false;
     }
 
     netLayer {

@@ -198,7 +198,7 @@ public class HighwayStorage extends EventBasedStorage {
     }
     public void addForInsert(int id)
     {
-        vehiclesForInsert.add(new Pair<Integer, Float>(id, Float.MAX_VALUE));
+        vehiclesForInsert.add(new Pair<Integer, Float>(id, 0f));
     }
     public void addForInsert(int id,float time)
     {
@@ -210,22 +210,18 @@ public class HighwayStorage extends EventBasedStorage {
         {
             Pair<Integer,Float> vehicle = vehiclesForInsert.poll();
             int id = vehicle.getKey();
-
+            if(posCurr.containsKey(id))
+            {
+                posCurr.remove(id);
+            }
             if(isDeleted(object,id) == false)
             {
-                notInsertedVehicles.add(vehicle);
+                if(!Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+                    notInsertedVehicles.add(vehicle);
                 continue;
             }
             double updateTime = 0d;
             double randomUpdateTime = 0d;
-            if(posCurr.containsKey(id)) {
-                updateTime = posCurr.get(id).getUpdateTime();
-                if(Configurator.getParamBool("highway.dashboard.sumoSimulation", true))
-                {
-                    posCurr.remove(id);
-                    continue;
-                }
-            }
             if(!posCurr.isEmpty()) {
                 randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
             }
@@ -247,7 +243,7 @@ public class HighwayStorage extends EventBasedStorage {
             while (!isSafe(id,initialPosition,routeNavigator) && prom < numberOftryes)
             {
 
-                for(int i=0 ; i < 4 ;i++)
+                for(int i=0 ; i < 6 ;i++)
                 {
                     position = routeNavigator.next();
                 }
@@ -265,8 +261,7 @@ public class HighwayStorage extends EventBasedStorage {
                     agent = createAgent(id);
                 }
                 agent.setNavigator(routeNavigator);
-                RoadObject newRoadObject = new RoadObject(id,updateTime,
-                        agent.getNavigator().getLane().getIndex(),initialPosition,initialVelocity);
+                RoadObject newRoadObject = new RoadObject(id,updateTime, agent.getNavigator().getLane().getIndex(),initialPosition,initialVelocity);
                 agent.getNavigator().setMyLifeEnds(false);
                 updateCar(newRoadObject);
             } else
@@ -276,10 +271,6 @@ public class HighwayStorage extends EventBasedStorage {
         {
             vehiclesForInsert.add(notInsertedVehicles.poll());
         }
-     /*   if(vehiclesForInsert.isEmpty() && posCurr.isEmpty())
-        {
-            getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
-        }*/
     }
     private boolean isDeleted(RadarData object,int id)
     {
