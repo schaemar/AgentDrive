@@ -328,7 +328,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         } else if (event.isType(HighwayEventType.NEW_PLAN)) {
             List<Action> actions = (List<Action>) event.getContent();
             int id = actions.get(0).getCarId();
-
+            if (!highwayEnvironment.getStorage().getPosCurr().containsKey(id)) return;
             for (SimulatorHandler handler : simulatorHandlers) {
                 if (handler.hasVehicle(id)) {
                     handler.addActions(id, actions);

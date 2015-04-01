@@ -225,7 +225,7 @@ public class HighwayStorage extends EventBasedStorage {
             if(!posCurr.isEmpty()) {
                 randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
             }
-            if(vehicle.getValue() > randomUpdateTime/10000 ||
+            if(vehicle.getValue() > randomUpdateTime/1000 ||
                     (posCurr.size() >= Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", agents.size())))
             {
                 notInsertedVehicles.add(vehicle);
