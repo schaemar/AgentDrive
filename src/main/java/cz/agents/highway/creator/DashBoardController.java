@@ -36,7 +36,7 @@ import java.util.*;
 public class DashBoardController extends DefaultCreator implements EventHandler, Creator {
     private final Logger logger = Logger.getLogger(DashBoardController.class);
 
-    private final float SAVE_DISTANCE = 10;
+    private final float SAVE_DISTANCE = 3;
     private LinkedList<Point2f> initPos = new LinkedList<Point2f>();
     private  int numberOfCarsInSimulation;
     /**
@@ -177,6 +177,11 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     Vector3f vel = new Vector3f(state.getPosition());
                     vel.negate();
                     vel.add(myPosition);
+                    if (vel.length() < 0.0001) {
+                        vel = state.getVelocity();
+                        vel.normalize();
+                        vel.scale(0.001f);
+                    }
                     int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
                     state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
                     radarData.add(state);

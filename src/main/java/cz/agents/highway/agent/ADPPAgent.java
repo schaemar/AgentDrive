@@ -54,7 +54,7 @@ public class ADPPAgent extends Agent {
     private static final int RADIUS = 2;
     private static final int SPEED = 1;
     private static final float[] SPEEDS = new float[] {1};
-    private static final double WAIT_PENALTY = 0;
+    private static final double WAIT_PENALTY = 0.1;
     private static final double MOVE_PENALTY = 0;
     private static final int WAIT_DURATION = 1;
     private static final int MAX_TIME = 2000;
@@ -167,13 +167,13 @@ public class ADPPAgent extends Agent {
             if (needsReplan) {
                 Map<Integer, Region> trajectories = sensor.senseTrajectories();
                 List<Integer> higherPriority = priorityRelation.higherPriority();
+                System.out.println("AgentID: " + id);
                 for (int id: higherPriority) {
                     Region t = trajectories.get(id);
                     if (t != null) {
                         movingObstaclesSaved.put(id, t);
                     }
                 }
-                System.out.println("AgentID: " + id);
 //                planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[] {speed}, new ArrayList<Region>(agentTrajectories), 1, 1);
                 planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[]{speed}, movingObstaclesSaved.values(), waitDuration, 1);
 //                planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, SPEEDS, new ArrayList<Region>(), 1, 1);
