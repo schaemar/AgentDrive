@@ -9,7 +9,6 @@ import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.util.FileUtil;
-import javafx.util.Pair;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.event.Event;
@@ -75,8 +74,6 @@ public class HighwayStorage extends EventBasedStorage {
             logger.info("Number of collisions is " + calculateNumberOfCollisions() / 2 + "\n");
             FileUtil.getInstance().writeDistancesToFile(distances);
         }
-
-
     }
 
     public void updateCar(RoadObject carState) {
@@ -118,7 +115,6 @@ public class HighwayStorage extends EventBasedStorage {
 
     public void act(int carId, List<Action> action) {
         actions.put(carId, action.get(0));
-
     }
 
     public RoadDescription getRoadDescription() {
