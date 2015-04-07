@@ -1,28 +1,23 @@
 package cz.agents.highway.storage;
 
-import java.util.*;
-
+import cz.agents.alite.common.event.Event;
 import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
+import cz.agents.alite.environment.eventbased.EventBasedStorage;
+import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.environment.roadnet.XMLReader;
+import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
-
-import cz.agents.alite.common.event.Event;
-import cz.agents.alite.environment.eventbased.EventBasedStorage;
-import cz.agents.alite.simulation.SimulationEventType;
-import cz.agents.highway.storage.plan.Action;
-import tt.euclid2i.Trajectory;
 import tt.euclidtime3i.Region;
 import tt.euclidtime3i.region.MovingCircle;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
-import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
+import java.util.*;
 
 public class HighwayStorage extends EventBasedStorage {
 
@@ -41,14 +36,13 @@ public class HighwayStorage extends EventBasedStorage {
     private final float SAFETY_RESERVE = 12;
     Comparator<Pair<Integer,Float>> comparator;
 
-    private Agent queen;
-
     public HighwayStorage(HighwayEnvironment environment) {
         super(environment);
         environment.getEventProcessor().addEventHandler(this);
         roadDescription = new RoadDescription(environment.getRoadNetwork());
         comparator = new QueueComparator();
-        vehiclesForInsert = new PriorityQueue<Pair<Integer, Float>>(comparator);
+        vehiclesForInsert = new PriorityQueue<Pair<Integer, Float>>(20,comparator);
+        // number 20 is random, it is only needed to be java 1.7 compatible
     }
 
     @Override
@@ -201,7 +195,7 @@ public class HighwayStorage extends EventBasedStorage {
         vehiclesForInsert.add(new Pair<Integer, Float>(id,time));
     }
     public void recreate(RadarData object) {
-        Queue<Pair<Integer,Float>> notInsertedVehicles = new PriorityQueue<Pair<Integer, Float>>(comparator);
+        Queue<Pair<Integer,Float>> notInsertedVehicles = new PriorityQueue<Pair<Integer, Float>>(20,comparator);
         while(vehiclesForInsert.peek() != null)
         {
             Pair<Integer,Float> vehicle = vehiclesForInsert.poll();
