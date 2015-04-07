@@ -195,7 +195,7 @@ public class HighwayStorage extends EventBasedStorage {
         vehiclesForInsert.add(new Pair<Integer, Float>(id,time));
     }
     public void recreate(RadarData object) {
-        Queue<Pair<Integer,Float>> notInsertedVehicles = new PriorityQueue<Pair<Integer, Float>>(comparator);
+        Queue<Pair<Integer,Float>> notInsertedVehicles = new PriorityQueue<Pair<Integer, Float>>(20,comparator);
         while(vehiclesForInsert.peek() != null)
         {
             Pair<Integer,Float> vehicle = vehiclesForInsert.poll();
