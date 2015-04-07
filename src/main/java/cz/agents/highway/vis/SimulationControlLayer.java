@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.text.MessageFormat;
 
+import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.simulation.Simulation;
 import cz.agents.alite.vis.Vis;
 import cz.agents.alite.vis.layer.AbstractLayer;
@@ -70,6 +71,10 @@ public class SimulationControlLayer extends AbstractLayer {
                         simulation.setRunning(true);
                     }
                 }
+                else if (e.getKeyChar() == 'q')
+                {
+                   simulation.addEvent(EventProcessorEventType.STOP, null, null, null);
+                }
             }
         });
     }
@@ -115,6 +120,7 @@ public class SimulationControlLayer extends AbstractLayer {
                 "by pressing '<space>', the simulation can be paused and unpaused,\n" +
                 "by pressing '+'/'-', the simulation can be speed up and slow down,\n" +
                 "by pressing '*', the speed of simulation is set to default value (1x),\n" +
+                "by pressing 'q', simulation ends,\n" +
                 "by pressing Ctrl+'*', the speed of simulation is set to fastest possible speed ().";
         return buildLayersDescription(description);
     }

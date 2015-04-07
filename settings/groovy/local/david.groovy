@@ -22,19 +22,21 @@ highway {
   //      folder = "nets/x-junction";
    //     folder = "nets/nadprysk"
    //     folder = "nets/extest";
-  //     folder = "nets/ulesika";
+    //   folder = "nets/ulesika";
    //       folder = "nets/jedkriz";
   //     folder = "nets/map";
 //        folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
-       folder = "nets/artificialX-junction";
+    //   folder = "nets/artificialX-junction";
   //      folder = "nets/artificialHighway-funnel";
+        folder = "nets/hostinne";
+
 
 
     }
     safeDistanceAgent {
         safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
-        narrowingModeActive = false;
+     //   narrowingModeActive = false;
         distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
@@ -71,7 +73,7 @@ highway {
             timeHorizonObst = 100.0;
             orcaSpeedConstant = 1.0;
             maxNeighbors = 100;
-            randomRoutes = false;
+            randomRoutes = true;
         }
 
 
@@ -109,7 +111,8 @@ highway {
    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-       // numberOfCarsInSimulation = 5;
+        numberOfCarsInSimulation = 60;
+        sumoSimulation = false;
     }
 
     netLayer {

@@ -15,7 +15,7 @@ public class Agent extends Entity {
 
     protected VehicleSensor sensor;
     protected VehicleActuator actuator;
-    protected final RouteNavigator navigator;
+    protected RouteNavigator navigator;
 
 
     public Agent(int id) {
@@ -24,6 +24,7 @@ public class Agent extends Entity {
         navigator = new RouteNavigator(id);
         logger.info("Agent " + id + " created");
     }
+
 
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
@@ -47,4 +48,7 @@ public class Agent extends Entity {
         return navigator.getInitialVelocity();
     }
 
+    public void setNavigator(RouteNavigator navigator) {
+        this.navigator = navigator;
+    }
 }

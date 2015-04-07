@@ -92,11 +92,12 @@ public class GSDAgent extends RouteAgent {
         }
         if(navigator.getLane() == null)
         {
+            return null;
+        }
+        if(navigator.isMyLifeEnds() == true)
+        {
             logger.info("My id is " + this.id + " number of colisions is " + numberOfCollisions);
-
-          /*  highwayEnvironment.getStorage().removeAgent(this.id);*/
-            highwayEnvironment.getStorage().getPosCurr().remove(this.id);
-         //   highwayEnvironment.getStorage().recreate(this.id);
+            highwayEnvironment.getStorage().addForInsert(this.id);
             return null;
         }
        // logger.debug("Startnode: " + currState);
@@ -246,7 +247,6 @@ public class GSDAgent extends RouteAgent {
 
     private double safeDistance(double a0, double v0, double v1) {
         double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
-    //    double safeDist = v0*2;
         return safeDist;
     }
 
