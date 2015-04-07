@@ -188,6 +188,7 @@ routes() {
           flowsFile="${file%%.net.xml}.flows.xml"
       fi
 	  sumo_exec $DUAROUTER --net-file $file --flow-files $flowsFile --output-file $output --ignore-errors --routing-algorithm=astar -W
+	  fix_ids $output
       ;;
     esac
 

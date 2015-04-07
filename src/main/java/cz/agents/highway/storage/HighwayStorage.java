@@ -204,18 +204,19 @@ public class HighwayStorage extends EventBasedStorage {
             {
                 posCurr.remove(id);
             }
+            if(agents.containsKey(id) && Configurator.getParamBool("highway.dashboard.sumoSimulation",true)) continue;
             if(isDeleted(object,id) == false)
             {
-                if(!Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
-                    notInsertedVehicles.add(vehicle);
+                notInsertedVehicles.add(vehicle);
                 continue;
             }
             double updateTime = 0d;
             double randomUpdateTime = 0d;
-            if(!posCurr.isEmpty()) {
+           /* if(!posCurr.isEmpty()) {
                 randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
-            }
-            if(vehicle.getValue() > randomUpdateTime/1000 ||
+            }*/
+            updateTime = getEventProcessor().getCurrentTime();
+            if(vehicle.getValue() > updateTime/1000 ||
                     (posCurr.size() >= Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", agents.size())))
             {
                 notInsertedVehicles.add(vehicle);
@@ -272,6 +273,7 @@ public class HighwayStorage extends EventBasedStorage {
     }
     public boolean isSafe(int stateId,Point3f statePosition,RouteNavigator stateNavigator)
     {
+
         for (Map.Entry<Integer, RoadObject> obj : posCurr.entrySet()) {
             RoadObject entry = obj.getValue();
             float distanceToSecondCar = entry.getPosition().distance(statePosition);

@@ -29,7 +29,9 @@ highway {
      //   folder = "nets/CharlesSquare";
     //   folder = "nets/artificialX-junction";
   //      folder = "nets/artificialHighway-funnel";
-        folder = "nets/hostinne";
+    //    folder = "nets/hostinne";
+           folder = "nets/artificialXS-junction";
+
 
 
 
@@ -112,7 +114,7 @@ highway {
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
         numberOfCarsInSimulation = 60;
-        sumoSimulation = false;
+        sumoSimulation = true;
     }
 
     netLayer {
