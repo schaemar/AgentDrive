@@ -109,7 +109,7 @@ highway {
 
         }
 
- //    simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+  //   simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];

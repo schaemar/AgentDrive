@@ -27,7 +27,7 @@ public class HighwayStorage extends EventBasedStorage {
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
-    private Map<Integer, Queue<Float>> distances = new LinkedHashMap<Integer, Queue<Float>>();
+    private Map<Integer, Queue<Pair<Long,Float>>> distances = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
     private final float SAVE_DISTANCE = 10;
     Point3f refcar = new Point3f(0, 0, 0);
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
@@ -132,12 +132,6 @@ public class HighwayStorage extends EventBasedStorage {
     }
     public void updateCars(RadarData object) {
      //   if (!object.getCars().isEmpty()) {
-          /*  if (object.getCars().size() == 1) {
-                logger.info("Number of collisions is " + calculateNumberOfCollisions() / 2 + "\n");
-                FileUtil.getInstance().writeDistancesToFile(distances);
-                getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
-                System.out.println("Sedim na kameni a cekam");
-            }*/
             for (RoadObject car : object.getCars()) {
                 updateCar(car);
             }
@@ -145,10 +139,11 @@ public class HighwayStorage extends EventBasedStorage {
 
 
             for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet()) {
-                Queue<Float> original = distances.get(entry.getKey());
+                Queue<Pair<Long,Float>> original = distances.get(entry.getKey());
                 if (original == null)
-                    original = new LinkedList<Float>();
-                Float dist = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
+                    original = new LinkedList<Pair<Long,Float>>();
+                Long timeKey = getEventProcessor().getCurrentTime();
+                Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
                 /*
                 try {
                     Point3f temp = posCurr.get(4).getPosition();
@@ -160,12 +155,17 @@ public class HighwayStorage extends EventBasedStorage {
                 }
                  Float dist = entry.getValue().getPosition().distance(refcar);
                  */
-                if (original.isEmpty() || dist < original.peek()) {
-                    original.add(dist);
+                if (original.isEmpty() || distVal < original.peek().getValue()) {
+                    original.add(new Pair<Long, Float>(timeKey,distVal));
                 }
                 distances.put(entry.getKey(), original);
             }
         recreate(object);
+        if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true) &&
+                posCurr.size() == 0 && vehiclesForInsert.isEmpty()) {
+            getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
+            //System.out.println("Sedim na kameni a cekam");
+        }
         getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
      //   }
     }
