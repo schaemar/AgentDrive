@@ -15,7 +15,7 @@ public class FileUtil {
 
     public void writeDistancesToFile(Map<Integer, Queue<Pair<Long,Float>>> distances)
     {
-        String file_name = "list";
+        String file_name = "list.m";
         char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
         try {
             FileWriter fstream = new FileWriter(file_name);
@@ -42,7 +42,7 @@ public class FileUtil {
                 out.write(addstring + alphabet[index] + "time" + " = [");
                 itr = way.iterator();
                 while (itr.hasNext()) {
-                    Long element = itr.next().getKey();
+                    Float element = itr.next().getKey()/1000f;
                     out.write(element + " ");
                 }
                 out.write("]");
@@ -82,7 +82,22 @@ public class FileUtil {
             System.out.println(e.getMessage());
         }
     }
-
+    public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond)
+    {
+        String file_name = "report.txt";
+        try {
+            FileWriter fstream = new FileWriter(file_name);
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write("Number of collisions is :" + numberOfCollisions);
+            out.newLine();
+            out.write("Number of vehicles travelling throw junction per seccond is :" + numberOfVehiclesPerSecond);
+            out.close();
+            System.out.println("Report created successfully.");
+        }
+     catch (Exception e) { // TODO Improve this
+        System.out.println(e.getMessage());
+        }
+    }
     public static FileUtil getInstance() {
         return FileUtilHolder.INSTANCE;
     }

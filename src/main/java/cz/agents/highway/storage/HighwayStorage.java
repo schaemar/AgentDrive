@@ -76,12 +76,13 @@ public class HighwayStorage extends EventBasedStorage {
             }
         } else if (event.isType(EventProcessorEventType.STOP)) {
             ENDTIME = System.currentTimeMillis();
+            int numberOfCollisons = calculateNumberOfCollisions()/2;
             if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
             {
-                logger.info("Number of cars in time is " + (ENDTIME/1000f)/agents.size());
-                //logger.info("Number of cars in time is " + (getEventProcessor().getCurrentTime()/1000f)/agents.size());
+                FileUtil.getInstance().writeReport(numberOfCollisons,agents.size()/((ENDTIME-STARTTIME)/1000f));
+                logger.info("Number of cars in time is " + agents.size()/((ENDTIME-STARTTIME)/1000f));
             }
-            logger.info("Number of collisions is " + calculateNumberOfCollisions() / 2 + "\n");
+            logger.info("Number of collisions is "  + numberOfCollisons + "\n");
             FileUtil.getInstance().writeDistancesToFile(distances);
 
         }
@@ -189,14 +190,11 @@ public class HighwayStorage extends EventBasedStorage {
 
     private int calculateNumberOfCollisions() {
         int num = 0;
-        Iterator it = agents.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry) it.next();
-            if (pair.getValue() instanceof GSDAgent) {
-                num += ((GSDAgent) pair.getValue()).getNumberOfColisions();
+        for (Map.Entry<Integer, Agent> entry : agents.entrySet()) {
+            Agent pair = entry.getValue();
+            if (pair instanceof GSDAgent) {
+                num += ((GSDAgent) pair).getNumberOfColisions();
             }
-            //System.out.println(pair.getKey() + " = " + pair.getValue());
-            it.remove(); // avoids a ConcurrentModificationException
         }
         return num;
     }

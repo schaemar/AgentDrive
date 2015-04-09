@@ -1,0 +1,11 @@
+Exception in thread "Thread-2" INFO  Agent:25 - Agent 32 created
+INFO  Agent:36 - Actuator added: cz.agents.highway.storage.VehicleActuator@56a4479a
+INFO  Agent:25 - Agent 31 created
+INFO  Agent:36 - Actuator added: cz.agents.highway.storage.VehicleActuator@62163b39
+com.google.protobuf.UninitializedMessageException: Message missing required fields: size
+	at com.google.protobuf.AbstractMessage$Builder.newUninitializedMessageException(AbstractMessage.java:605)
+	at cz.agents.highway.protobuf.generated.simplan.MessageContainer$Header$Builder.build(MessageContainer.java:237)
+	at cz.agents.highway.protobuf.generated.simplan.MessageContainer$Header$Builder.build(MessageContainer.java:184)
+	at cz.agents.alite.protobuf.factory.ProtobufFactory.run(ProtobufFactory.java:282)
+	at cz.agents.alite.protobuf.communicator.ClientCommunicator$2.run(ClientCommunicator.java:193)
+	at java.lang.Thread.run(Thread.java:745)
