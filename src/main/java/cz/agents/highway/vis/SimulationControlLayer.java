@@ -15,6 +15,7 @@ import cz.agents.alite.vis.layer.AbstractLayer;
 import cz.agents.alite.vis.layer.VisLayer;
 import cz.agents.alite.vis.layer.common.HelpLayer;
 import cz.agents.alite.vis.layer.toggle.KeyToggleLayer;
+import cz.agents.highway.environment.HighwayEnvironment;
 
 /**
  * The layer shows the status of the simulation and controls it through various
@@ -36,9 +37,11 @@ import cz.agents.alite.vis.layer.toggle.KeyToggleLayer;
 public class SimulationControlLayer extends AbstractLayer {
 
     private final Simulation simulation;
+    private HighwayEnvironment highwayEnvironment;
 
-    SimulationControlLayer(Simulation simulation) {
+    SimulationControlLayer(Simulation simulation,HighwayEnvironment highwayEnvironment) {
         this.simulation = simulation;
+        this.highwayEnvironment = highwayEnvironment;
     }
 
     @Override
@@ -85,9 +88,16 @@ public class SimulationControlLayer extends AbstractLayer {
         label.append("TIME: ");
         label.append(simulation.getCurrentTime() / 1000.0);
         label.append(" ");
+        label.append(System.getProperty("line.separator"));
         if (simulation.isFinished()) {
+            label.append("TIME in seconds: ");
+            label.append((highwayEnvironment.getStorage().getENDTIME() - highwayEnvironment.getStorage().getSTARTTIME()) / 1000.0);
+            label.append(" ");
             label.append("(FINISHED)");
         } else {
+            label.append("TIME in seconds: ");
+            label.append((System.currentTimeMillis() - highwayEnvironment.getStorage().getSTARTTIME()) / 1000.0);
+            label.append(" ");
             if (simulation.getCurrentTime() == 0) {
                 label.append("(INITIALIZING)");
 
@@ -125,8 +135,8 @@ public class SimulationControlLayer extends AbstractLayer {
         return buildLayersDescription(description);
     }
 
-    public static VisLayer create(Simulation simulation) {
-        VisLayer simulationControl = new SimulationControlLayer(simulation);
+    public static VisLayer create(Simulation simulation,HighwayEnvironment highwayEnvironment) {
+        VisLayer simulationControl = new SimulationControlLayer(simulation,highwayEnvironment);
 
         KeyToggleLayer toggle = KeyToggleLayer.create("s");
         toggle.addSubLayer(simulationControl);

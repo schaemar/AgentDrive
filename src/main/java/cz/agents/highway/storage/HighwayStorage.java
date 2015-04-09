@@ -35,7 +35,8 @@ public class HighwayStorage extends EventBasedStorage {
     private final float CHECKING_DISTANCE = 500;
     private final float SAFETY_RESERVE = 12;
     Comparator<Pair<Integer,Float>> comparator;
-
+    private long STARTTIME =0;
+    private long ENDTIME =0;
     public HighwayStorage(HighwayEnvironment environment) {
         super(environment);
         environment.getEventProcessor().addEventHandler(this);
@@ -45,11 +46,20 @@ public class HighwayStorage extends EventBasedStorage {
         // number 20 is random, it is only needed to be java 1.7 compatible
     }
 
+    public long getSTARTTIME() {
+        return STARTTIME;
+    }
+
+    public long getENDTIME() {
+        return ENDTIME;
+    }
+
     @Override
     public void handleEvent(Event event) {
 
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             logger.debug("HighwayStorage: handled simulation START");
+           STARTTIME = System.currentTimeMillis();
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
@@ -65,8 +75,15 @@ public class HighwayStorage extends EventBasedStorage {
                 getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
             }
         } else if (event.isType(EventProcessorEventType.STOP)) {
+            ENDTIME = System.currentTimeMillis();
+            if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+            {
+                logger.info("Number of cars in time is " + (ENDTIME/1000f)/agents.size());
+                //logger.info("Number of cars in time is " + (getEventProcessor().getCurrentTime()/1000f)/agents.size());
+            }
             logger.info("Number of collisions is " + calculateNumberOfCollisions() / 2 + "\n");
             FileUtil.getInstance().writeDistancesToFile(distances);
+
         }
     }
 
@@ -142,7 +159,7 @@ public class HighwayStorage extends EventBasedStorage {
                 Queue<Pair<Long,Float>> original = distances.get(entry.getKey());
                 if (original == null)
                     original = new LinkedList<Pair<Long,Float>>();
-                Long timeKey = getEventProcessor().getCurrentTime();
+                Long timeKey =  (System.currentTimeMillis()-STARTTIME);  //getEventProcessor().getCurrentTime();
                 Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
                 /*
                 try {
@@ -215,7 +232,7 @@ public class HighwayStorage extends EventBasedStorage {
            /* if(!posCurr.isEmpty()) {
                 randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
             }*/
-            updateTime = getEventProcessor().getCurrentTime();
+            updateTime = (System.currentTimeMillis()-STARTTIME); //getEventProcessor().getCurrentTime();
             if(vehicle.getValue() > updateTime/1000 ||
                     (posCurr.size() >= Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", agents.size())))
             {
