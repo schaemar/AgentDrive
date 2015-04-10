@@ -14,7 +14,7 @@ highway {
   //      folder = "nets/x-junction/";
 //     folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
-//        folder = "nets/highway-straight/";
+        folder = "nets/highway-straight/";
 //       folder = "nets/test90/";
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
@@ -30,7 +30,7 @@ highway {
     //   folder = "nets/artificialX-junction";
   //      folder = "nets/artificialHighway-funnel";
     //    folder = "nets/hostinne";
-           folder = "nets/artificialXS-junction";
+     //     folder = "nets/artificialXS-junction";
 
 
 
@@ -53,7 +53,7 @@ highway {
             deaccelerationManueverDuration = 0.3;   //[s]
             acceleration = 4.0;                     //[m/s^2]
             deacceleration = -6.0;                  //[m/s^2]
-            maximalSpeed = 70.0;                    //[m/s]
+            maximalSpeed = 50.0;                    //[m/s]
             maxSpeedVariance = 0.30                     //[%]
         }
 
