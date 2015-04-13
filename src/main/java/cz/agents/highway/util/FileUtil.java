@@ -1,6 +1,8 @@
 package cz.agents.highway.util;
 
 
+import cz.agents.highway.storage.Pair;
+
 import java.util.*;
 import java.io.*;
 
@@ -11,9 +13,9 @@ import java.io.*;
 public class FileUtil {
     private FileUtil(){}
 
-    public void writeDistancesToFile(Map<Integer, Queue<Float>> distances)
+    public void writeDistancesToFile(Map<Integer, Queue<Pair<Long,Float>>> distances)
     {
-        String file_name = "list";
+        String file_name = "list.m";
         char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
         try {
             FileWriter fstream = new FileWriter(file_name);
@@ -21,21 +23,30 @@ public class FileUtil {
             int index = 0;
             String addstring = "";
             Random rand = new Random();
-            for (Map.Entry<Integer, Queue<Float>> entry : distances.entrySet())
+            for (Map.Entry<Integer, Queue<Pair<Long,Float>>> entry : distances.entrySet())
             {
                 if(index > 25)
                 {
                     addstring +="A";
                     index = 0;
                 }
-                out.write(addstring + alphabet[index++] + " = [");
-                Queue<Float> way =  entry.getValue();
-                Iterator<Float> itr = way.iterator();
+                out.write(addstring + alphabet[index] + " = [");
+                Queue<Pair<Long,Float>> way =  entry.getValue();
+                Iterator<Pair<Long,Float>> itr = way.iterator();
                 while (itr.hasNext()) {
-                    Float element = (Float) itr.next();
+                    Float element = (Float) itr.next().getValue();
                     out.write(element + " ");
                 }
                 out.write("]");
+                out.newLine();
+                out.write(addstring + alphabet[index] + "time" + " = [");
+                itr = way.iterator();
+                while (itr.hasNext()) {
+                    Float element = itr.next().getKey()/1000f;
+                    out.write(element + " ");
+                }
+                out.write("]");
+                index++;
                 out.newLine();
             }
             out.write("figure;");
@@ -44,7 +55,7 @@ public class FileUtil {
             out.newLine();
             index = 0;
             addstring = "";
-            for (Map.Entry<Integer, Queue<Float>> entry : distances.entrySet())
+            for (Map.Entry<Integer, Queue<Pair<Long,Float>>> entry : distances.entrySet())
             {
                 if(index > 25)
                 {
@@ -54,7 +65,7 @@ public class FileUtil {
                 float r = rand.nextFloat();
                 float g = rand.nextFloat();
                 float b = rand.nextFloat();
-                out.write("plot(" + addstring + alphabet[index++] + ",'Color'," +"[" + r +" " + g + " " + b + "])");
+                out.write("plot("+addstring + alphabet[index] + "time" + "," + addstring + alphabet[index++] + ",'Color'," +"[" + r +" " + g + " " + b + "])");
                 out.newLine();
             }
             out.write("title('Car distances to the junction')");
@@ -71,8 +82,22 @@ public class FileUtil {
             System.out.println(e.getMessage());
         }
     }
-
-
+    public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond)
+    {
+        String file_name = "report.txt";
+        try {
+            FileWriter fstream = new FileWriter(file_name);
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write("Number of collisions is :" + numberOfCollisions);
+            out.newLine();
+            out.write("Number of vehicles travelling throw junction per seccond is :" + numberOfVehiclesPerSecond);
+            out.close();
+            System.out.println("Report created successfully.");
+        }
+     catch (Exception e) { // TODO Improve this
+        System.out.println(e.getMessage());
+        }
+    }
     public static FileUtil getInstance() {
         return FileUtilHolder.INSTANCE;
     }

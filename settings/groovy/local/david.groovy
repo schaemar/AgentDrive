@@ -28,8 +28,10 @@ highway {
 //        folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
     //   folder = "nets/artificialX-junction";
-  //      folder = "nets/artificialHighway-funnel";
-        folder = "nets/hostinne";
+        folder = "nets/artificialHighway-funnel";
+    //    folder = "nets/hostinne";
+     //     folder = "nets/artificialXS-junction";
+
 
 
 
@@ -51,7 +53,7 @@ highway {
             deaccelerationManueverDuration = 0.3;   //[s]
             acceleration = 4.0;                     //[m/s^2]
             deacceleration = -6.0;                  //[m/s^2]
-            maximalSpeed = 70.0;                    //[m/s]
+            maximalSpeed = 50.0;                    //[m/s]
             maxSpeedVariance = 0.30                     //[%]
         }
 
@@ -111,8 +113,8 @@ highway {
    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 60;
-        sumoSimulation = false;
+        numberOfCarsInSimulation = 20;
+        sumoSimulation = true;
     }
 
     netLayer {

@@ -48,6 +48,10 @@ public class RouteNavigator {
         routePtr = 0;
         agentLane = route.get(0).getLaneByIndex(0);
     }
+    public void resetPointPtr()
+    {
+        pointPtr = 0;
+    }
     public void hardReset()
     {
         pointPtr = 0;
@@ -125,7 +129,7 @@ public class RouteNavigator {
               //  agentLane = null;
                 myLifeEnds = true;
             } else {
-                Lane nextLane = getNeighbourLane(route.get(routePtr)); //check for neighbour lane
+                Lane nextLane = getNeighbourLane(); //check for neighbour lane
 
                 int desiredPoint = getDesiredNeighbourLinePoint(nextLane);
                 if (desiredPoint == -1)  //neighbour lane is shorter than my lane or does not exist
@@ -167,7 +171,7 @@ public class RouteNavigator {
         return ii;
     }
 
-    private Lane getNeighbourLane(Edge edge) {
+    public Lane getNeighbourLane() {
         Lane neighbourLane = agentLane.getLaneLeft();
         if (neighbourLane == null) {
             // Try right lane

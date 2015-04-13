@@ -35,10 +35,6 @@ import java.util.*;
  */
 public class DashBoardController extends DefaultCreator implements EventHandler, Creator {
     private final Logger logger = Logger.getLogger(DashBoardController.class);
-
-    private final float SAVE_DISTANCE = 3;
-    private LinkedList<Point2f> initPos = new LinkedList<Point2f>();
-    private  int numberOfCarsInSimulation;
     /**
      * This class is responsible for sending simulator an appropriate plans and updates
      */
@@ -125,7 +121,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             RadarData radarData = new RadarData();
             float duration = 0;
             float lastDuration = 0;
-            int timestep = Configurator.getParamInt("highway.SimulatorLocal.timestep", 1);
+            double timest = Configurator.getParamDouble("highway.SimulatorLocal.timestep",1.0);
+            float timestep = (float)timest;
 
             boolean removeCar = false;
             for (Integer carID : plans.getCarIds()) {
@@ -365,10 +362,5 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         if (!launchScript.isEmpty()) {
             simulators.put(name, new ProcessBuilder().inheritIO().command(parts).start());
         }
-    }
-
-    private boolean saveDistance(Point2f p1, Point2f p2) {
-        Vector2f v = new Vector2f(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
-        return v.length() > SAVE_DISTANCE;
     }
 }
