@@ -8,6 +8,7 @@ import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
+import cz.agents.highway.protobuf.generated.InitMessage;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
@@ -26,6 +27,7 @@ public class HighwayStorage extends EventBasedStorage {
     private final RoadDescription roadDescription;
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
+    TreeSet<Integer>  forRemoveFromPosscur;
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
     private Map<Integer, Queue<Pair<Long,Float>>> distances = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
     private final float SAVE_DISTANCE = 10;
@@ -91,9 +93,7 @@ public class HighwayStorage extends EventBasedStorage {
     public void updateCar(RoadObject carState) {
         int carId = carState.getId();
 
-//        if (!agents.containsKey(carId)) {
-//            createAgent(carId);
-//        }
+        //tool for get the removed cars.
         posCurr.put(carId, carState);
 
     }
@@ -150,8 +150,17 @@ public class HighwayStorage extends EventBasedStorage {
     }
     public void updateCars(RadarData object) {
      //   if (!object.getCars().isEmpty()) {
-            for (RoadObject car : object.getCars()) {
+        forRemoveFromPosscur = new TreeSet<Integer>(posCurr.keySet());
+        for (RoadObject car : object.getCars()) {
                 updateCar(car);
+                forRemoveFromPosscur.remove(car.getId());
+        }
+           if(!forRemoveFromPosscur.isEmpty())
+            {
+                for(Integer id : forRemoveFromPosscur)
+                {
+                    posCurr.remove(id);
+                }
             }
             logger.debug("HighwayStorage updated vehicles: received " + object);
 

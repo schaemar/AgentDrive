@@ -129,34 +129,6 @@ public class RouteAgent extends Agent {
         //how many waiponts ahead will be chcecked depending on the update time
         maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
         if (maxMove < 10) maxMove = 10;
-    /*    String uniqueIndex = navigator.getUniqueLaneIndex();
-        // finding the nearest wayipont, if changing lane, set the first of the new lane.
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-            navigator.advanceInRoute();
-        }
-        // finding the nearest waipoint in the new lane.
-        if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-            float initialPos = position2D.distance(navigator.getRoutePoint());
-            do {
-                navigator.advanceInRoute();
-            } while (position2D.distance(navigator.getRoutePoint()) < initialPos);
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
-                navigator.advanceInRoute();
-            }
-         //   navigator.setCheckpoint();
-
-        }
-
-        // waipoint not found, reset back
-        if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-            navigator.resetToCheckpoint();
-        } else {
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
-                navigator.advanceInRoute();
-            }
-        //    navigator.setCheckpoint();
-        }
-    */
         while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.advanceInRoute();
         }
@@ -288,13 +260,13 @@ public class RouteAgent extends Agent {
             }
             navigator.setCheckpoint();
         }*/
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+        while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.advanceInRoute();
         }
         if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.resetToCheckpoint();
         } else {
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+            while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
             //    navigator.setCheckpoint();
@@ -306,8 +278,12 @@ public class RouteAgent extends Agent {
         //TODO fix than distance of waipoints is different than 1
         for (int i = 0; i < wpCount; i++) {
             // move 3 waipoints ahead
-            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
+            while (navigator.isMyLifeEnds() == false && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND){
                 navigator.advanceInRoute();
+            }
+            if(navigator.isMyLifeEnds()) {
+                actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+                return actions;
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);
