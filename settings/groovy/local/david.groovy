@@ -113,7 +113,7 @@ highway {
    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 6;
+        numberOfCarsInSimulation = 20;
         sumoSimulation = true;
     }
 

@@ -493,7 +493,7 @@ public class GSDAgent extends RouteAgent {
                             continue;
                         } else if (newCenter != null && !myLane.equals(entryLane)) {
                             //TODO fix this hotfix, probably in route agent.
-                            if (junctionwaypoint.distance(newCenter) < 10) {
+                            if (junctionwaypoint.distance(newCenter) < 30) {
                                 intersectionWaypoint = new Point2f((newCenter.x + junctionwaypoint.x) / 2, (newCenter.y + junctionwaypoint.y) / 2);
                             }
                             /*else {
