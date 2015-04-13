@@ -6,6 +6,8 @@ import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
+import cz.agents.highway.environment.planning.euclid4d.Region;
+import cz.agents.highway.environment.planning.euclid4d.region.MovingCircle;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
@@ -15,8 +17,6 @@ import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.storage.plan.Action;
 import tt.euclid2i.Trajectory;
-import tt.euclidtime3i.Region;
-import tt.euclidtime3i.region.MovingCircle;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -60,7 +60,6 @@ public class HighwayStorage extends EventBasedStorage {
             MovingCircle inc    = (MovingCircle) agentTrajectory.getValue();
             if (stored == null || !stored.getTrajectory().equals(inc.getTrajectory())) {
                 trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
-                logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
                 getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
             }
         }

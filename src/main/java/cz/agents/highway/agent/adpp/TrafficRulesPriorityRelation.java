@@ -1,9 +1,9 @@
 package cz.agents.highway.agent.adpp;
 
 import cz.agents.highway.agent.adpp.PriorityRelation;
+import cz.agents.highway.environment.planning.euclid4d.Region;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
-import tt.euclidtime3i.Region;
 
 import java.util.*;
 
@@ -28,10 +28,9 @@ public class TrafficRulesPriorityRelation implements PriorityRelation {
     @Override
     public List<Integer> higherPriority() {
         List<Integer> higherPriority = new LinkedList<Integer>();
-        Map<Integer, Region> trajectories = sensor.senseTrajectories();
-        for (int id: trajectories.keySet()) {
-            if (id > agentId) {
-                higherPriority.add(id);
+        for (RoadObject agent: sensor.senseCars()) {
+            if (agent.getId() > agentId) {
+                higherPriority.add(agent.getId());
             }
         }
         return higherPriority;

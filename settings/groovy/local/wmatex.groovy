@@ -5,6 +5,11 @@
 highway {
     //agent = "RouteAgent";
     agent = "ADPPAgent";
+    rvo {
+        agent {
+            randomRoutes = false;
+        }
+    }
     SimulatorLocal {
         timestep = 1;
     }
@@ -16,8 +21,10 @@ highway {
 //        folder = "nets/pisek";
 //        folder = "nets/test90";
 //        folder = "nets/super-collision";
-//          folder = "nets/artificialX-junction";
-        folder = "nets/artificialX-junction-smaller";
+//        folder = "nets/artificialX-junction";
+//        folder = "nets/artificialX-junction-smaller";
+//        folder = "nets/artificialHighway-funnel";
+        folder = "nets/simple"
     }
 
     dashboard {
