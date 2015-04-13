@@ -159,7 +159,7 @@ public class HighwayStorage extends EventBasedStorage {
             {
                 for(Integer id : forRemoveFromPosscur)
                 {
-                    posCurr.remove(id);
+                    addForInsert(id);
                 }
             }
             logger.debug("HighwayStorage updated vehicles: received " + object);

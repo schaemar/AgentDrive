@@ -95,12 +95,12 @@ public class GSDAgent extends RouteAgent {
         {
             return null;
         }
-        if(navigator.isMyLifeEnds() == true)
+       /* if(navigator.isMyLifeEnds() == true)
         {
             logger.info("My id is " + this.id + " number of colisions is " + numberOfCollisions);
             highwayEnvironment.getStorage().addForInsert(this.id);
             return null;
-        }
+        }*/
        // logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
       //  logger.debug("Situation: " + situationPrediction);

@@ -129,13 +129,13 @@ public class RouteAgent extends Agent {
         //how many waiponts ahead will be chcecked depending on the update time
         maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
         if (maxMove < 10) maxMove = 10;
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+        while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.advanceInRoute();
         }
         if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.resetToCheckpoint();
         } else {
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+            while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
             //    navigator.setCheckpoint();
@@ -159,13 +159,10 @@ public class RouteAgent extends Agent {
             // move 3 waipoints ahead
             while (navigator.isMyLifeEnds() == false && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
             navigator.advanceInRoute();
-            /*    if(!myPlanEnding)
-                {
-                    actions = new LinkedList<Action>();
-                    Point2f initial = navigator.getInitialPosition();
-                    actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), -1));
-                    return actions;
-                }*/
+            }
+            if(navigator.isMyLifeEnds()) {
+                actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+                return actions;
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);
