@@ -11,7 +11,7 @@ highway {
 
     net {
 //        folder = "nets/kosik/";
-//        folder = "nets/x-junction/";
+  //      folder = "nets/x-junction/";
 //     folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
 //        folder = "nets/highway-straight/";
@@ -28,12 +28,12 @@ highway {
 //        folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
        folder = "nets/artificialX-junction";
-
+  //      folder = "nets/artificialHighway-funnel";
 
 
     }
     safeDistanceAgent {
-        safetyReserveDistance = 5.0;     // [m] - safety distance offset (including vehicle length and separation gap)
+        safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
         narrowingModeActive = false;
         distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
@@ -49,7 +49,7 @@ highway {
             deaccelerationManueverDuration = 0.3;   //[s]
             acceleration = 4.0;                     //[m/s^2]
             deacceleration = -6.0;                  //[m/s^2]
-            maximalSpeed = 25.0;                    //[m/s]
+            maximalSpeed = 70.0;                    //[m/s]
             maxSpeedVariance = 0.30                     //[%]
         }
 
@@ -71,6 +71,7 @@ highway {
             timeHorizonObst = 100.0;
             orcaSpeedConstant = 1.0;
             maxNeighbors = 100;
+            randomRoutes = false;
         }
 
 
@@ -104,10 +105,11 @@ highway {
 
         }
 
-   //   simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-    simulatorsToRun = ["SimulatorLite"];
+ //    simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+   simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
+       // numberOfCarsInSimulation = 5;
     }
 
     netLayer {

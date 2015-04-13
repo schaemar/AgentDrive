@@ -1,4 +1,4 @@
-package cz.agents.highway.agent;
+package cz.agents.highway.agent.adpp;
 
 import tt.euclidtime3i.Region;
 
@@ -9,12 +9,6 @@ import java.util.List;
  * Created by wmatex on 15.3.15.
  */
 public interface PriorityRelation {
-    /**
-     * Return the trajectories of higher-priority agents represented as moving obstacles
-     * @return
-     */
-    List<Region> movingObstacles();
-
     /**
      * Return id's of higher priority agents
      * @return
