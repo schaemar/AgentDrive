@@ -117,11 +117,22 @@ public class GSDAgent extends RouteAgent {
 
         int preferredLane = 0;
        // logger.debug("PreferredLane: " + preferredLane);
-            if (currentManeuver != null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
+        /*
+        Original order of maneuvers
+        1. in maneuver left so continu that maneuver
+        2. in maneuver right so continue that maneuver
+        3. try to switch right
+        4. try to accelerate
+        5. try to not to change anything
+        6. try to to switch left
+        7. try to decelerate
+        */
+     /*   if (currentManeuver != null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
             maneuver = left;
         } else if (currentManeuver != null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
             maneuver = right;
         } else {
+            */
             if (!narrowingMode && isSafeMan(currState, right, situationPrediction)) {
                 maneuver = right;
             } else if (isSafeMan(currState, acc, situationPrediction)) {
@@ -136,7 +147,6 @@ public class GSDAgent extends RouteAgent {
                 logger.info("Nothing is safe, shouldnt happen!");
                 maneuver = dec;
             }
-        }
         //testing scenario
         /*if(currState.getId() == 0 && navigator.getActualPointer() > 5)
         {
@@ -432,7 +442,7 @@ public class GSDAgent extends RouteAgent {
         //FAST SOLUTION
         myLane = navigator.getLane();
         //SLOW
-       // myLane = highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
+      //  myLane = highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
 
         myEdge = myLane.getEdge();
         num_of_lines = myEdge.getLanes().size();
