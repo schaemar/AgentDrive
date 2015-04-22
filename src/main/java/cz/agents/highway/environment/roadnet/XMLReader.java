@@ -367,7 +367,7 @@ public class XMLReader {
         return initalPositions;
     }
 
-    private String getFile(URL folderPath, String suffix) {
+    public String getFile(URL folderPath, String suffix) {
         try {
             log.debug("GetFile URL: "+folderPath);
             File folder = new File(folderPath.toURI());

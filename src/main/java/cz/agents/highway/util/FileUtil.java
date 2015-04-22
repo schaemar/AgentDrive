@@ -1,8 +1,11 @@
 package cz.agents.highway.util;
 
 
+import cz.agents.alite.configurator.Configurator;
+import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.storage.Pair;
 
+import javax.vecmath.Point3f;
 import java.util.*;
 import java.io.*;
 
@@ -13,9 +16,16 @@ import java.io.*;
 public class FileUtil {
     private FileUtil(){}
 
-    public void writeDistancesToFile(Map<Integer, Queue<Pair<Long,Float>>> distances)
+    public void writeToFile(Map<Integer, Queue<Pair<Long,Float>>> distances, int speedOrDistances)
     {
-        String file_name = "list.m";
+        String file_name;
+        if(speedOrDistances == 0) {
+            file_name ="distances.m";
+        }
+        else
+        {
+            file_name ="speeds.m";
+        }
         char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
         try {
             FileWriter fstream = new FileWriter(file_name);
@@ -70,7 +80,13 @@ public class FileUtil {
             }
             out.write("title('Car distances to the junction')");
             out.newLine();
-            out.write("ylabel('distance')");
+            if(speedOrDistances == 0) {
+                out.write("ylabel('distance')");
+            }
+            else
+            {
+                out.write("ylabel('speed')");
+            }
             out.newLine();
             out.write("xlabel('Simulation time')");
             out.newLine();
@@ -82,7 +98,8 @@ public class FileUtil {
             System.out.println(e.getMessage());
         }
     }
-    public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond)
+    public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond,long timeOfsimulation,
+                            Map<Integer,Float> avspeed, Map<Integer, Pair<Point3f,Float>> lenghtOfjourney)
     {
         String file_name = "report.txt";
         try {
@@ -90,8 +107,51 @@ public class FileUtil {
             BufferedWriter out = new BufferedWriter(fstream);
             out.write("Number of collisions is :" + numberOfCollisions);
             out.newLine();
-            out.write("Number of vehicles travelling throw junction per seccond is :" + numberOfVehiclesPerSecond);
+            out.write("Number of vehicles travelling throw junction per seccond is: " + numberOfVehiclesPerSecond);
+            out.newLine();
+            out.write("Time of simulation was: " + timeOfsimulation / 1000);
+            out.newLine();
+            out.write("Maximum number of cars in simulation are: " + Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", 40));
+            out.newLine();
+            out.write("Sumo simulation: " + Configurator.getParamBool("highway.dashboard.sumoSimulation", true));
+            if(!Configurator.getParamBool("highway.dashboard.sumoSimulation", true))
+            {
+                out.newLine();
+                out.write("Random routes: " + Configurator.getParamBool("highway.rvo.agent.randomRoutes", true));
+            }
+            out.newLine();
+            out.write("Distance to activate narowing mod: " + Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400));
+            out.newLine();
+            out.write("Safety reserve distance: " + Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance", 4.0)
+            );
+            out.newLine();
+            out.write("Simulator used: " + Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).get(0));
+            out.newLine();
+            float distance = 1200;
+            out.write("Distance traveled: " + distance);
+            out.newLine();
+          /*  out.write("Avarage speed is: "+ (distance/timeOfsimulation)*3.6 + " km/h");
+            out.newLine();*/
+            final XMLReader reader = XMLReader.getInstance();
+            File flowsFile = new File(reader.getFile(Utils.getResourceUrl(Configurator.getParamString("highway.net.folder", "nets/junction-big/")), ".flows.xml"));
+            Scanner sc = new Scanner(flowsFile);
+            while (sc.hasNextLine()) {
+                String s = sc.nextLine();
+                out.write(s);
+                out.newLine();
+            }
+            sc.close();
+
+            for (Map.Entry<Integer, Float> obj : avspeed.entrySet())
+            {
+
+                out.write("id: " + obj.getKey() + " route: " + reader.getRoutes().get(obj.getKey())
+                        + " avspeed: " + obj.getValue() + " distance traveled: " +
+                        lenghtOfjourney.get(obj.getKey()).getValue());
+                out.newLine();
+            }
             out.close();
+
             System.out.println("Report created successfully.");
         }
      catch (Exception e) { // TODO Improve this
