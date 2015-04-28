@@ -105,6 +105,8 @@ public class FileUtil {
         try {
             FileWriter fstream = new FileWriter(file_name);
             BufferedWriter out = new BufferedWriter(fstream);
+            out.write("Name of the scenario is: " + Configurator.getParamString("highway.net.folder", "nets/junction-big/"));
+            out.newLine();
             out.write("Number of collisions is :" + numberOfCollisions);
             out.newLine();
             out.write("Number of vehicles travelling throw junction per seccond is: " + numberOfVehiclesPerSecond);
@@ -141,13 +143,36 @@ public class FileUtil {
                 out.newLine();
             }
             sc.close();
-
+            Map<List<String>,Pair<Integer,Float>> averageJourneySpeed = new HashMap<List<String>, Pair<Integer,Float>>();
             for (Map.Entry<Integer, Float> obj : avspeed.entrySet())
             {
-
+                Pair<Integer, Float> integerFloatPair = averageJourneySpeed.get(reader.getRoutes().get(obj.getKey()));
+                Float newSpeed;
+                Integer newNumber;
+                if(integerFloatPair == null)
+                {
+                    newSpeed = obj.getValue();
+                    newNumber = 1;
+                }
+                else
+                {
+                    Float originalavspeed = integerFloatPair.getValue();
+                    Integer originalnumer = integerFloatPair.getKey();
+                    newSpeed = originalavspeed + obj.getValue();
+                    newNumber = originalnumer+1;
+                }
+                averageJourneySpeed.put(reader.getRoutes().get(obj.getKey()),new Pair<Integer, Float>(newNumber,newSpeed));
                 out.write("id: " + obj.getKey() + " route: " + reader.getRoutes().get(obj.getKey())
                         + " avspeed: " + obj.getValue() + " distance traveled: " +
                         lenghtOfjourney.get(obj.getKey()).getValue());
+                out.newLine();
+            }
+            out.newLine();
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : averageJourneySpeed.entrySet())
+            {
+                Float spped = obj.getValue().getValue()/obj.getValue().getKey();
+
+                out.write("Journey: " + obj.getKey() + " avspeed: " + spped);
                 out.newLine();
             }
             out.close();

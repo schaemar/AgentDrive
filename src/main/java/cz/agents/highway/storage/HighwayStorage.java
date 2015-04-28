@@ -108,7 +108,7 @@ public class HighwayStorage extends EventBasedStorage {
         } else if (agentClassName.equals("SDAgent")) {
             agent = new SDAgent(id);
         } else if (agentClassName.equals("GSDAgent")) {
-            agent = new GSDAgent(id, (HighwayEnvironment) getEnvironment());
+            agent = new GSDAgent(id);
 
         } else if (agentClassName.equals("ADPPAgent")) {
             agent = new ADPPAgent(id);
