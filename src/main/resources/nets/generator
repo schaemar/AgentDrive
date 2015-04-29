@@ -3,7 +3,7 @@
 # Utility for easier manipulation with the SUMO network/routes files
 
 # Directory where SUMO has all his files
-SUMO_HOME=/opt/sumo-0.21.0
+SUMO_HOME=/home/david/Highway/maps/sumo-0.22.0
 # Class of edges which should be ommited while exporting from OSM
 OMIT_EDGES="hov,taxi,bus,delivery,transport,lightrail,cityrail,rail_slow,rail_fast,motorcycle,bicycle,pedestrian"
 # SUMO scripts
@@ -55,7 +55,7 @@ show_help() {
       echo -e "\t-f, --file FILE\t\tSUMO .net.xml file"
       echo -e "\t-o, --output FILE\tWrite output to the file specified instead of the default"
       echo -e "\t-g, --generate\t\tGenerate uniform probability distribution at each junction"
-      echo -e "\t-t, --type TYPE\t\tUse given type of route generation. Currently supported are 'random' - random routes (default), 'turns' - turn probabilities"
+      echo -e "\t-t, --type TYPE\t\tUse given type of route generation. Currently supported are 'random' - random routes (default), 'turns' - turn probabilities, 'flows' - routes based on flows"
       echo -e "\t--turns TURNFILE\tRead the turn probabilities from given file"
       echo -e "\t--flows FLOWFILE\tRead the flow definitions from given file"
       ;;
@@ -183,6 +183,13 @@ routes() {
         sumo_exec $SUMO_HOME$RANDOM_TRIPS -n $file -e 50 -p 0.1 -L -l -o $tripsFile
         sumo_exec $DUAROUTER --trip-files=$tripsFile --net=$file  --output-file=$output --ignore-errors --routing-algorithm=astar -W
         ;;
+      flows)
+      if [ -z "$flowsFile" ]; then
+          flowsFile="${file%%.net.xml}.flows.xml"
+      fi
+	  sumo_exec $DUAROUTER --net-file $file --flow-files $flowsFile --output-file $output --ignore-errors --routing-algorithm=astar -W
+	  fix_ids $output
+      ;;
     esac
 
     # Create the SUMO config file for simulation

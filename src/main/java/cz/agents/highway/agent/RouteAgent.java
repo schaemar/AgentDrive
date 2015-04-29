@@ -75,7 +75,7 @@ public class RouteAgent extends Agent {
     public List<Action> translate(CarManeuver maneuver) {
         if (maneuver == null) {
             LinkedList<Action> actions = new LinkedList<Action>();
-            if(navigator.getLane() == null) {
+            if(navigator.isMyLifeEnds()) {
                 actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
                 return actions;
             }
@@ -108,6 +108,7 @@ public class RouteAgent extends Agent {
     //TODO Code duplicate with route agent
     //TODO use point close enough method from original Maneuver Translator
     //TODO bug when changing edge too early co narrowing mode stops working because car think that it is already on the another route but it is not
+        // MAYBE RESOLVED, viz commented code
     private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
@@ -128,41 +129,13 @@ public class RouteAgent extends Agent {
         //how many waiponts ahead will be chcecked depending on the update time
         maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
         if (maxMove < 10) maxMove = 10;
-    /*    String uniqueIndex = navigator.getUniqueLaneIndex();
-        // finding the nearest wayipont, if changing lane, set the first of the new lane.
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-            navigator.advanceInRoute();
-        }
-        // finding the nearest waipoint in the new lane.
-        if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-            float initialPos = position2D.distance(navigator.getRoutePoint());
-            do {
-                navigator.advanceInRoute();
-            } while (position2D.distance(navigator.getRoutePoint()) < initialPos);
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
-                navigator.advanceInRoute();
-            }
-         //   navigator.setCheckpoint();
-
-        }
-
-        // waipoint not found, reset back
-        if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-            navigator.resetToCheckpoint();
-        } else {
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
-                navigator.advanceInRoute();
-            }
-        //    navigator.setCheckpoint();
-        }
-    */
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+        while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.advanceInRoute();
         }
         if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.resetToCheckpoint();
         } else {
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+            while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
             //    navigator.setCheckpoint();
@@ -184,15 +157,12 @@ public class RouteAgent extends Agent {
         //TODO fix than distance of waipoints is different than 1
         for (int i = 0; i <= maneuver.getPositionOut() || i < wpCount; i++) {
             // move 3 waipoints ahead
-            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
-                boolean myPlanEnding = navigator.advanceInRoute();
-                if(!myPlanEnding)
-                {
-                    actions = new LinkedList<Action>();
-                    Point2f initial = navigator.getInitialPosition();
-                    actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), -1));
-                    return actions;
-                }
+            while (navigator.isMyLifeEnds() == false && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
+            navigator.advanceInRoute();
+            }
+            if(navigator.isMyLifeEnds()) {
+                actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+                return actions;
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);
@@ -235,11 +205,14 @@ public class RouteAgent extends Agent {
         return actions;
 
     }
-
+    //TODO FIX CODE DUPLICATE
     private List<Action> generateWaypointInLane() {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
-
+        if(navigator.isMyLifeEnds()) {
+            actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+            return actions;
+        }
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
         int wpCount = (int) me.getVelocity().length() + 1; // how many waypoints before me will be calculated.
@@ -256,42 +229,30 @@ public class RouteAgent extends Agent {
         //how many waiponts ahead will be chcecked depending on the update time
         maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
         if (maxMove < 10) maxMove = 10;
-        String uniqueIndex = navigator.getUniqueLaneIndex();
-        // finding the nearest wayipont, if changing lane, set the first of the new lane.
-        while (maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+        while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.advanceInRoute();
         }
-        // finding the nearest waipoint in the new lane.
-        if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-            float initialPos = position2D.distance(navigator.getRoutePoint());
-            do {
-                navigator.advanceInRoute();
-            } while (position2D.distance(navigator.getRoutePoint()) < initialPos);
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
-                navigator.advanceInRoute();
-            }
-            navigator.setCheckpoint();
-
-        }
-
-        // waipoint not found, reset back
-        if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+        if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
             navigator.resetToCheckpoint();
         } else {
-            while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+            while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
-            navigator.setCheckpoint();
+            //    navigator.setCheckpoint();
         }
+        navigator.setCheckpoint();
         waypoint = navigator.getRoutePoint();
-
-
+        
         double minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         //TODO fix than distance of waipoints is different than 1
         for (int i = 0; i < wpCount; i++) {
             // move 3 waipoints ahead
-            while (waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
+            while (navigator.isMyLifeEnds() == false && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND){
                 navigator.advanceInRoute();
+            }
+            if(navigator.isMyLifeEnds()) {
+                actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+                return actions;
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);

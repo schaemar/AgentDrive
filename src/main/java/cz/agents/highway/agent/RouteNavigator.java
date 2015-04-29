@@ -26,20 +26,21 @@ public class RouteNavigator {
     private int pointPtr;
     private int routePtr;
     private Lane agentLane;
+    private boolean myLifeEnds;
 
     /// Route represented as a list of edges, that the car should visit
     private List<Edge> route = new ArrayList<Edge>();
 
     public RouteNavigator(int id) {
         this.id = id;
-        if (Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
+        if (!Configurator.getParamBool("highway.dashboard.sumoSimulation",true) && Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
             initRoute();
         }
         else
         {
             initRoute(id);
         }
-
+        myLifeEnds = false;
     }
 
     public void reset() {
@@ -47,11 +48,16 @@ public class RouteNavigator {
         routePtr = 0;
         agentLane = route.get(0).getLaneByIndex(0);
     }
+    public void resetPointPtr()
+    {
+        pointPtr = 0;
+    }
     public void hardReset()
     {
         pointPtr = 0;
         route = new ArrayList<Edge>();
-        if (Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
+        myLifeEnds = false;
+        if (!Configurator.getParamBool("highway.dashboard.sumoSimulation",true) && Configurator.getParamBool("highway.rvo.agent.randomRoutes", true).equals(true)) {
             initRoute();
         }
         else
@@ -113,17 +119,17 @@ public class RouteNavigator {
      * Method for advancing in route. First it checks if there is the end of the lane, if it is than try to switch lanes.
      * if this does not succeed than tries to switch to the another edge.
      */
-    public boolean advanceInRoute() {
+    public void advanceInRoute() {
         if (pointPtr >= agentLane.getInnerPoints().size() - 1) {
             // We are at the end of the lane
             if (routePtr >= route.size() - 1) { // end of the plan
-                routePtr = -1;
-                pointPtr = -1;
+               // routePtr = -1;
+               // pointPtr = -1;
               //  agentLane = route.get(0).getLaneByIndex(0);
-                agentLane = null;
-                return false;
+              //  agentLane = null;
+                myLifeEnds = true;
             } else {
-                Lane nextLane = getNeighbourLane(route.get(routePtr)); //check for neighbour lane
+                Lane nextLane = getNeighbourLane(); //check for neighbour lane
 
                 int desiredPoint = getDesiredNeighbourLinePoint(nextLane);
                 if (desiredPoint == -1)  //neighbour lane is shorter than my lane or does not exist
@@ -145,7 +151,6 @@ public class RouteNavigator {
         } else {
             pointPtr++;
         }
-    return true;
     }
 
     private int getDesiredNeighbourLinePoint(Lane nextLane) {
@@ -166,7 +171,7 @@ public class RouteNavigator {
         return ii;
     }
 
-    private Lane getNeighbourLane(Edge edge) {
+    public Lane getNeighbourLane() {
         Lane neighbourLane = agentLane.getLaneLeft();
         if (neighbourLane == null) {
             // Try right lane
@@ -274,5 +279,13 @@ public class RouteNavigator {
 
     public List<Edge> getRoute() {
         return route;
+    }
+
+    public boolean isMyLifeEnds() {
+        return myLifeEnds;
+    }
+
+    public void setMyLifeEnds(boolean myLifeEnds) {
+        this.myLifeEnds = myLifeEnds;
     }
 }

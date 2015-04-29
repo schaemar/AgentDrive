@@ -4,10 +4,10 @@ import java.util.*;
 
 import javax.vecmath.*;
 
-import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Junction;
 import cz.agents.highway.environment.roadnet.Lane;
+import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.protobuf.generated.simplan.VectorProto;
 import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Logger;
@@ -49,12 +49,11 @@ public class GSDAgent extends RouteAgent {
 
     private int numberOfCollisions=0;
     private CarManeuver currentManeuver = null;
+    private boolean narrowingMode = false;
 
     // maximal speed after variance application
     private final double initialMaximalSpeed = (RandomProvider.getRandom().nextDouble() - 0.5) * 2 *MAX_SPEED_VARIANCE * MAX_SPEED  + MAX_SPEED;
     private double maximalSpeed = initialMaximalSpeed;
-
-    private HighwayEnvironment highwayEnvironment;
     private Edge myEdge;
     private Lane myLane;
     @Override
@@ -69,10 +68,9 @@ public class GSDAgent extends RouteAgent {
         return new ManeuverAction(sensor.getId(), man.getStartTime() / 1000.0, man.getVelocityOut(), man.getLaneOut(), man.getDuration());
     }
 
-    public GSDAgent(int id, HighwayEnvironment hgw) { // TODO don't use whole HighwayEnviroment in agent
+    public GSDAgent(int id) { // TODO don't use whole HighwayEnviroment in agent
         super(id);
         num_of_lines = 1;
-        this.highwayEnvironment = hgw;
     }
     /*
     public void predictNext(HighwaySituation situationPrediction, RoadObject car, long predictionEndTime) {
@@ -92,13 +90,14 @@ public class GSDAgent extends RouteAgent {
         }
         if(navigator.getLane() == null)
         {
-            logger.info("My id is " + this.id + " number of colisions is " + numberOfCollisions);
-
-          /*  highwayEnvironment.getStorage().removeAgent(this.id);*/
-            highwayEnvironment.getStorage().getPosCurr().remove(this.id);
-         //   highwayEnvironment.getStorage().recreate(this.id);
             return null;
         }
+       /* if(navigator.isMyLifeEnds() == true)
+        {
+            logger.info("My id is " + this.id + " number of colisions is " + numberOfCollisions);
+            highwayEnvironment.getStorage().addForInsert(this.id);
+            return null;
+        }*/
        // logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
       //  logger.debug("Situation: " + situationPrediction);
@@ -115,19 +114,29 @@ public class GSDAgent extends RouteAgent {
 
         int preferredLane = 0;
        // logger.debug("PreferredLane: " + preferredLane);
-
-        if (currentManeuver != null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
+        /*
+        Original order of maneuvers
+        1. in maneuver left so continu that maneuver
+        2. in maneuver right so continue that maneuver
+        3. try to switch right
+        4. try to accelerate
+        5. try to not to change anything
+        6. try to to switch left
+        7. try to decelerate
+        */
+     /*   if (currentManeuver != null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
             maneuver = left;
         } else if (currentManeuver != null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
             maneuver = right;
         } else {
-            if (isSafeMan(currState, right, situationPrediction)) {
+            */
+            if (!narrowingMode && isSafeMan(currState, right, situationPrediction)) {
                 maneuver = right;
             } else if (isSafeMan(currState, acc, situationPrediction)) {
                 maneuver = acc;
             } else if (isSafeMan(currState, str, situationPrediction)) {
                 maneuver = str;
-            } else if (isSafeMan(currState, left, situationPrediction)) {
+            } else if (!narrowingMode && isSafeMan(currState, left, situationPrediction)) {
                 maneuver = left;
             } else if (isSafeMan(currState, dec, situationPrediction)) {
                 maneuver = dec;
@@ -135,7 +144,6 @@ public class GSDAgent extends RouteAgent {
                 logger.info("Nothing is safe, shouldnt happen!");
                 maneuver = dec;
             }
-        }
         //testing scenario
         /*if(currState.getId() == 0 && navigator.getActualPointer() > 5)
         {
@@ -246,7 +254,6 @@ public class GSDAgent extends RouteAgent {
 
     private double safeDistance(double a0, double v0, double v1) {
         double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
-    //    double safeDist = v0*2;
         return safeDist;
     }
 
@@ -432,7 +439,7 @@ public class GSDAgent extends RouteAgent {
         //FAST SOLUTION
         myLane = navigator.getLane();
         //SLOW
-       // myLane = highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
+      //  myLane = highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
 
         myEdge = myLane.getEdge();
         num_of_lines = myEdge.getLanes().size();
@@ -457,7 +464,7 @@ public class GSDAgent extends RouteAgent {
 
         Lane entryLane =null;
         int numberOfLanes = myEdge.getLanes().size();
-        Junction myNearestJunction = highwayEnvironment.getRoadNetwork().getJunctions().get(myEdge.getTo());
+        Junction myNearestJunction = Network.getInstance().getJunctions().get(myEdge.getTo());
 
         //TODO use config for this
         Point2f junctionwaypoint = myNearestJunction.getCenter();
@@ -469,15 +476,16 @@ public class GSDAgent extends RouteAgent {
 
             Point2f intersectionWaypoint = junctionwaypoint;
             ArrayList<CarManeuver> predictedManeuvers;
-            entryLane = highwayEnvironment.getRoadNetwork().getLane(entry.getPosition());
+
+            entryLane =Network.getInstance().getLane(entry.getPosition());
             //TODO Fix this if else structur
-            if(myNearestJunction.equals(highwayEnvironment.getRoadNetwork().getJunctions().get(entryLane.getEdge().getTo()))) {
+            if(myNearestJunction.equals(Network.getInstance().getJunctions().get(entryLane.getEdge().getTo()))) {
                 if (nearTheJunction)
                 {
-
+                    narrowingMode = true;
                     //TODO maybe better implementation that does not use highway storage
                     //TODO Optimilize to run this once
-                    Map<Integer, Agent> agents = highwayEnvironment.getStorage().getAgents();
+                    Map<Integer, Agent> agents = sensor.getStorage().getAgents();
                     GSDAgent entryAgent = (GSDAgent)agents.get(entry.getId());
                     if(!entryAgent.navigator.getFollowingEdgesInPlan().isEmpty() && !navigator.getFollowingEdgesInPlan().isEmpty()) {
                         Edge entryNextEdge = entryAgent.navigator.getFollowingEdgesInPlan().iterator().next();
@@ -493,7 +501,7 @@ public class GSDAgent extends RouteAgent {
                             continue;
                         } else if (newCenter != null && !myLane.equals(entryLane)) {
                             //TODO fix this hotfix, probably in route agent.
-                            if (junctionwaypoint.distance(newCenter) < 10) {
+                            if (junctionwaypoint.distance(newCenter) < 30) {
                                 intersectionWaypoint = new Point2f((newCenter.x + junctionwaypoint.x) / 2, (newCenter.y + junctionwaypoint.y) / 2);
                             }
                             /*else {
@@ -524,8 +532,11 @@ public class GSDAgent extends RouteAgent {
                             //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
                             StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
                             situationPrediction.trySetCarAheadManeuver(man);
-                            situationPrediction.trySetCarRightAheadMan(man);
+                          /*  situationPrediction.trySetCarRightAheadMan(man);
                             situationPrediction.trySetCarLeftAheadMan(man);
+
+                            situationPrediction.trySetCarRightMan(man);
+                            situationPrediction.trySetCarLeftMan(man);*/
                         }
                         else if(entryDistance == myDistance) //TODO check this
                         {
@@ -534,13 +545,21 @@ public class GSDAgent extends RouteAgent {
                             {
                                 StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
                                 situationPrediction.trySetCarAheadManeuver(man);
-                                situationPrediction.trySetCarRightAheadMan(man);
-                                situationPrediction.trySetCarLeftAheadMan(man);
+                              /*  situationPrediction.trySetCarRightAheadMan(man);
+                                situationPrediction.trySetCarLeftAheadMan(man);*/
                             }
                         }
+                       /* else if(entryDistance > myDistance)
+                        {
+                            StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
+                            situationPrediction.trySetCarRightMan(man);
+                            situationPrediction.trySetCarLeftMan(man);
+
+                        }*/
                     }
 
                 } else {
+                    narrowingMode = false;
                     if (entryLane.getEdge().equals(myEdge)) {
                         predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, null);
                         situationPrediction.addAll(predictedManeuvers);
@@ -644,10 +663,10 @@ public class GSDAgent extends RouteAgent {
         ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();
         // TODO add a part of plan that is between from and to
         CarManeuver lastManeuver;
-        lastManeuver = new DeaccelerationManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane,rem), (long) (car.getUpdateTime() * 1000));
+        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistanceBetweenTwoRoadObjects(me,myLane,car,hisLane,rem), (long) (car.getUpdateTime() * 1000));
         plan.add(lastManeuver);
         while (lastManeuver.getEndTime() <= to) {
-            lastManeuver = new DeaccelerationManeuver(lastManeuver);
+            lastManeuver = new StraightManeuver(lastManeuver);
             plan.add(lastManeuver);
         }
 

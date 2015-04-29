@@ -50,4 +50,11 @@ public class RoadObject {
                 + ", pos=" + position + ", v=" + velocity + "]";
     }
 
+    public void setPosition(Point3f position) {
+        this.position = position;
+    }
+
+    public void setVelocity(Vector3f velocity) {
+        this.velocity = velocity;
+    }
 }

@@ -35,10 +35,6 @@ import java.util.*;
  */
 public class DashBoardController extends DefaultCreator implements EventHandler, Creator {
     private final Logger logger = Logger.getLogger(DashBoardController.class);
-
-    private final float SAVE_DISTANCE = 10;
-    private LinkedList<Point2f> initPos = new LinkedList<Point2f>();
-    private  int numberOfCarsInSimulation;
     /**
      * This class is responsible for sending simulator an appropriate plans and updates
      */
@@ -67,7 +63,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         }
 
         public boolean isReady() {
-            return plans.getCarIds().size() >= plannedVehicles.size();
+            return plans.getCarIds().size() >= highwayEnvironment.getStorage().getPosCurr().size();
         }
 
         public int numberOfVehicles() {
@@ -125,7 +121,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             RadarData radarData = new RadarData();
             float duration = 0;
             float lastDuration = 0;
-            int timestep = Configurator.getParamInt("highway.SimulatorLocal.timestep", 1);
+            double timest = Configurator.getParamDouble("highway.SimulatorLocal.timestep",1.0);
+            float timestep = (float)timest;
 
             boolean removeCar = false;
             for (Integer carID : plans.getCarIds()) {
@@ -168,9 +165,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 }
                 if(removeCar)
                 {
-                    highwayEnvironment.getStorage().removeAgent(carID);
-                    highwayEnvironment.getStorage().getPosCurr().remove(carID);
-                    plannedVehicles.remove(carID);
+                    if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+                        plannedVehicles.remove(carID);
                     removeCar = false;
                 }
                 else
@@ -224,8 +220,17 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         final XMLReader reader = XMLReader.getInstance();
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();
-       // final int size = vehicles.size();
-        final int size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
+        final Map<Integer, Float> departures = reader.getDepartures();
+        // final int size = vehicles.size();
+        final int size;
+        if(!Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+        {
+            size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
+        }
+        else
+        {
+            size = vehicles.size();
+        }
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
         // Divide vehicles evenly to the simulators
@@ -237,58 +242,33 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             public void invoke(ProtobufFactory factory) {
                 Iterator<Integer> vehicleIt = vehicles.iterator();
                 PlansOut plans = new PlansOut();
-                RadarData update = new RadarData();
+             //   RadarData update = ;
                 Map<Integer, Agent> agents = storage.getAgents();
                 Set<Integer> plannedVehicles = new HashSet<Integer>();
-
+                int sizeL = size;
+                if(size > vehicles.size()) sizeL = vehicles.size();
                 // Iterate over all configured vehicles
 
-                for (int i = 0; i < size; i++) {
+                for (int i = 0; i < sizeL; i++) {
                     int vehicleID = vehicleIt.next();
-                    // Create agent for every single vehicle
-                    Agent agent;
-                    if (agents.containsKey(vehicleID)) {
-                        agent = agents.get(vehicleID);
-                    } else {
-                        agent = storage.createAgent(vehicleID);
+                    if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+                    {
+                        storage.addForInsert(vehicleID,departures.get(vehicleID));
                     }
-
-                    Point2f position = agent.getNavigator().next();
-                    for (int j = 0; j < initPos.size(); j++) {
-                        while (!saveDistance(initPos.get(j), position)) {
-                            position = agent.getNavigator().next();
-                        }
+                    else {
+                        storage.addForInsert(vehicleID);
                     }
-                    initPos.add(position);
-                    Point3f initialPosition = new Point3f(position.x, position.y, 0);
-                    Point2f next = agent.getNavigator().nextWithReset();
-                    Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-                    logger.info("" + initialVelocity);
-                    int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
-
-
                     if (factory!= null && i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
-                        //  logger.info("OndraTest - created car " + new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
-                        plans.addAction(new WPAction(vehicleID, 0d, initialPosition, initialVelocity.length()));
-                        plans.addAction(new WPAction(vehicleID, 0d, new Point3f(next.x, next.y, 0), initialVelocity.length()));
                         plannedVehicles.add(vehicleID);
                     } else {
-                        update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
+                        plannedVehicles.add(vehicleID);
                     }
                 }
-                    if(factory != null)
-                    {
+
+                if(factory != null)
+                {
                     // Create new simulator handler
                     simulatorHandlers.add(new SimulatorHandler(factory, plannedVehicles));
-
-                    try {
-                        // Send client the 'init'
-                        factory.send(plans);
-                        factory.send(update);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
                     // This is the last simulator, start the simulation
                     if (section >= simulatorCount) {
                         synchronized (simulation) {
@@ -300,9 +280,9 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 }
                 else
                 {
-                    simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(vehicles)));
-                    storage.updateCars(update);
+                    simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(plannedVehicles)));
                 }
+                storage.updateCars(new RadarData());
             }
         };
         if(simulatorCount == 0) col.invoke(null);
@@ -350,7 +330,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         } else if (event.isType(HighwayEventType.NEW_PLAN)) {
             List<Action> actions = (List<Action>) event.getContent();
             int id = actions.get(0).getCarId();
-
+            if (!highwayEnvironment.getStorage().getPosCurr().containsKey(id)) return;
             for (SimulatorHandler handler : simulatorHandlers) {
                 if (handler.hasVehicle(id)) {
                     handler.addActions(id, actions);
@@ -382,10 +362,5 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         if (!launchScript.isEmpty()) {
             simulators.put(name, new ProcessBuilder().inheritIO().command(parts).start());
         }
-    }
-
-    private boolean saveDistance(Point2f p1, Point2f p2) {
-        Vector2f v = new Vector2f(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
-        return v.length() > SAVE_DISTANCE;
     }
 }
