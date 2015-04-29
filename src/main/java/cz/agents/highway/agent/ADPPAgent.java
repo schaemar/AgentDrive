@@ -27,6 +27,8 @@ import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.WPAction;
 import cz.agents.highway.vis.AgentColors;
+import cz.agents.highway.vis.RegionsLayer;
+import cz.agents.highway.vis.TimeParameter;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
@@ -37,8 +39,6 @@ import org.jgrapht.util.HeuristicToGoal;
 import tt.euclid2d.Line;
 import tt.euclid2d.Point;
 import tt.euclid2d.vis.ProjectionTo2d;
-import tt.euclidtime3i.vis.TimeParameter;
-import tt.euclidtime3i.vis.TimeParameterProjectionTo2d;
 import tt.vis.GraphLayer;
 import tt.vis.ParameterControlLayer;
 
@@ -59,19 +59,56 @@ import java.util.List;
 public class ADPPAgent extends Agent {
     private static final int RADIUS = 2;
     private static final float[] SPEEDS = new float[] {1};
-    private static final double WAIT_PENALTY = 0.1;
+    private static final double WAIT_PENALTY = 0.001;
     private static final double MOVE_PENALTY = 0.01;
     private static final double WAIT_DURATION = 1d;
     private static final double MAX_ACC = 2d;
     private static final double MAX_SPEED = 5d;
-    private static final double REPLAN_THRESHOLD = 3d;
-    private static final int MAX_TIME = 10;
+    private static final int MAX_TIME = 7;
+    private static final int SAFE_MANEUVER_TIME = 3;
     private static final Timer globalTimer = new Timer(true);
-    private static final TimeParameter timeParameter = new TimeParameter();
-    private static float maxTime = -1;
+    private static TimeParameter timeParameter = null;
     private static int nOfReplans = 0;
 
-    DirectedGraph<Point, Line> spatialGraph;
+    public static class GroupTimer {
+        private Timer expansion, obstacles, loop, waiting, trajectory;
+        private double expansionSum = 0, obstaclesSum = 0, loopSum = 0, waitingSum = 0, trajectorySum = 0;
+
+        public GroupTimer() {
+            expansion = new Timer(false);
+            obstacles = new Timer(false);
+            loop      = new Timer(false);
+            waiting   = new Timer(false);
+            trajectory = new Timer(false);
+        }
+
+        public void resetSum() {
+            expansionSum = obstaclesSum = loopSum = waitingSum = 0;
+        }
+
+        public void startExpansion() { expansion.reset(); }
+        public void measureExpansion() { expansionSum += expansion.getRawElapsedTime(); }
+
+        public void startObstacles() { obstacles.reset(); }
+        public void measureObstacles() { obstaclesSum += obstacles.getRawElapsedTime(); }
+
+        public void startLoop() { loop.reset(); }
+        public void measureLoop() { loopSum += loop.getRawElapsedTime(); }
+
+        public void startWaiting() { waiting.reset(); }
+        public void measureWaiting() { waitingSum += waiting.getRawElapsedTime(); }
+
+        public void startTrajectory() { trajectory.reset(); }
+        public void measureTrajectory() { trajectorySum += trajectory.getRawElapsedTime(); }
+
+        public void printResults() {
+            System.out.println("Measurements: Expansion: "+expansionSum+", obstacles: "+obstaclesSum+", loop: "+loopSum+", waiting: "+waitingSum+", trajectory: "+trajectorySum);
+        }
+    }
+
+    public static final GroupTimer TIMER = new GroupTimer();
+
+    RoadNetWrapper spatialGraph;
     DirectedGraph<Point4d, Straight> planningGraph;
 
     private PriorityRelation priorityRelation;
@@ -79,6 +116,7 @@ public class ADPPAgent extends Agent {
 
     Timer timer = new Timer(false);
 
+    private double maxTime = -1;
     Trajectory trajectory;
     VisLayer trajectoryLayer = null;
     VisLayer movingRegionLayer = null;
@@ -101,7 +139,7 @@ public class ADPPAgent extends Agent {
     boolean verbose = false;
 
     public ADPPAgent(int id) {
-        this(id, SPEEDS, WAIT_PENALTY, MOVE_PENALTY, "perfect", WAIT_DURATION, true, true, false);
+        this(id, SPEEDS, WAIT_PENALTY, MOVE_PENALTY, "perfect", WAIT_DURATION, false, true, false);
     }
 
     public ADPPAgent(int id, float[] speeds, double waitPenalty, double movePenalty,
@@ -118,16 +156,18 @@ public class ADPPAgent extends Agent {
         spatialGraph = RoadNetWrapper.create(navigator.getUniqueLaneIndex());
         VisLayer graphLayer;
 
-        if (id == 1 && vis) {
+//        if (id == 1 && vis) {
+        if (timeParameter == null) {
+            timeParameter = new TimeParameter();
             VisManager.registerLayer(ParameterControlLayer.create(timeParameter));
-            graphLayer = KeyToggleLayer.create("g", true, GraphLayer.create(new GraphLayer.GraphProvider<Point, Line>() {
-                @Override
-                public Graph<Point, Line> getGraph() {
-                    return spatialGraph;
-                }
-            }, new ProjectionTo2d(), Color.BLUE, Color.RED, 2, 3));
-            VisManager.registerLayer(graphLayer);
         }
+        graphLayer = KeyToggleLayer.create("g", false, GraphLayer.create(new GraphLayer.GraphProvider<Point, Line>() {
+            @Override
+            public Graph<Point, Line> getGraph() {
+                return spatialGraph;
+            }
+        }, new ProjectionTo2d(), Color.BLUE, Color.RED, 2, 3));
+        VisManager.registerLayer(graphLayer);
     }
 
 
@@ -140,8 +180,8 @@ public class ADPPAgent extends Agent {
                 if (event.getType().equals(HighwayEventType.UPDATED)) {
                     finalPlans.clear();
                     planSent = false;
-                    RoadObject me = sensor.senseCurrentState();
-                    time = me.getUpdateTime() / 1000;
+//                    time = event.getTime() / 1000;
+                    time = sensor.senseCurrentState().getUpdateTime() / 1000;
                     if (shouldReplan()) {
                         replan();
                     } else if (trajectory != null && !replanTime()) {
@@ -161,6 +201,8 @@ public class ADPPAgent extends Agent {
                     } else if (allHigherPriorityReady() && id != carId && !planSent) {
                         actuator.act(agentReact());
                     }
+                } else if (event.isType(HighwayEventType.TIMESTEP)) {
+                    timeParameter.setTime((int)event.getTime()*RegionsLayer.PRECISION/1000);
                 }
             }
         });
@@ -193,52 +235,32 @@ public class ADPPAgent extends Agent {
         RoadObject me = sensor.senseCurrentState(); // my current state
         Point2d pos2D = new Point2d(me.getPosition().x, me.getPosition().y);
 
-        // Goal not reached yet
-//        if (goal == null || pos2D.distance(goal) > 1) {
+        print("PLANNING");
 
-//            if (trajectory != null && time > trajectory.getMaxTime() - REPLAN_THRESHOLD) {
-//                print("THRESHOLD REACHED, REPLANNING");
-//                needsReplan = true;
-//            }
-//            if (needsReplan) {
-            print("PLANNING");
+        List<Region> movingObstacles = new LinkedList<Region>();
 
-            List<Region> movingObstacles = new LinkedList<Region>();
+        // Add trajectories of higher priority agents to the moving obstacle list
+        addTrajectoriesOfHigherPriority(movingObstacles);
 
-            // Add trajectories of higher priority agents to the moving obstacle list
-            addTrajectoriesOfHigherPriority(movingObstacles);
+        // Allow lower priority agents to perform safe maneuver
+        allowSafeManeuver(movingObstacles);
 
-            // Allow lower priority agents to perform safe maneuver
-            allowSafeManeuver(movingObstacles);
-
-//            for (Region obstacle: movingObstacles) {
-//                MovingCircle mc = (MovingCircle) obstacle;
-//                print(mc.getTrajectory().toString());
-//            }
-//                planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[] {speed}, new ArrayList<Region>(agentTrajectories), 1, 1);
-//                planningGraph = new ConstantSpeedTimeExtension(spatialGraph, MAX_TIME, new int[]{speed}, movingObstacles, waitDuration, 1);
-            planningGraph = new DynamicSpeedTimeExtension(spatialGraph, MAX_TIME + time, dynamicConstraint, movingObstacles, waitDuration);
-            planningGraph = new ControlEffortWrapper(planningGraph, movePenalty, waitPenalty);
-            // Do the planning
-            this.plan();
-            needsReplan = false;
+        // New maximal time for the time expansion.
+        maxTime = Math.ceil(MAX_TIME + time + MAX_SPEED/MAX_ACC);
+        planningGraph = new DynamicSpeedTimeExtension(spatialGraph, maxTime, dynamicConstraint, movingObstacles, waitDuration);
+        planningGraph = new ControlEffortWrapper(planningGraph, movePenalty, waitPenalty);
+        // Do the planning
+        this.plan();
+        needsReplan = false;
+        if (trajectory != null) {
             if (movingRegionLayer != null) {
                 VisManager.unregisterLayer(movingRegionLayer);
             }
-            if (trajectory != null) {
-                movingRegionLayer = KeyToggleLayer.create("" + id, true, tt.euclidtime3i.vis.RegionsLayer.create(new tt.euclidtime3i.vis.RegionsLayer.RegionsProvider() {
-
-                    @Override
-                    public Collection<tt.euclidtime3i.Region> getRegions() {
-                        List<tt.euclidtime3i.Region> regions = new ArrayList<tt.euclidtime3i.Region>(1);
-                        regions.add(new tt.euclidtime3i.region.MovingCircle(new DiscreteTrajectoryWrapper(trajectory), RADIUS));
-                        return regions;
-                    }
-                }, new TimeParameterProjectionTo2d(timeParameter), AgentColors.getColorForAgent(id), AgentColors.getColorForAgent(id)));
-                VisManager.registerLayer(movingRegionLayer);
-            }
-//        }
-//        }
+            movingRegionLayer = KeyToggleLayer.create("" + id, true, RegionsLayer.create(
+                    new MovingCircle(trajectory, RADIUS),
+                    timeParameter, Color.BLACK, AgentColors.getColorForAgent(id), id));
+            VisManager.registerLayer(movingRegionLayer);
+        }
 
 
     }
@@ -261,20 +283,26 @@ public class ADPPAgent extends Agent {
     private void addTrajectoriesOfHigherPriority(List<Region> movingObstacles) {
         Map<Integer, Region> trajectories = sensor.senseTrajectories();
         List<Integer> higherPriority = priorityRelation.higherPriority();
+        print("HIGHER PRIORITY");
         for (int id: higherPriority) {
             Region t = trajectories.get(id);
             if (t != null) {
-                movingObstacles.add(t);
+                Region prolonged = prolongTrajectory(t, SAFE_MANEUVER_TIME*MAX_TIME);
+//                print("("+id+"): "+((MovingCircle) prolonged).getTrajectory().toString());
+                movingObstacles.add(prolonged);
             }
         }
     }
 
     private void allowSafeManeuver(List<Region> movingObstacles) {
         List<Integer> lowerPriority = priorityRelation.lowerPriority();
+        print("LOWER PRIORITY");
         for (int id: lowerPriority) {
             RoadObject agent = sensor.senseCar(id);
             if (agent != null) {
-                movingObstacles.add(generateSafeManeuverForAgent(agent));
+                Region region = generateSafeManeuverForAgent(agent);
+//                print("("+agent.getId()+"): "+((MovingCircle) region).getTrajectory().toString());
+                movingObstacles.add(region);
             }
         }
     }
@@ -286,15 +314,38 @@ public class ADPPAgent extends Agent {
      */
     private Region generateSafeManeuverForAgent(final RoadObject agent) {
         List<Straight> traj = new LinkedList<Straight>();
-        Point3f agentPosition = agent.getPosition();
-        SpeedPoint agentPoint = new SpeedPoint(agentPosition.x, agentPosition.y, 0);
-        // Allow agent to stay on the current position
-        for (double t = time; t < 2*MAX_TIME+time; ++t) {
-            traj.add(new Straight(agentPoint, t, agentPoint, t+1));
+        Map<Integer, Region> trajectories = sensor.senseTrajectories();
+        Region agentTrajectory = trajectories.get(agent.getId());
+        if (agentTrajectory == null) {
+            Point3f agentPosition = agent.getPosition();
+            SpeedPoint agentPoint = new SpeedPoint(agentPosition.x, agentPosition.y, 0);
+            // Allow agent to stay on the current position
+            for (double t = time; t < SAFE_MANEUVER_TIME * MAX_TIME + time; ++t) {
+                traj.add(new Straight(agentPoint, t, agentPoint, t + 1));
+            }
 
+            Trajectory trajectory = new BasicSegmentedTrajectory(traj, SAFE_MANEUVER_TIME * MAX_TIME + time);
+            return new MovingCircle(trajectory, RADIUS);
+        } else {
+            return prolongTrajectory(agentTrajectory, SAFE_MANEUVER_TIME*MAX_TIME);
         }
-        Trajectory trajectory = new BasicSegmentedTrajectory(traj, 5*MAX_TIME+time);
-        return new MovingCircle(trajectory, RADIUS);
+    }
+
+    private Region prolongTrajectory(final Region trajectory, int extraTime) {
+        // Prolong the trajectory
+        Trajectory t = ((MovingCircle) trajectory).getTrajectory();
+        List<Straight> segments = ((BasicSegmentedTrajectory)t).getSegments();
+
+        Straight s = segments.get(segments.size() - 1);
+        SpeedPoint p = s.getEnd().getSpeedPoint();
+        double i, tm = s.getEnd().getTime();
+        segments.add(new Straight(p, tm, p, tm+extraTime));
+        return new MovingCircle(new BasicSegmentedTrajectory(segments, tm+extraTime), RADIUS);
+
+    }
+
+    private boolean pointNotInJunction(Point4d point) {
+        return !spatialGraph.isInJunction(point.getPosition());
     }
 
 
@@ -322,14 +373,18 @@ public class ADPPAgent extends Agent {
         timer.reset();
         double speed;
         Point start;
-        speed = currentState.getVelocity().length();
-        Point3f currentPosition = currentState.getPosition();
-        start = new Point(currentPosition.x, currentPosition.y);
-        if (!spatialGraph.containsVertex(start)) {
-            start = findNearestGraphVertex(spatialGraph, start);
+        if (trajectory == null) {
+            speed = 0;
+            Point3f currentPosition = currentState.getPosition();
+            start = new Point(currentPosition.x, currentPosition.y);
+        } else {
+            Point4d nearest = findNearestGraphVertex(spatialGraph);
+            speed = nearest.getSpeed();
+            start = new Point(nearest.x, nearest.y);
         }
+//        }
 
-        print("Start: "+start+", time: "+time);
+        print("Start: "+start+", speed: "+speed+", time: "+time);
         print("Goal: " + goal);
 //        try {
 //            System.in.read();
@@ -339,6 +394,7 @@ public class ADPPAgent extends Agent {
 
         planningGraph = new FreeOnTargetWaitExtension(planningGraph, goal);
         Point4d startPoint = new Point4d(start.x, start.y, speed, time);
+        TIMER.resetSum();
         GraphPath<Point4d, Straight> path = AStarShortestPathSimple.findPathBetween(planningGraph,
                 heuristicToGoal,
             startPoint, new Goal<Point4d>() {
@@ -347,28 +403,29 @@ public class ADPPAgent extends Agent {
                     ++expanded;
 //                    print("Trying: "+point);
 //                    return (point.getTime() >= MAX_TIME+time || goal.distance(point.getPosition()) < 1);
-                    return (point.getTime() >= MAX_TIME+time);
+                    return (point.getTime() >= maxTime && point.getSpeed() < AccelerationDynamicConstraint.SPEED_TOLERANCE
+                    && !spatialGraph.isInJunction(point.getPosition()));
+                    //return (point.getTime() >= maxTime && point.getSpeed() < AccelerationDynamicConstraint.SPEED_TOLERANCE);
 //                    return (goal.distance(point.getPosition()) < 1);
                 }
             });
-        float planTime = timer.getRawElapsedTime();
-        if (planTime > maxTime) {
-            maxTime = planTime;
-        }
-        nOfReplans++;
         print("Path: "+path);
         print("Planning took: " + timer.getElapsedTime() + ", expanded nodes: " + expanded);
+        TIMER.printResults();
 //        print("Maximal time: "+maxTime+", number of replans: "+nOfReplans);
 
+        Region region;
         if (path == null) {
-            trajectory = null;
+//            trajectory = null;
             ++notFound;
-            print("No path found! Sum: "+notFound);
-            return;
+            print("No new path found, using previous one! Sum: "+notFound);
+            region = prolongTrajectory(new MovingCircle(trajectory, RADIUS), SAFE_MANEUVER_TIME*MAX_TIME);
+//            return;
+        } else {
+            print("Trajectory end time: " + path.getEndVertex().getTime());
+            trajectory = new StraightSegmentTrajectory(path, path.getEndVertex().getTime() - time);
+            region = new MovingCircle(trajectory, RADIUS);
         }
-        print("Trajectory end time: "+path.getEndVertex().getTime());
-        trajectory = new StraightSegmentTrajectory(path, path.getEndVertex().getTime()-time);
-        MovingCircle region = new MovingCircle(trajectory, RADIUS);
 
         // Dispatch an event
         actuator.getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_UPDATED, null, null,
@@ -385,13 +442,11 @@ public class ADPPAgent extends Agent {
     /**
      * Finds nearest point in graph to the on given
      */
-    private <V extends Point2d, E> V findNearestGraphVertex(Graph<V, E> graph, V vertex) {
-        double RADIUS = 1d;
-        // TODO: use KD-tree
-        for (V v: graph.vertexSet()) {
-            if (v.distance(vertex) <= RADIUS) {
-                return v;
-            }
+    private <V, E> Point4d findNearestGraphVertex(Graph<V, E> graph) {
+        BasicSegmentedTrajectory segmentedTrajectory = (BasicSegmentedTrajectory) trajectory;
+        Straight edge = segmentedTrajectory.findSegment(time);
+        if (edge != null) {
+            return edge.getEnd();
         }
         return null;
     }

@@ -22,6 +22,8 @@ public class ShortestPathHeuristic implements HeuristicToGoal<Point4d> {
 
     @Override
     public double getCostToGoalEstimate(Point4d current) {
+        //return current.getTime() + heuristics.getCostToGoalEstimate(current.getPosition())/maxSpeed
+        //        + current.getSpeed()/maxAcceleration;
         return heuristics.getCostToGoalEstimate(current.getPosition());
 
 //        double distance = heuristics.getCostToGoalEstimate(current.getPosition());

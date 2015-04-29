@@ -21,20 +21,25 @@ public class Timer {
     public String getElapsedTime() {
         long elapsed = this.getNanoTime()-startTime;
 
-        long sec = elapsed/NANO;
-        long msec = elapsed/MICRO-sec*MILLI;
+        long sec = elapsed/MILLI;
+        long msec = elapsed-sec*MILLI;
         return String.format("%ds %03dms", sec, msec);
     }
 
     public long getRawElapsedTime() {
-        return (this.getNanoTime()-startTime)/MICRO;
+//        return (this.getNanoTime()-startTime)/MICRO;
+        return (this.getNanoTime()-startTime);
     }
 
     public void reset() {
         startTime = this.getNanoTime();
     }
 
+//    private long getNanoTime() {
+//        return ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+//    }
+
     private long getNanoTime() {
-        return ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+        return System.currentTimeMillis();
     }
 }
