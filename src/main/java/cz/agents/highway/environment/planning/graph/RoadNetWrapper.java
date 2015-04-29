@@ -1,5 +1,6 @@
 package cz.agents.highway.environment.planning.graph;
 
+import cz.agents.highway.environment.roadnet.Junction;
 import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.Network;
 import org.jgrapht.DirectedGraph;
@@ -11,6 +12,7 @@ import org.jgrapht.graph.GraphDelegator;
 import tt.euclid2d.Line;
 import tt.euclid2d.Point;
 
+import javax.vecmath.Point2d;
 import javax.vecmath.Point2f;
 import javax.vecmath.Vector2d;
 import java.util.*;
@@ -20,8 +22,10 @@ import java.util.*;
  * Created by wmatex on 18.11.14.
  */
 public class RoadNetWrapper extends GraphDelegator<Point, Line> implements DirectedGraph<Point, Line> {
-    private static final int OVERTAKE_OFFSET = 3;
+    private static final int OVERTAKE_OFFSET = 5;
+    private static final double JUNCTION_RADIUS = 7;
     private static long numVertex, numEdge = 0;
+    private static Set<Point> junctionPoints = new HashSet<Point>();
 
     private static class BFSPoint {
         public Point point;
@@ -34,6 +38,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
             this.lane = lane;
         }
     }
+
 
     public RoadNetWrapper(Graph<Point, Line> pointLineGraph) {
         super(pointLineGraph);
@@ -56,6 +61,10 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
         return new RoadNetWrapper(graph);
     }
 
+    public boolean isInJunction(Point p) {
+        return junctionPoints.contains(p);
+    }
+
     private static Point innerPointToPoint(Lane lane, int index) {
         if (index < lane.getInnerPoints().size()) {
             Point2f innerPoint = lane.getInnerPoints().get(index);
@@ -70,7 +79,8 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
         if (nextPoint != null) {
             if (!closedList.contains(nextPoint)) {
                 openList.offer(new BFSPoint(nextPoint, index, lane));
-                graph.addVertex(nextPoint);
+                closedList.add(nextPoint);
+                addGraphVertex(nextPoint, graph);
             }
             interpolate(graph, current.point, nextPoint);
 //            graph.addEdge(current.point, nextPoint, new Line(current.point, nextPoint));
@@ -86,15 +96,37 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
         p = new Point(start);
         Point lastPoint = new Point(p);
         p.add(direction);
-        graph.addVertex(new Point(start));
+        addGraphVertex(new Point(start), graph);
         while (p.distance(end) > Lane.INNER_POINTS_STEP_SIZE) {
-            graph.addVertex(new Point(p));
+            addGraphVertex(new Point(p), graph);
             graph.addEdge(new Point(lastPoint), new Point(p), new Line(new Point(lastPoint), new Point(p)));
             lastPoint = new Point(p);
             p.add(direction);
         }
-        graph.addVertex(end);
+        addGraphVertex(end, graph);
         graph.addEdge(lastPoint, end, new Line(lastPoint, end));
+    }
+
+    private static void addGraphVertex(Point vertex, DirectedGraph<Point, Line> graph) {
+        graph.addVertex(vertex);
+        Network net = Network.getInstance();
+        for (Junction junction: net.getJunctions().values()) {
+            double radius = junctionRadius(junction);
+            Point2d junctionCenter = new Point2d(junction.getCenter().x, junction.getCenter().y);
+            if (vertex.distance(junctionCenter) < radius) {
+                junctionPoints.add(vertex);
+            }
+        }
+    }
+
+    private static double junctionRadius(Junction junction) {
+        return JUNCTION_RADIUS;
+//        double max = -1;
+//        for (Point2f p: junction.getShape()) {
+//            double dist = p.distance(junction.getCenter());
+//            max = Math.max(max, dist);
+//        }
+//        return max;
     }
 
     private static void traverse(Lane lane, DirectedGraph<Point, Line> graph, Set<String> visited) {
@@ -103,13 +135,14 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
         Queue<BFSPoint> openVertexList = new LinkedList<BFSPoint>();
         Point startPoint = innerPointToPoint(lane, 0);
         openVertexList.offer(new BFSPoint(startPoint, 0, lane));
+        closedVertexList.add(startPoint);
 
         // BFS
         while (!openVertexList.isEmpty()) {
             BFSPoint current = openVertexList.poll();
 
-            graph.addVertex(current.point);
-            closedVertexList.add(current.point);
+            addGraphVertex(current.point, graph);
+//            closedVertexList.add(current.point);
 
             // Forward
             addEdge(graph, openVertexList, closedVertexList, current, current.lane, current.laneIndex+1);

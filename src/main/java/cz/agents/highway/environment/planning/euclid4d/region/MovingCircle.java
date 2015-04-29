@@ -1,5 +1,6 @@
 package cz.agents.highway.environment.planning.euclid4d.region;
 
+import cz.agents.highway.agent.ADPPAgent;
 import cz.agents.highway.environment.planning.euclid2d.Trajectory;
 import cz.agents.highway.environment.planning.euclid4d.Point4d;
 import cz.agents.highway.environment.planning.euclid4d.Region;
@@ -10,7 +11,8 @@ import javax.vecmath.Point2d;
  * Created by wmatex on 4.4.15.
  */
 public class MovingCircle implements Region {
-    private static final double DEFAULT_SAMPLES_PER_RADIUS = 4;
+    private static final double DEFAULT_SAMPLES_PER_RADIUS = 2d;
+    private static final double TOLERANCE = 0.01d;
     private double samplingInterval;
     Trajectory trajectory;
     double radius;
@@ -32,6 +34,7 @@ public class MovingCircle implements Region {
 
     @Override
     public boolean intersectsLine(Point4d p1, Point4d p2) {
+//        return trajectory.get(p2.getTime()).getPosition().distance(p2.getPosition()) < 2*radius;
         Point4d start;
         Point4d end;
 
@@ -52,6 +55,8 @@ public class MovingCircle implements Region {
 		double tmin = Math.max(trajectory.getMinTime(), start.getTime());
         double tmax = Math.min(trajectory.getMaxTime(), end.getTime());
 
+
+//        return trajectory.get(end.getTime()).getPosition().distance(end.getPosition()) < 2*radius;
         for (double t = tmin; t <= tmax; t += samplingInterval) {
             // todo what if end - start == 0???
             double alpha = 0;
@@ -70,9 +75,11 @@ public class MovingCircle implements Region {
                     new tt.euclid2d.Point(start.x, start.y),
                     new tt.euclid2d.Point(end.x, end.y), alpha);
 
+            ADPPAgent.TIMER.startTrajectory();
             Point2d trajPoint = trajectory.get(t).getPosition();
+            ADPPAgent.TIMER.measureTrajectory();
 
-            if (trajPoint.distance(pos2d) < 2*radius) {
+            if (trajPoint.distance(pos2d) < 2*radius-TOLERANCE) {
                 return true;
             }
         }

@@ -7,13 +7,13 @@ import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
+import cz.agents.highway.environment.planning.euclid4d.Region;
+import cz.agents.highway.environment.planning.euclid4d.region.MovingCircle;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.protobuf.generated.InitMessage;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
-import tt.euclidtime3i.Region;
-import tt.euclidtime3i.region.MovingCircle;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;

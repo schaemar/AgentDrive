@@ -66,7 +66,7 @@ public class BasicSegmentedTrajectory implements Trajectory {
     }
 
     //TODO: using interpolation would decrease complexity from O(log N) to O(log log N)
-    private Straight findSegment(double t) {
+    public Straight findSegment(double t) {
         int iMin = 0;
         int iMax = segments.size() - 1;
 
@@ -88,6 +88,8 @@ public class BasicSegmentedTrajectory implements Trajectory {
 
         throw new RuntimeException("Straight in time " + t + " not found");
     }
+
+    public List<Straight> getSegments() { return segments; }
 
     @Override
     public double getMinTime() {

@@ -1,5 +1,6 @@
 package cz.agents.highway.environment.planning.euclid2d;
 
+import cz.agents.highway.environment.planning.euclid3d.SpeedPoint;
 import tt.euclid2i.*;
 
 import javax.vecmath.Point2d;
@@ -9,6 +10,7 @@ import javax.vecmath.Point2d;
  * Created by wmatex on 4.4.15.
  */
 public class DiscreteTrajectoryWrapper implements tt.euclid2i.Trajectory {
+    private static final int PRECISION = 10;
     private final Trajectory continuousTrajectory;
     public DiscreteTrajectoryWrapper(Trajectory trajectory) {
         continuousTrajectory = trajectory;
@@ -25,7 +27,12 @@ public class DiscreteTrajectoryWrapper implements tt.euclid2i.Trajectory {
 
     @Override
     public Point get(int t) {
-        Point2d point2d = continuousTrajectory.get((double)t).getPosition();
-        return new Point((int) Math.floor(point2d.x), (int) Math.floor(point2d.y));
+        SpeedPoint speedPoint = continuousTrajectory.get((double)t/(double) PRECISION);
+        if (speedPoint != null) {
+            Point2d point2d = speedPoint.getPosition();
+            return new Point((int) Math.floor(point2d.x), (int) Math.floor(point2d.y));
+        } else {
+            return null;
+        }
     }
 }
