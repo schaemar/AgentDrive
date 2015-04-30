@@ -1,0 +1,4 @@
+Max speed = 5.0
+Max acceleration = 2.0
+Max decelaration = 2.0
+# cars in simulation = 50
