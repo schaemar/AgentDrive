@@ -14,7 +14,7 @@ highway {
   //      folder = "nets/x-junction/";
 //     folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
-//        folder = "nets/highway-straight/";
+ //       folder = "nets/highway-straight/";
 //       folder = "nets/test90/";
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
@@ -28,9 +28,11 @@ highway {
 //        folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
     //   folder = "nets/artificialX-junction";
-        folder = "nets/artificialHighway-funnel";
+  //      folder = "nets/artificialHighway-funnel";
     //    folder = "nets/hostinne";
      //     folder = "nets/artificialXS-junction";
+        folder = "nets/artificialT-junction";
+
 
 
 
@@ -109,11 +111,11 @@ highway {
 
         }
 
-   //  simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-   simulatorsToRun = ["SimulatorLite"];
+  //   simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+  simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 6;
+        numberOfCarsInSimulation = 50;
         sumoSimulation = true;
     }
 
