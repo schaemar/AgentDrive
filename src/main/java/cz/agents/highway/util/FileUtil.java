@@ -78,13 +78,16 @@ public class FileUtil {
                 out.write("plot("+addstring + alphabet[index] + "time" + "," + addstring + alphabet[index++] + ",'Color'," +"[" + r +" " + g + " " + b + "])");
                 out.newLine();
             }
-            out.write("title('Car distances to the junction')");
-            out.newLine();
+
             if(speedOrDistances == 0) {
+                out.write("title('Car distances to the junction')");
+                out.newLine();
                 out.write("ylabel('distance')");
             }
             else
             {
+                out.write("title('Car speeds')");
+                out.newLine();
                 out.write("ylabel('speed')");
             }
             out.newLine();
@@ -99,7 +102,8 @@ public class FileUtil {
         }
     }
     public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond,long timeOfsimulation,
-                            Map<Integer,Float> avspeed, Map<Integer, Pair<Point3f,Float>> lenghtOfjourney)
+                            Map<Integer,Float> avspeed, Map<Integer, Pair<Point3f,Float>> lenghtOfjourney,
+                            LinkedList<Long> timesOfArrival)
     {
         String file_name = "report.txt";
         try {
@@ -175,6 +179,9 @@ public class FileUtil {
                 out.write("Journey: " + obj.getKey() + " avspeed: " + spped);
                 out.newLine();
             }
+            out.write("Times of arrival:");
+            out.newLine();
+            out.write(timesOfArrival.toString());
             out.close();
 
             System.out.println("Report created successfully.");
