@@ -133,7 +133,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 for (Action action : plan) {
                     if (action.getClass().equals(WPAction.class)) {
                         WPAction wpAction = (WPAction) action;
-                        if(wpAction.getSpeed() == -1)
+                        if(wpAction.getSpeed() < 0)
                         {
                             myPosition = wpAction.getPosition();
                             removeCar = true;
@@ -200,7 +200,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
     @Override
     public void init(String[] args) {
         super.init(args);
-        logger.setLevel(Level.INFO);
+//        logger.setLevel(Level.INFO);
+        logger.setLevel(Level.DEBUG);
     }
 
     @Override
@@ -344,7 +345,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 }
             }
         } else if (event.isType(HighwayEventType.UPDATED)) {
-              timeDifference = System.currentTimeMillis();
+//              timeDifference = System.currentTimeMillis();
+            timeDifference = getEventProcessor().getCurrentTime();
         }
 
     }

@@ -64,6 +64,7 @@ public class HighwayStorage extends EventBasedStorage {
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             logger.debug("HighwayStorage: handled simulation START");
            STARTTIME = System.currentTimeMillis();
+//            STARTTIME = getEventProcessor().getCurrentTime();
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
@@ -73,13 +74,16 @@ public class HighwayStorage extends EventBasedStorage {
             Map.Entry<Integer, Region> agentTrajectory = (Map.Entry<Integer, Region>) event.getContent();
             MovingCircle stored = (MovingCircle) trajectories.get(agentTrajectory.getKey());
             MovingCircle inc    = (MovingCircle) agentTrajectory.getValue();
-            if (stored == null || !stored.getTrajectory().equals(inc.getTrajectory())) {
-                trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
-                logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
-                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
-            }
+            trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
+            getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
+//            if (stored == null || !stored.getTrajectory().equals(inc.getTrajectory())) {
+//                trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
+//                logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
+//                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
+//            }
         } else if (event.isType(EventProcessorEventType.STOP)) {
             ENDTIME = System.currentTimeMillis();
+//            ENDTIME = getEventProcessor().getCurrentTime();
             int numberOfCollisons = calculateNumberOfCollisions()/2;
             if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
             {
@@ -175,6 +179,7 @@ public class HighwayStorage extends EventBasedStorage {
                 if (originalS == null)
                     originalS = new LinkedList<Pair<Long,Float>>();
                 Long timeKey =  (System.currentTimeMillis()-STARTTIME);  //getEventProcessor().getCurrentTime();
+//                Long timeKey =  (getEventProcessor().getCurrentTime()-STARTTIME);  //getEventProcessor().getCurrentTime();
                 Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
                 Float speed = entry.getValue().getVelocity().length();
                 /*
@@ -265,7 +270,9 @@ public class HighwayStorage extends EventBasedStorage {
                 randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
             }*/
             updateTime = (System.currentTimeMillis()-STARTTIME); //getEventProcessor().getCurrentTime();
-            if(vehicle.getValue() > updateTime/1000 ||
+//            updateTime = (getEventProcessor().getCurrentTime()-STARTTIME); //getEventProcessor().getCurrentTime();
+//            updateTime = getEventProcessor().getCurrentTime(); //getEventProcessor().getCurrentTime();
+            if(vehicle.getValue() >= updateTime/1000 ||
                     (posCurr.size() >= Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", agents.size())))
             {
                 notInsertedVehicles.add(vehicle);
