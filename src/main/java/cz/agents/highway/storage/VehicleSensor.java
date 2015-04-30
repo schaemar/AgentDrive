@@ -78,4 +78,7 @@ public class VehicleSensor extends EventBasedSensor {
         return storage.getTrajectories();
     }
 
+    public HighwayStorage getStorage() {
+        return storage;
+    }
 }

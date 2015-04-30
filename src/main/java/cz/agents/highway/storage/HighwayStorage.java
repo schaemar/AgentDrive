@@ -30,6 +30,9 @@ public class HighwayStorage extends EventBasedStorage {
     TreeSet<Integer>  forRemoveFromPosscur;
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
     private Map<Integer, Queue<Pair<Long,Float>>> distances = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
+    private Map<Integer, Queue<Pair<Long,Float>>> speeds = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
+    private Map<Integer, Pair<Point3f,Float>> lenghtOfjourney = new LinkedHashMap<Integer, Pair<Point3f,Float>>();
+    private LinkedList<Long> timesOfArrival = new LinkedList<Long>();
     private final float SAVE_DISTANCE = 10;
     Point3f refcar = new Point3f(0, 0, 0);
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
@@ -79,14 +82,16 @@ public class HighwayStorage extends EventBasedStorage {
         } else if (event.isType(EventProcessorEventType.STOP)) {
             ENDTIME = System.currentTimeMillis();
             int numberOfCollisons = calculateNumberOfCollisions()/2;
+            FileUtil.getInstance().writeToFile(speeds, 1);
             if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
             {
-                FileUtil.getInstance().writeReport(numberOfCollisons,agents.size()/((ENDTIME-STARTTIME)/1000f));
-                logger.info("Number of cars in time is " + agents.size()/((ENDTIME-STARTTIME)/1000f));
+                FileUtil.getInstance().writeReport(numberOfCollisons,agents.size()/((ENDTIME-STARTTIME)/1000f),
+                        ENDTIME-STARTTIME,calculateAverageSpeed(speeds),lenghtOfjourney,timesOfArrival);
+                logger.info("Number of cars in time is " + agents.size()/((ENDTIME-STARTTIME)));
             }
-            logger.info("Number of collisions is "  + numberOfCollisons + "\n");
-            FileUtil.getInstance().writeDistancesToFile(distances);
-
+            logger.info("Number of collisions is " + numberOfCollisons + "\n");
+            FileUtil.getInstance().writeToFile(distances, 0);
+            System.out.println(timesOfArrival);
         }
     }
 
@@ -106,8 +111,7 @@ public class HighwayStorage extends EventBasedStorage {
         } else if (agentClassName.equals("SDAgent")) {
             agent = new SDAgent(id);
         } else if (agentClassName.equals("GSDAgent")) {
-            agent = new GSDAgent(id, (HighwayEnvironment) getEnvironment());
-
+            agent = new GSDAgent(id);
         } else if (agentClassName.equals("ADPPAgent")) {
             agent = new ADPPAgent(id);
         }
@@ -160,6 +164,7 @@ public class HighwayStorage extends EventBasedStorage {
                 for(Integer id : forRemoveFromPosscur)
                 {
                     addForInsert(id);
+                    timesOfArrival.add((System.currentTimeMillis() - STARTTIME)/1000);
                 }
             }
             logger.debug("HighwayStorage updated vehicles: received " + object);
@@ -169,8 +174,12 @@ public class HighwayStorage extends EventBasedStorage {
                 Queue<Pair<Long,Float>> original = distances.get(entry.getKey());
                 if (original == null)
                     original = new LinkedList<Pair<Long,Float>>();
+                Queue<Pair<Long,Float>> originalS = speeds.get(entry.getKey());
+                if (originalS == null)
+                    originalS = new LinkedList<Pair<Long,Float>>();
                 Long timeKey =  (System.currentTimeMillis()-STARTTIME);  //getEventProcessor().getCurrentTime();
                 Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
+                Float speed = entry.getValue().getVelocity().length();
                 /*
                 try {
                     Point3f temp = posCurr.get(4).getPosition();
@@ -186,6 +195,25 @@ public class HighwayStorage extends EventBasedStorage {
                     original.add(new Pair<Long, Float>(timeKey,distVal));
                 }
                 distances.put(entry.getKey(), original);
+                originalS.add(new Pair<Long, Float>(timeKey, speed));
+                speeds.put(entry.getKey(), originalS);
+
+                Pair<Point3f,Float> loj = lenghtOfjourney.get(entry.getKey());
+                Point3f newPosition;
+                Float distance;
+                if(loj == null)
+                {
+                    newPosition = entry.getValue().getPosition();
+                    distance = 0f;
+                }
+                else {
+                    Point3f oldPosition = lenghtOfjourney.get(entry.getKey()).getKey();
+                    newPosition = entry.getValue().getPosition();
+                    distance = lenghtOfjourney.get(entry.getKey()).getValue();
+                    distance += oldPosition.distance(newPosition);
+                }
+                lenghtOfjourney.put(entry.getKey(), new Pair<Point3f, Float>(newPosition, distance));
+
             }
         recreate(object);
         if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true) &&
@@ -253,19 +281,19 @@ public class HighwayStorage extends EventBasedStorage {
             Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
 
             int numberOftryes = 1;
-            int prom = 0;
+            int it = 0;
             for(int j =0;j<routeNavigator.getLane().getEdge().getLanes().size();j++)
             {
-                while (!isSafe(id, initialPosition, routeNavigator) && prom < numberOftryes) {
+                while (!isSafe(id, initialPosition, routeNavigator) && it < numberOftryes) {
                     for (int i = 0; i < 6; i++) {
                         position = routeNavigator.next();
                     }
                     position = routeNavigator.next();
                     initialPosition.setX(position.x);
                     initialPosition.setY(position.y);
-                    prom++;
+                    it++;
                 }
-                if(prom < numberOftryes)
+                if(it < numberOftryes)
                 {
                     break;
                 }
@@ -276,14 +304,14 @@ public class HighwayStorage extends EventBasedStorage {
                         routeNavigator.changeLaneLeft();
                         initialPosition.setX(routeNavigator.next().x);
                         initialPosition.setY(routeNavigator.next().y);
-                        prom = 0;
+                        it = 0;
                     }
                     else
                         break;
                 }
             }
 
-            if (prom < numberOftryes) {
+            if (it < numberOftryes) {
                 Agent agent;
                 if (agents.containsKey(id)) {
                     agent = agents.get(id);
@@ -324,7 +352,7 @@ public class HighwayStorage extends EventBasedStorage {
                     if (stateNavigator.getLane().equals(e)) {
                         if(agents.get(entry.getId()).getNavigator().getActualPointer() < stateNavigator.getActualPointer()
                                 && stateNavigator.getLane() == agents.get(entry.getId()).getNavigator().getLane()) {
-                            double safedist = safeDistance(-4, entry.getVelocity().length(), 0);
+                            double safedist = safeDistance(-1, entry.getVelocity().length(), 0);
                             if (safedist + SAFETY_RESERVE < distanceToSecondCar) return false;
                         }
                     }
@@ -337,6 +365,23 @@ public class HighwayStorage extends EventBasedStorage {
     private double safeDistance(double a0, double v0, double v1) {
         double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
         return safeDist;
+    }
+
+    private Map<Integer,Float> calculateAverageSpeed(Map<Integer, Queue<Pair<Long,Float>>> speeds) {
+        Map<Integer,Float> averageSpeeds = new HashMap<Integer, Float>();
+        for (Map.Entry<Integer, Queue<Pair<Long,Float>>> obj : speeds.entrySet())
+        {
+            Queue<Pair<Long,Float>> carspeeds = obj.getValue();
+            Float sumSpeed = 0f;
+            int numberOfSpeeds = 0;
+            while(carspeeds.peek() != null)
+            {
+                sumSpeed += carspeeds.poll().getValue();
+                numberOfSpeeds++;
+            }
+            averageSpeeds.put(obj.getKey(),sumSpeed/numberOfSpeeds);
+        }
+        return averageSpeeds;
     }
     private class QueueComparator implements Comparator<Pair<Integer,Float>>
     {
