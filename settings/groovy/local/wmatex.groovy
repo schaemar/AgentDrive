@@ -28,7 +28,8 @@ highway {
 //        folder = "nets/artificialHighway-funnel";
 //        folder = "nets/simple"
 
-        folder = "nets/experiments/X-junction";
+//        folder = "nets/experiments/X-junction";
+        folder = "nets/experiments/T-junction";
 
         lane {
             stepSize = 2f;
