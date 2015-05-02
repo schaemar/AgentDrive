@@ -103,7 +103,7 @@ public class FileUtil {
     }
     public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond,long timeOfsimulation,
                             Map<Integer,Float> avspeed, Map<Integer, Pair<Point3f,Float>> lenghtOfjourney,
-                            LinkedList<Long> timesOfArrival)
+                            LinkedList<Float> timesOfArrival)
     {
         String file_name = "report.txt";
         try {
