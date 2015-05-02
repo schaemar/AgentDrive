@@ -64,7 +64,14 @@ public class HighwayStorage extends EventBasedStorage {
 
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             logger.debug("HighwayStorage: handled simulation START");
-           STARTTIME = System.currentTimeMillis();
+            if(Configurator.getParamBool("highway.dashboard.systemTime",false))
+            {
+                STARTTIME = System.currentTimeMillis();
+            }
+            else
+            {
+                STARTTIME = getEventProcessor().getCurrentTime();
+            }
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
@@ -80,7 +87,14 @@ public class HighwayStorage extends EventBasedStorage {
                 getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
             }
         } else if (event.isType(EventProcessorEventType.STOP)) {
-            ENDTIME = System.currentTimeMillis();
+            if(Configurator.getParamBool("highway.dashboard.systemTime",false))
+            {
+                ENDTIME = System.currentTimeMillis();
+            }
+            else
+            {
+               ENDTIME = getEventProcessor().getCurrentTime();
+            }
             int numberOfCollisons = calculateNumberOfCollisions()/2;
             FileUtil.getInstance().writeToFile(speeds, 1);
             if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
@@ -264,10 +278,14 @@ public class HighwayStorage extends EventBasedStorage {
             }
             double updateTime = 0d;
             double randomUpdateTime = 0d;
-           /* if(!posCurr.isEmpty()) {
-                randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
-            }*/
-            updateTime = (System.currentTimeMillis()-STARTTIME); //getEventProcessor().getCurrentTime();
+            if(Configurator.getParamBool("highway.dashboard.systemTime",false))
+            {
+                updateTime = (System.currentTimeMillis()-STARTTIME); //getEventProcessor().getCurrentTime();
+            }
+            else
+            {
+                updateTime = getEventProcessor().getCurrentTime()-STARTTIME;
+            }
             if(vehicle.getValue() > updateTime/1000 ||
                     (posCurr.size() >= Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", agents.size())))
             {

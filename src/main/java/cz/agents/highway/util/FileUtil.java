@@ -115,7 +115,7 @@ public class FileUtil {
             out.newLine();
             out.write("Number of vehicles travelling throw junction per seccond is: " + numberOfVehiclesPerSecond);
             out.newLine();
-            out.write("Time of simulation was: " + timeOfsimulation / 1000);
+            out.write("Time of simulation was: " + timeOfsimulation / 1000f);
             out.newLine();
             out.write("Maximum number of cars in simulation are: " + Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", 40));
             out.newLine();
@@ -131,10 +131,13 @@ public class FileUtil {
             out.write("Safety reserve distance: " + Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance", 4.0)
             );
             out.newLine();
-            out.write("Simulator used: " + Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).get(0));
-            out.newLine();
-            float distance = 1200;
-            out.write("Distance traveled: " + distance);
+            if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty())
+            {
+                out.write("Simulator used: LocalSimulator");
+            }
+            else {
+                out.write("Simulator used: " + Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).get(0));
+            }
             out.newLine();
           /*  out.write("Avarage speed is: "+ (distance/timeOfsimulation)*3.6 + " km/h");
             out.newLine();*/
