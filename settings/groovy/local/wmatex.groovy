@@ -63,6 +63,8 @@ highway {
         simulatorsToRun = [];
         sumoSimulation = true;
         numberOfCarsInSimulation = 50;
+
+        systemTime = false;
         //numberOfCarsInSimulation = agents.size();
 
     }
