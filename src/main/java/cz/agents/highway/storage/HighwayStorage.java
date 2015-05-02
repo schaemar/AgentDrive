@@ -32,7 +32,7 @@ public class HighwayStorage extends EventBasedStorage {
     private Map<Integer, Queue<Pair<Long,Float>>> distances = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
     private Map<Integer, Queue<Pair<Long,Float>>> speeds = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
     private Map<Integer, Pair<Point3f,Float>> lenghtOfjourney = new LinkedHashMap<Integer, Pair<Point3f,Float>>();
-    private LinkedList<Long> timesOfArrival = new LinkedList<Long>();
+    private LinkedList<Float> timesOfArrival = new LinkedList<Float>();
     private final float SAVE_DISTANCE = 10;
     Point3f refcar = new Point3f(0, 0, 0);
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
@@ -178,7 +178,13 @@ public class HighwayStorage extends EventBasedStorage {
                 for(Integer id : forRemoveFromPosscur)
                 {
                     addForInsert(id);
-                    timesOfArrival.add((System.currentTimeMillis() - STARTTIME)/1000);
+                    if(Configurator.getParamBool("highway.dashboard.systemTime",false)) {
+                        timesOfArrival.add((System.currentTimeMillis() - STARTTIME) / 1000f);
+                    }
+                    else
+                    {
+                        timesOfArrival.add(getEventProcessor().getCurrentTime()/1000f);
+                    }
                 }
             }
             logger.debug("HighwayStorage updated vehicles: received " + object);
@@ -191,7 +197,14 @@ public class HighwayStorage extends EventBasedStorage {
                 Queue<Pair<Long,Float>> originalS = speeds.get(entry.getKey());
                 if (originalS == null)
                     originalS = new LinkedList<Pair<Long,Float>>();
-                Long timeKey =  (System.currentTimeMillis()-STARTTIME);  //getEventProcessor().getCurrentTime();
+                Long timeKey;
+                if(Configurator.getParamBool("highway.dashboard.systemTime",false)) {
+                    timeKey = (System.currentTimeMillis() - STARTTIME);
+                }
+                else
+                {
+                    timeKey = getEventProcessor().getCurrentTime();
+                }
                 Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
                 Float speed = entry.getValue().getVelocity().length();
                 /*
