@@ -9,6 +9,7 @@ import java.awt.event.KeyListener;
 import java.text.MessageFormat;
 
 import cz.agents.alite.common.event.EventProcessorEventType;
+import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.simulation.Simulation;
 import cz.agents.alite.vis.Vis;
 import cz.agents.alite.vis.layer.AbstractLayer;
@@ -90,13 +91,17 @@ public class SimulationControlLayer extends AbstractLayer {
         label.append(" ");
         label.append(System.getProperty("line.separator"));
         if (simulation.isFinished()) {
-            label.append("TIME in seconds: ");
-            label.append((highwayEnvironment.getStorage().getENDTIME() - highwayEnvironment.getStorage().getSTARTTIME()) / 1000.0);
+            if(Configurator.getParamBool("highway.dashboard.systemTime", false)) {
+                label.append("TIME in seconds: ");
+                label.append((highwayEnvironment.getStorage().getENDTIME() - highwayEnvironment.getStorage().getSTARTTIME()) / 1000.0);
+            }
             label.append(" ");
             label.append("(FINISHED)");
         } else {
-            label.append("TIME in seconds: ");
-            label.append((System.currentTimeMillis() - highwayEnvironment.getStorage().getSTARTTIME()) / 1000.0);
+            if(Configurator.getParamBool("highway.dashboard.systemTime", false)) {
+                label.append("TIME in seconds: ");
+                label.append((System.currentTimeMillis() - highwayEnvironment.getStorage().getSTARTTIME()) / 1000.0);
+            }
             label.append(" ");
             if (simulation.getCurrentTime() == 0) {
                 label.append("(INITIALIZING)");

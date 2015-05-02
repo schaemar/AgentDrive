@@ -1,5 +1,6 @@
 package cz.agents.highway.environment.planning.graph;
 
+import cz.agents.highway.environment.roadnet.Junction;
 import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.Network;
 import org.jgrapht.DirectedGraph;
@@ -8,21 +9,37 @@ import org.jgrapht.WeightedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.GraphDelegator;
-import tt.euclid2i.Line;
-import tt.euclid2i.Point;
+import tt.euclid2d.Line;
+import tt.euclid2d.Point;
 
+import javax.vecmath.Point2d;
 import javax.vecmath.Point2f;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import javax.vecmath.Vector2d;
+import java.util.*;
 
 /**
  * Generates planning directed graph from the SUMO road network
  * Created by wmatex on 18.11.14.
  */
 public class RoadNetWrapper extends GraphDelegator<Point, Line> implements DirectedGraph<Point, Line> {
-    private static final int OVERTAKE_OFFSET = 3;
+    private static final int OVERTAKE_OFFSET = 5;
+    private static final double JUNCTION_RADIUS = 7;
     private static long numVertex, numEdge = 0;
+    private static Set<Point> junctionPoints = new HashSet<Point>();
+
+    private static class BFSPoint {
+        public Point point;
+        public int laneIndex;
+        public Lane lane;
+
+        private BFSPoint(Point point, int laneIndex, Lane lane) {
+            this.point = point;
+            this.laneIndex = laneIndex;
+            this.lane = lane;
+        }
+    }
+
+
     public RoadNetWrapper(Graph<Point, Line> pointLineGraph) {
         super(pointLineGraph);
     }
@@ -36,82 +53,128 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
         DirectedGraph<Point, Line> graph = new DefaultDirectedWeightedGraph<Point, Line>(Line.class);
 
         Lane startingLane = network.getLanes().get(startingLaneIdx);
-        // Traverse the lanes using DFS
+        // Traverse the lanes using BFS
         numEdge = numVertex = 0;
-        RoadNetWrapper.traverse(startingLane, graph, closedList, null);
+        RoadNetWrapper.traverse(startingLane, graph, closedList);
 
 //        System.out.println("Vertex: "+numVertex+", edge: "+numEdge);
         return new RoadNetWrapper(graph);
     }
 
-    private static void traverse(Lane lane, DirectedGraph<Point, Line> graph, Set<String> visited, Point lastPoint) {
-        if (lane == null || visited.contains(lane.getLaneId())) {
-            return;
+    public boolean isInJunction(Point p) {
+        return junctionPoints.contains(p);
+    }
+
+    private static Point innerPointToPoint(Lane lane, int index) {
+        if (index < lane.getInnerPoints().size()) {
+            Point2f innerPoint = lane.getInnerPoints().get(index);
+            return new Point(innerPoint.x, innerPoint.y);
+        } else {
+            return null;
         }
+    }
+
+    private static void addEdge(DirectedGraph<Point, Line> graph, Queue<BFSPoint> openList, Set<Point> closedList, BFSPoint current, Lane lane, int index) {
+        Point nextPoint = innerPointToPoint(lane, index);
+        if (nextPoint != null) {
+            if (!closedList.contains(nextPoint)) {
+                openList.offer(new BFSPoint(nextPoint, index, lane));
+                closedList.add(nextPoint);
+                addGraphVertex(nextPoint, graph);
+            }
+            interpolate(graph, current.point, nextPoint);
+//            graph.addEdge(current.point, nextPoint, new Line(current.point, nextPoint));
+        }
+    }
+
+    private static void interpolate(DirectedGraph<Point, Line> graph, Point start, Point end) {
+        Point p = new Point(end);
+        p.sub(start);
+        Vector2d direction = new Vector2d(p);
+        direction.normalize();
+        direction.scale(Lane.INNER_POINTS_STEP_SIZE);
+        p = new Point(start);
+        Point lastPoint = new Point(p);
+        p.add(direction);
+        addGraphVertex(new Point(start), graph);
+        while (p.distance(end) > Lane.INNER_POINTS_STEP_SIZE) {
+            addGraphVertex(new Point(p), graph);
+            graph.addEdge(new Point(lastPoint), new Point(p), new Line(new Point(lastPoint), new Point(p)));
+            lastPoint = new Point(p);
+            p.add(direction);
+        }
+        addGraphVertex(end, graph);
+        graph.addEdge(lastPoint, end, new Line(lastPoint, end));
+    }
+
+    private static void addGraphVertex(Point vertex, DirectedGraph<Point, Line> graph) {
+        graph.addVertex(vertex);
+        Network net = Network.getInstance();
+        for (Junction junction: net.getJunctions().values()) {
+            double radius = junctionRadius(junction);
+            Point2d junctionCenter = new Point2d(junction.getCenter().x, junction.getCenter().y);
+            if (vertex.distance(junctionCenter) < radius) {
+                junctionPoints.add(vertex);
+            }
+        }
+    }
+
+    private static double junctionRadius(Junction junction) {
+        return JUNCTION_RADIUS;
+//        double max = -1;
+//        for (Point2f p: junction.getShape()) {
+//            double dist = p.distance(junction.getCenter());
+//            max = Math.max(max, dist);
+//        }
+//        return max;
+    }
+
+    private static void traverse(Lane lane, DirectedGraph<Point, Line> graph, Set<String> visited) {
         visited.add(lane.getLaneId());
+        Set<Point> closedVertexList = new HashSet<Point>();
+        Queue<BFSPoint> openVertexList = new LinkedList<BFSPoint>();
+        Point startPoint = innerPointToPoint(lane, 0);
+        openVertexList.offer(new BFSPoint(startPoint, 0, lane));
+        closedVertexList.add(startPoint);
 
-        // Add left and right lanes
-        Lane left = lane.getLaneLeft(), right = lane.getLaneRight();
-        traverse(left, graph, visited, lastPoint);
-        traverse(right, graph, visited, lastPoint);
+        // BFS
+        while (!openVertexList.isEmpty()) {
+            BFSPoint current = openVertexList.poll();
 
-        ArrayList<Point2f> leftPoints = null, rightPoints = null;
-        if (left != null) {
-            leftPoints = left.getInnerPoints();
-        }
-        if (right != null) {
-            rightPoints = right.getInnerPoints();
-        }
+            addGraphVertex(current.point, graph);
+//            closedVertexList.add(current.point);
 
-        // Add vertexes and edges to graph
-        int i = 0;
-        for (Point2f innerPoint: lane.getInnerPoints()) {
-            final Point p = new Point(Math.round(innerPoint.x), Math.round(innerPoint.y));
-            graph.addVertex(p);
-            if (lastPoint != null) {
-                graph.addEdge(lastPoint, p, new Line(lastPoint, p));
-                ++numVertex;
+            // Forward
+            addEdge(graph, openVertexList, closedVertexList, current, current.lane, current.laneIndex+1);
+            // Overtake
+            Lane overtakeLane = current.lane.getLaneLeft();
+            for (int i = 0; i < 2; ++i) {
+                if (overtakeLane != null) {
+                    addEdge(graph, openVertexList, closedVertexList, current, overtakeLane, current.laneIndex+OVERTAKE_OFFSET);
+                }
+                overtakeLane = current.lane.getLaneRight();
             }
 
-            // Generate edges to left and right lanes for overtake
-            ArrayList<Point2f> neighbourLanePoints = leftPoints;
-            for (int j = 0; j < 2; j++) {
-                if (neighbourLanePoints != null && i + OVERTAKE_OFFSET < neighbourLanePoints.size()) {
-                    Point2f tmp = neighbourLanePoints.get(i + OVERTAKE_OFFSET);
-                    final Point neighbourPoint = new Point(Math.round(tmp.x), Math.round(tmp.y));
-                    if (graph.containsVertex(neighbourPoint)) {
-                        Line edge = new Line(p, neighbourPoint);
-                        graph.addEdge(p, neighbourPoint, edge);
-                        ++numEdge;
-
-                        // Check also reverse edge
-                        if (i - OVERTAKE_OFFSET >= 0) {
-                            tmp = neighbourLanePoints.get(i - OVERTAKE_OFFSET);
-                            final Point reversePoint = new Point(Math.round(tmp.x), Math.round(tmp.y));
-                            if (!graph.containsEdge(reversePoint, p)) {
-                                Line reversed = new Line(reversePoint, p);
-                                if (!graph.containsVertex(reversePoint)) {
-                                    graph.addVertex(reversePoint);
-                                }
-                                graph.addEdge(reversePoint, p, reversed);
-                                ++numEdge;
+            // Connections
+            // We're at the end of the lane
+            if (current.laneIndex >= current.lane.getInnerPoints().size() - 1) {
+                for (Lane outgoing: current.lane.getOutgoingLanes()) {
+                    if (!visited.contains(outgoing.getLaneId())) {
+                        visited.add(outgoing.getLaneId());
+//                        openVertexList.add(new BFSPoint(innerPointToPoint(outgoing, 0), 0, outgoing));
+                        for (int i = 0; i < outgoing.getInnerPoints().size(); ++i) {
+                            Point firstPoint = innerPointToPoint(outgoing, i);
+                            if (firstPoint != null && !closedVertexList.contains(firstPoint)) {
+                                addEdge(graph, openVertexList, closedVertexList, current, outgoing, i);
+                                break;
                             }
                         }
                     }
                 }
-                neighbourLanePoints = rightPoints;
             }
 
-            lastPoint = p;
-            i++;
         }
 
-        // Traverse all outgoing lanes
-        for (Lane outgoing: lane.getOutgoingLanes()) {
-            if (!visited.contains(outgoing.getLaneId())) {
-                traverse(outgoing, graph, visited, lastPoint);
-            }
-        }
     }
 
     @Override

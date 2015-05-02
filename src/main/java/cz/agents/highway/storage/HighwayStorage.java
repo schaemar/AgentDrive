@@ -7,13 +7,13 @@ import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
+import cz.agents.highway.environment.planning.euclid4d.Region;
+import cz.agents.highway.environment.planning.euclid4d.region.MovingCircle;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.protobuf.generated.InitMessage;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
-import tt.euclidtime3i.Region;
-import tt.euclidtime3i.region.MovingCircle;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -64,7 +64,14 @@ public class HighwayStorage extends EventBasedStorage {
 
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             logger.debug("HighwayStorage: handled simulation START");
-           STARTTIME = System.currentTimeMillis();
+            if(Configurator.getParamBool("highway.dashboard.systemTime",false))
+            {
+                STARTTIME = System.currentTimeMillis();
+            }
+            else
+            {
+                STARTTIME = getEventProcessor().getCurrentTime();
+            }
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
@@ -80,7 +87,14 @@ public class HighwayStorage extends EventBasedStorage {
                 getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
             }
         } else if (event.isType(EventProcessorEventType.STOP)) {
-            ENDTIME = System.currentTimeMillis();
+            if(Configurator.getParamBool("highway.dashboard.systemTime",false))
+            {
+                ENDTIME = System.currentTimeMillis();
+            }
+            else
+            {
+               ENDTIME = getEventProcessor().getCurrentTime();
+            }
             int numberOfCollisons = calculateNumberOfCollisions()/2;
             FileUtil.getInstance().writeToFile(speeds, 1);
             if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
@@ -264,10 +278,14 @@ public class HighwayStorage extends EventBasedStorage {
             }
             double updateTime = 0d;
             double randomUpdateTime = 0d;
-           /* if(!posCurr.isEmpty()) {
-                randomUpdateTime = posCurr.entrySet().iterator().next().getValue().getUpdateTime();
-            }*/
-            updateTime = (System.currentTimeMillis()-STARTTIME); //getEventProcessor().getCurrentTime();
+            if(Configurator.getParamBool("highway.dashboard.systemTime",false))
+            {
+                updateTime = (System.currentTimeMillis()-STARTTIME); //getEventProcessor().getCurrentTime();
+            }
+            else
+            {
+                updateTime = getEventProcessor().getCurrentTime()-STARTTIME;
+            }
             if(vehicle.getValue() > updateTime/1000 ||
                     (posCurr.size() >= Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", agents.size())))
             {
