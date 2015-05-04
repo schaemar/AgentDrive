@@ -1,0 +1,22 @@
+<flows>
+  <!-- Straight -->
+  <flow id="0"  from="0" to="2" begin="10" end="360" number="50"/>
+  <flow id="1"  from="5" to="3" begin="10" end="360" number="50"/>
+  <flow id="2"  from="6" to="4" begin="10" end="360" number="50"/>
+  <flow id="3"  from="7" to="1" begin="10" end="360" number="50"/>
+
+
+  <!-- Left --> 
+  <flow id="4"  from="0" to="3" begin="10" end="360" number="25"/>
+  <flow id="5"  from="5" to="4" begin="10" end="360" number="25"/>
+  <flow id="6"  from="6" to="1" begin="10" end="360" number="25"/>
+  <flow id="7"  from="7" to="2" begin="10" end="360" number="25"/>
+
+  <!-- Right -->
+  <flow id="8"  from="0" to="1" begin="10" end="360" number="25"/>
+  <flow id="9"  from="5" to="2" begin="10" end="360" number="25"/>
+  <flow id="10" from="6" to="3" begin="10" end="360" number="25"/>
+  <flow id="11" from="7" to="4" begin="10" end="360" number="25"/>
+
+</flows>
+

@@ -5,6 +5,7 @@
 highway {
     //agent = "RouteAgent";
     agent = "ADPPAgent";
+//    agent = "GSDAgent";
     rvo {
         agent {
             randomRoutes = false;
@@ -22,9 +23,28 @@ highway {
 //        folder = "nets/test90";
 //        folder = "nets/super-collision";
 //        folder = "nets/artificialX-junction";
+//        folder = "nets/artificialT-junction";
 //        folder = "nets/artificialX-junction-smaller";
 //        folder = "nets/artificialHighway-funnel";
-        folder = "nets/simple"
+//        folder = "nets/simple"
+
+//        folder = "nets/experiments/X-junction";
+        folder = "nets/experiments/T-junction";
+
+        lane {
+            stepSize = 2f;
+        }
+    }
+
+    ADPPAgent {
+        radius = 2;           //[m]
+        waitPenalty = 0.1d;
+        movePenalty = 0.01d;
+        waitDuration = 1d;    //[s]
+        maxSpeed = 5d;        //[m/s]
+        maxAcceleration = 2d; //[m/s^2]
+        planningHorizon = 10; //[s]
+        planProlongationFactor = 3;
     }
 
     dashboard {
@@ -41,6 +61,12 @@ highway {
         }
 
         simulatorsToRun = [];
+        sumoSimulation = true;
+        numberOfCarsInSimulation = 50;
+
+        systemTime = false;
+        //numberOfCarsInSimulation = agents.size();
+
     }
 }
 

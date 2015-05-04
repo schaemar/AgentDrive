@@ -29,7 +29,7 @@ public class TrafficRulesPriorityRelation implements PriorityRelation {
     public List<Integer> higherPriority() {
         List<Integer> higherPriority = new LinkedList<Integer>();
         for (RoadObject agent: sensor.senseCars()) {
-            if (agent.getId() > agentId) {
+            if (agent.getId() < agentId) {
                 higherPriority.add(agent.getId());
             }
         }
@@ -43,7 +43,7 @@ public class TrafficRulesPriorityRelation implements PriorityRelation {
     public List<Integer> lowerPriority() {
         List<Integer> lowerPriority = new LinkedList<Integer>();
         for (RoadObject agent: sensor.senseCars()) {
-            if (agent.getId() < agentId) {
+            if (agent.getId() > agentId) {
                 lowerPriority.add(agent.getId());
             }
         }

@@ -75,7 +75,7 @@ public class SimulationControlLayer extends AbstractLayer {
                         simulation.setRunning(true);
                     }
                 }
-                else if (e.getKeyChar() == 'q')
+                else if (e.getKeyChar() == 'x')
                 {
                    simulation.addEvent(EventProcessorEventType.STOP, null, null, null);
                 }

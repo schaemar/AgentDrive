@@ -7,13 +7,13 @@ import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
-import cz.agents.highway.environment.planning.euclid4d.Region;
-import cz.agents.highway.environment.planning.euclid4d.region.MovingCircle;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.protobuf.generated.InitMessage;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
+import cz.agents.highway.environment.planning.euclid4d.Region;
+import cz.agents.highway.environment.planning.euclid4d.region.MovingCircle;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -81,11 +81,13 @@ public class HighwayStorage extends EventBasedStorage {
             Map.Entry<Integer, Region> agentTrajectory = (Map.Entry<Integer, Region>) event.getContent();
             MovingCircle stored = (MovingCircle) trajectories.get(agentTrajectory.getKey());
             MovingCircle inc    = (MovingCircle) agentTrajectory.getValue();
-            if (stored == null || !stored.getTrajectory().equals(inc.getTrajectory())) {
-                trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
-                logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
-                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
-            }
+            trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
+            getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
+//            if (stored == null || !stored.getTrajectory().equals(inc.getTrajectory())) {
+//                trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
+//                logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
+//                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
+//            }
         } else if (event.isType(EventProcessorEventType.STOP)) {
             if(Configurator.getParamBool("highway.dashboard.systemTime",false))
             {
