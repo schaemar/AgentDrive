@@ -7,6 +7,7 @@ import cz.agents.alite.environment.eventbased.EventBasedStorage;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
+import cz.agents.highway.environment.planning.Timer;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.protobuf.generated.InitMessage;
 import cz.agents.highway.storage.plan.Action;
@@ -42,6 +43,8 @@ public class HighwayStorage extends EventBasedStorage {
     Comparator<Pair<Integer,Float>> comparator;
     private long STARTTIME =0;
     private long ENDTIME =0;
+
+    private Timer simulationTimer = new Timer(false);
     public HighwayStorage(HighwayEnvironment environment) {
         super(environment);
         environment.getEventProcessor().addEventHandler(this);
@@ -64,6 +67,7 @@ public class HighwayStorage extends EventBasedStorage {
 
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             logger.debug("HighwayStorage: handled simulation START");
+            simulationTimer.reset();
             if(Configurator.getParamBool("highway.dashboard.systemTime",false))
             {
                 STARTTIME = System.currentTimeMillis();
@@ -89,6 +93,7 @@ public class HighwayStorage extends EventBasedStorage {
 //                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
 //            }
         } else if (event.isType(EventProcessorEventType.STOP)) {
+            System.out.printf("Simulation time is: "+simulationTimer.getRawElapsedTime());
             if(Configurator.getParamBool("highway.dashboard.systemTime",false))
             {
                 ENDTIME = System.currentTimeMillis();

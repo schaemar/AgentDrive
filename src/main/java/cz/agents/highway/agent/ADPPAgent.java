@@ -1,6 +1,7 @@
 package cz.agents.highway.agent;
 
 import cz.agents.alite.common.event.Event;
+import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.vis.VisManager;
 import cz.agents.alite.vis.layer.VisLayer;
@@ -109,6 +110,8 @@ public class ADPPAgent extends Agent {
     }
 
     public static final GroupTimer TIMER = new GroupTimer();
+    private static long planningTime = 0;
+    private static Timer planningTimer = new Timer(false);
 
     RoadNetWrapper spatialGraph;
     DirectedGraph<Point4d, Straight> planningGraph;
@@ -180,6 +183,7 @@ public class ADPPAgent extends Agent {
         this.sensor.registerReaction(new Reaction() {
             @Override
             public void react(Event event) {
+                planningTimer.reset();
                 if (event.getType().equals(HighwayEventType.UPDATED)) {
                     finalPlans.clear();
                     planSent = false;
@@ -206,7 +210,10 @@ public class ADPPAgent extends Agent {
                     }
                 } else if (event.isType(HighwayEventType.TIMESTEP)) {
                     timeParameter.setTime((int)event.getTime()*RegionsLayer.PRECISION/1000);
+                } else if (event.isType(EventProcessorEventType.STOP)) {
+                    System.out.println("Reasoning time: "+planningTime);
                 }
+                planningTime += planningTimer.getRawElapsedTime();
             }
         });
     }
