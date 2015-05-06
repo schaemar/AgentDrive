@@ -1,12 +1,18 @@
 highway {
 
 //    agent = "SDAgent";
-    agent = "RouteAgent";
+    agent = "PlatooningAgent";
+//    agent = "RouteAgent";
 //    agent = "ORCAAgent";
 
     net {
 //        folder = "nets/junction-big/";
-        folder = "nets/highway-straight/";
+        folder = "nets/highway-straight-Ondra/";
+    }
+
+    platooningOnHighway{
+        averageSpeed = 28;
+        safeTime = 2;
     }
 
 
@@ -29,8 +35,10 @@ highway {
 
         }
 
-//        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-        simulatorsToRun = ["SimulatorLite"];
+        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+//        simulatorsToRun = ["SimulatorLite"];
+        numberOfCarsInSimulation = 6000;
+        sumoSimulation = true;
     }
 
     netLayer {

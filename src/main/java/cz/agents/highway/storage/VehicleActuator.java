@@ -26,7 +26,7 @@ public class VehicleActuator extends EventBasedAction {
         act(actions);
     }
     public void act(List<Action> actions){
-        storage.act(id, actions);
+        if(storage.plannedVehicles.contains(id)) storage.act(id, actions);
         getEventProcessor().addEvent(HighwayEventType.NEW_PLAN, null, null, actions);
     }
     public void reportColisions(int colNumber)

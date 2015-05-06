@@ -8,7 +8,8 @@ import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.protobuf.generated.InitMessage;
+import cz.agents.highway.platooning.PlatooningAgent;
+import cz.agents.highway.platooning.VehicleGenerationModule;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
@@ -26,7 +27,7 @@ public class HighwayStorage extends EventBasedStorage {
 
     private final RoadDescription roadDescription;
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
-    private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
+    private final HashMap<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
     TreeSet<Integer>  forRemoveFromPosscur;
     private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
     private Map<Integer, Queue<Pair<Long,Float>>> distances = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
@@ -34,6 +35,8 @@ public class HighwayStorage extends EventBasedStorage {
     Point3f refcar = new Point3f(0, 0, 0);
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
     private Queue<Pair<Integer,Float>> vehiclesForInsert;
+    public Set<Integer> plannedVehicles = new HashSet<Integer>();
+    public List<Integer> notStartedVehicles = new LinkedList<Integer>();
     private final float CHECKING_DISTANCE = 500;
     private final float SAFETY_RESERVE = 12;
     Comparator<Pair<Integer,Float>> comparator;
@@ -63,9 +66,13 @@ public class HighwayStorage extends EventBasedStorage {
             logger.debug("HighwayStorage: handled simulation START");
            STARTTIME = System.currentTimeMillis();
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
+
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
             updateCars(radar_data);
+
+            ((HighwayEnvironment)getEnvironment()).runPlatooningModule();
+            System.out.println();
 
         } else if (event.isType(HighwayEventType.TRAJECTORY_UPDATED)) {
             Map.Entry<Integer, Region> agentTrajectory = (Map.Entry<Integer, Region>) event.getContent();
@@ -98,6 +105,7 @@ public class HighwayStorage extends EventBasedStorage {
 
     }
 
+
     public Agent createAgent(final int id) {
         String agentClassName = Configurator.getParamString("highway.agent", "RouteAgent");
         Agent agent = null;
@@ -110,11 +118,16 @@ public class HighwayStorage extends EventBasedStorage {
 
         } else if (agentClassName.equals("ADPPAgent")) {
             agent = new ADPPAgent(id);
+        }else if (agentClassName.equals("PlatooningAgent")) {
+            agent = new PlatooningAgent(id);
         }
+
         VehicleSensor sensor = new VehicleSensor(getEnvironment(), agent, this);
         VehicleActuator actuator = new VehicleActuator(getEnvironment(), agent, this);
         agent.addSensor(sensor);
         agent.addActuator(actuator);
+        plannedVehicles.add(id);
+        notStartedVehicles.add(id);
 
         agents.put(id, agent);
         return agent;
@@ -126,7 +139,7 @@ public class HighwayStorage extends EventBasedStorage {
     }
 
     public void act(int carId, List<Action> action) {
-        actions.put(carId, action.get(0));
+        if(plannedVehicles.contains(carId)) actions.put(carId, action.get(0));
     }
 
     public RoadDescription getRoadDescription() {
@@ -149,49 +162,46 @@ public class HighwayStorage extends EventBasedStorage {
         return trajectories;
     }
     public void updateCars(RadarData object) {
-     //   if (!object.getCars().isEmpty()) {
         forRemoveFromPosscur = new TreeSet<Integer>(posCurr.keySet());
         for (RoadObject car : object.getCars()) {
                 updateCar(car);
                 forRemoveFromPosscur.remove(car.getId());
         }
-           if(!forRemoveFromPosscur.isEmpty())
+       if(!forRemoveFromPosscur.isEmpty()){
+            for(Integer id : forRemoveFromPosscur){
+                addForInsert(id);
+            }
+        }
+        logger.debug("HighwayStorage updated vehicles: received " + object);
+
+
+
+        for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet()) {
+            Queue<Pair<Long,Float>> original = distances.get(entry.getKey());
+            if (original == null)
+                original = new LinkedList<Pair<Long,Float>>();
+            Long timeKey =  (System.currentTimeMillis()-STARTTIME);  //getEventProcessor().getCurrentTime();
+            Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
+            /*
+            try {
+                Point3f temp = posCurr.get(4).getPosition();
+                refcar = temp;
+            }
+            catch(NullPointerException exp)
             {
-                for(Integer id : forRemoveFromPosscur)
-                {
-                    addForInsert(id);
-                }
+                //TODO Fix this structure
             }
-            logger.debug("HighwayStorage updated vehicles: received " + object);
-
-
-            for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet()) {
-                Queue<Pair<Long,Float>> original = distances.get(entry.getKey());
-                if (original == null)
-                    original = new LinkedList<Pair<Long,Float>>();
-                Long timeKey =  (System.currentTimeMillis()-STARTTIME);  //getEventProcessor().getCurrentTime();
-                Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
-                /*
-                try {
-                    Point3f temp = posCurr.get(4).getPosition();
-                    refcar = temp;
-                }
-                catch(NullPointerException exp)
-                {
-                    //TODO Fix this structure
-                }
-                 Float dist = entry.getValue().getPosition().distance(refcar);
-                 */
-                if (original.isEmpty() || distVal < original.peek().getValue()) {
-                    original.add(new Pair<Long, Float>(timeKey,distVal));
-                }
-                distances.put(entry.getKey(), original);
+             Float dist = entry.getValue().getPosition().distance(refcar);
+             */
+            if (original.isEmpty() || distVal < original.peek().getValue()) {
+                original.add(new Pair<Long, Float>(timeKey,distVal));
             }
+            distances.put(entry.getKey(), original);
+        }
         recreate(object);
         if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true) &&
                 posCurr.size() == 0 && vehiclesForInsert.isEmpty()) {
             getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
-            //System.out.println("Sedim na kameni a cekam");
         }
         getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
      //   }
@@ -216,12 +226,12 @@ public class HighwayStorage extends EventBasedStorage {
     }
     public void addForInsert(int id,float time)
     {
-        vehiclesForInsert.add(new Pair<Integer, Float>(id,time));
+        vehiclesForInsert.add(new Pair<Integer, Float>(id, time));
     }
     public void recreate(RadarData object) {
         Queue<Pair<Integer,Float>> notInsertedVehicles = new PriorityQueue<Pair<Integer, Float>>(20,comparator);
-        while(vehiclesForInsert.peek() != null)
-        {
+        while(vehiclesForInsert.peek() != null){
+            if(!isSafe(null, null, null)) break;;
             Pair<Integer,Float> vehicle = vehiclesForInsert.poll();
             int id = vehicle.getKey();
             if(posCurr.containsKey(id))
@@ -310,29 +320,34 @@ public class HighwayStorage extends EventBasedStorage {
         }
         return true;
     }
-    public boolean isSafe(int stateId,Point3f statePosition,RouteNavigator stateNavigator)
+    public boolean isSafe(Integer stateId,Point3f statePosition,RouteNavigator stateNavigator)
     {
-
-        for (Map.Entry<Integer, RoadObject> obj : posCurr.entrySet()) {
-            RoadObject entry = obj.getValue();
-            float distanceToSecondCar = entry.getPosition().distance(statePosition);
-            if(distanceToSecondCar < CHECKING_DISTANCE)
-            {
-                if (distanceToSecondCar < SAFETY_RESERVE && stateNavigator.getLane() == agents.get(entry.getId()).getNavigator().getLane()) return false;
-                List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();
-                for (Edge e : followingEdgesInPlan) {
-                    if (stateNavigator.getLane().equals(e)) {
-                        if(agents.get(entry.getId()).getNavigator().getActualPointer() < stateNavigator.getActualPointer()
-                                && stateNavigator.getLane() == agents.get(entry.getId()).getNavigator().getLane()) {
-                            double safedist = safeDistance(-4, entry.getVelocity().length(), 0);
-                            if (safedist + SAFETY_RESERVE < distanceToSecondCar) return false;
-                        }
-                    }
-                }
-            }
-
-        }
-        return true;
+        VehicleGenerationModule.generateNextSpeed();
+        return notStartedVehicles.size() < 20;
+//
+//        for (Map.Entry<Integer, RoadObject> obj : posCurr.entrySet()) {
+//            RoadObject entry = obj.getValue();
+//            float distanceToSecondCar = entry.getPosition().distance(statePosition);
+//            if(distanceToSecondCar < CHECKING_DISTANCE){
+////                PlatooningAgent backOne = (PlatooningAgent) getAgents().get(stateId);
+//                PlatooningAgent frontOne = (PlatooningAgent) getAgents().get(obj.getValue().getId());
+//                if(frontOne == null) return true;
+//                float safeDistance = VehicleGenerationModule.frontSafeDistanceInLaneForStart(VehicleGenerationModule.generateNextSpeed(), VehicleGenerationModule.brakingCoef, frontOne.getActSpeed());
+//                if (distanceToSecondCar < safeDistance && stateNavigator.getLane() == agents.get(entry.getId()).getNavigator().getLane()) return false;
+//                List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();
+//                for (Edge e : followingEdgesInPlan) {
+//                    if (stateNavigator.getLane().equals(e)) {
+//                        if(agents.get(entry.getId()).getNavigator().getActualPointer() < stateNavigator.getActualPointer()
+//                                && stateNavigator.getLane() == agents.get(entry.getId()).getNavigator().getLane()) {
+//                            double safedist = safeDistance(-4, entry.getVelocity().length(), 0);
+//                            if (safedist + SAFETY_RESERVE < distanceToSecondCar) return false;
+//                        }
+//                    }
+//                }
+//            }
+//
+//        }
+//        return true;
     }
     private double safeDistance(double a0, double v0, double v1) {
         double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
@@ -353,4 +368,17 @@ public class HighwayStorage extends EventBasedStorage {
             return 0;
         }
     }
+
+
+
+    public VehicleSensor createVehiclesSensor(Agent agent){
+        return new VehicleSensor(getEnvironment(), agent, this);
+    }
+    public VehicleSensor createVehiclesSensor(Agent agent, int id){
+        return new VehicleSensor(getEnvironment(), agent, this, id);
+    }
+    public VehicleActuator createVehicleActuator(Agent agent){
+        return new VehicleActuator(getEnvironment(), agent, this);
+    }
+
 }

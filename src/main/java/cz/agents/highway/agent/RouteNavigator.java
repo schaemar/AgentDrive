@@ -101,6 +101,12 @@ public class RouteNavigator {
         agentLane = route.get(0).getLaneByIndex(0);
     }
 
+
+
+
+    public boolean canChangeLaneLeft(){
+        return agentLane.getLaneLeft() != null;
+    }
     public void changeLaneLeft() {
         Lane leftLane = agentLane.getLaneLeft();
         if (leftLane != null) {
@@ -108,6 +114,9 @@ public class RouteNavigator {
         }
     }
 
+    public boolean canChangeLaneRight(){
+        return agentLane.getLaneRight() != null;
+    }
     public void changeLaneRight() {
         Lane rightLane = agentLane.getLaneRight();
         if (rightLane != null) {
@@ -261,6 +270,9 @@ public class RouteNavigator {
 
     public Lane getLane() {
         return agentLane;
+    }
+    public void setAgentLaneById(int id){
+        agentLane = route.get(0).getLaneByIndex(id);
     }
 
     public int getActualPointer() {

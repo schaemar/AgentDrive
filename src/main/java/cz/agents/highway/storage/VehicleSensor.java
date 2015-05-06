@@ -18,11 +18,18 @@ public class VehicleSensor extends EventBasedSensor {
     private HighwayStorage storage;
 
     public VehicleSensor(EventBasedEnvironment environment, Entity relatedEntity,
-            HighwayStorage storage) {
+                         HighwayStorage storage) {
         super(environment, relatedEntity);
         this.storage = storage;
         getEventProcessor().addEventHandler(this);
         id = Utils.name2ID(relatedEntity.getName());
+    }
+    public VehicleSensor(EventBasedEnvironment environment, Entity relatedEntity,
+                         HighwayStorage storage, int id) {
+        super(environment, relatedEntity);
+        this.storage = storage;
+        getEventProcessor().addEventHandler(this);
+        this.id = id;
     }
 
     private Reaction reaction;

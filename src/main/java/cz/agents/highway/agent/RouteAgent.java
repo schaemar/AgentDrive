@@ -23,14 +23,14 @@ import java.util.List;
  */
 public class RouteAgent extends Agent {
     ///
-    private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly correspond to the actual wayPoint distance, used to make circle around the car
-    private final static double MAX_SPEED   = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0);
+    public static final float CIRCLE_AROUND = 5.0f;  // Does not exactly correspond to the actual wayPoint distance, used to make circle around the car
+    public final static double MAX_SPEED   = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0);
     private static final float WP_COUNT_CONST = 0.2f;
-    private double lastUpateTime;
-    private static int RIGHT = -1;
-    private static int LEFT = 1;
+    public double lastUpateTime;
+    public static int RIGHT = -1;
+    public static int LEFT = 1;
     private static final double RADIUS = 1f;
-    private static final double MAX_ANGLE = Math.PI / 2;
+    public static final double MAX_ANGLE = Math.PI / 2;
     private static final float EPSILON = 0.01f;
 
 
@@ -50,9 +50,9 @@ public class RouteAgent extends Agent {
         this.sensor = sensor;
         this.sensor.registerReaction(new Reaction() {
             public void react(Event event) {
-                if (event.getType().equals(HighwayEventType.UPDATED)) {
-                    actuator.act(agentReact());
-                }
+            if (event.getType().equals(HighwayEventType.UPDATED)) {
+                actuator.act(agentReact());
+            }
             }
         });
 
@@ -206,7 +206,7 @@ public class RouteAgent extends Agent {
 
     }
     //TODO FIX CODE DUPLICATE
-    private List<Action> generateWaypointInLane() {
+    public List<Action> generateWaypointInLane() {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
         if(navigator.isMyLifeEnds()) {

@@ -119,13 +119,15 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         private void executePlans(PlansOut plans) {
             Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();
             RadarData radarData = new RadarData();
-            float duration = 0;
-            float lastDuration = 0;
-            double timest = Configurator.getParamDouble("highway.SimulatorLocal.timestep",1.0);
+
+            double timest = Configurator.getParamDouble("highway.SimulatorLocal.timestep",0.01);
             float timestep = (float)timest;
 
-            boolean removeCar = false;
+
             for (Integer carID : plans.getCarIds()) {
+                float duration = 0;
+                float lastDuration = 0;
+                boolean removeCar = false;
                 Collection<Action> plan = plans.getPlan(carID);
                 RoadObject state = currStates.get(carID);
                 Point3f lastPosition = state.getPosition();
@@ -133,12 +135,13 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 for (Action action : plan) {
                     if (action.getClass().equals(WPAction.class)) {
                         WPAction wpAction = (WPAction) action;
-                        if(wpAction.getSpeed() == -1)
-                        {
+                        if(wpAction.getSpeed() == -1){
                             myPosition = wpAction.getPosition();
                             removeCar = true;
+                            highwayEnvironment.getStorage().plannedVehicles.remove(new Integer(wpAction.getCarId()));
                         }
-                        if (wpAction.getSpeed() < 0.001) {
+                        if (wpAction.getSpeed() < 0.001){
+                            lastDuration = 0.1f;
                             duration += 0.1f;
                         } else {
                             myPosition = wpAction.getPosition();
@@ -163,11 +166,12 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         lastPosition = wpAction.getPosition();
                     }
                 }
-                if(removeCar)
-                {
-                    if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
+                if(removeCar){
+                    if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true)){
                         plannedVehicles.remove(carID);
-                    removeCar = false;
+                        highwayEnvironment.getStorage().getPosCurr().remove(carID);
+                        System.out.println();
+                    }
                 }
                 else
                 {
@@ -182,7 +186,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
                     state = new RoadObject(carID, getEventProcessor().getCurrentTime(), lane, myPosition, vel);
                     radarData.add(state);
-                    duration = 0;
                 }
             }
             //send radar-data to storage with duration delay
@@ -233,6 +236,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         }
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
+
+//        highwayEnvironment.getPlatooningModule().createNewAgent();
         // Divide vehicles evenly to the simulators
          //
           ConnectCallback col = new ConnectCallback() {
@@ -241,15 +246,17 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             @Override
             public void invoke(ProtobufFactory factory) {
                 Iterator<Integer> vehicleIt = vehicles.iterator();
+//                Iterator<Integer> vehicleIt = storage.getAgents().keySet().iterator();
                 PlansOut plans = new PlansOut();
-             //   RadarData update = ;
                 Map<Integer, Agent> agents = storage.getAgents();
-                Set<Integer> plannedVehicles = new HashSet<Integer>();
+//                Set<Integer> plannedVehicles = new HashSet<Integer>();
+
                 int sizeL = size;
                 if(size > vehicles.size()) sizeL = vehicles.size();
                 // Iterate over all configured vehicles
 
                 for (int i = 0; i < sizeL; i++) {
+
                     int vehicleID = vehicleIt.next();
                     if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
                     {
@@ -259,16 +266,16 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         storage.addForInsert(vehicleID);
                     }
                     if (factory!= null && i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
-                        plannedVehicles.add(vehicleID);
+                        storage.plannedVehicles.add(vehicleID);
                     } else {
-                        plannedVehicles.add(vehicleID);
+                        storage.plannedVehicles.add(vehicleID);
                     }
                 }
 
                 if(factory != null)
                 {
                     // Create new simulator handler
-                    simulatorHandlers.add(new SimulatorHandler(factory, plannedVehicles));
+                    simulatorHandlers.add(new SimulatorHandler(factory, storage.plannedVehicles));
                     // This is the last simulator, start the simulation
                     if (section >= simulatorCount) {
                         synchronized (simulation) {
@@ -280,7 +287,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 }
                 else
                 {
-                    simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(plannedVehicles)));
+                    simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(storage.plannedVehicles)));
                 }
                 storage.updateCars(new RadarData());
             }
@@ -360,6 +367,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         String[] parts = launchScript.split(" ");
         logger.info("Starting simulator: " + name + ", script: " + launchScript);
         if (!launchScript.isEmpty()) {
+
             simulators.put(name, new ProcessBuilder().inheritIO().command(parts).start());
         }
     }

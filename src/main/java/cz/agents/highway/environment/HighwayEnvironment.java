@@ -12,6 +12,8 @@ import cz.agents.alite.transport.SocketTransportLayer;
 import cz.agents.alite.transport.TransportLayerInterface;
 import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
+import cz.agents.highway.platooning.PlatooningAgent;
+import cz.agents.highway.platooning.PlatooningCenterModule;
 import cz.agents.highway.protobuf.factory.simplan.PlansFactory;
 import cz.agents.highway.protobuf.factory.simplan.UpdateFactory;
 import cz.agents.highway.protobuf.generated.dlr.DLR_MessageContainer;
@@ -53,6 +55,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
     private Communicator communicator;
     private HighwayStorage storage;
+    private PlatooningCenterModule platooningModule;
     private Network roadNetwork;
 
     // [DEBUG]
@@ -80,6 +83,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         roadNetwork = Network.getInstance();
 
         storage = new HighwayStorage(this);
+        platooningModule = new PlatooningCenterModule(storage);
         logger.info("Initialized handler and storages");
 
         final PlansOut plans = new PlansOut();
@@ -225,6 +229,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
                     	
                         logger.debug("Received RadarData");
                         storage.updateCars(object);
+                        platooningModule.run();
 
                     }
                 }
@@ -237,8 +242,15 @@ public class HighwayEnvironment extends EventBasedEnvironment {
     public HighwayStorage getStorage() {
         return storage;
     }
+    public PlatooningCenterModule getPlatooningModule(){
+        return platooningModule;
+    }
 
     public Communicator getCommunicator() {
         return communicator;
+    }
+
+    public void runPlatooningModule(){
+        platooningModule.run();
     }
 }

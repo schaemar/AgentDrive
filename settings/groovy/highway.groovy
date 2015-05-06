@@ -103,6 +103,6 @@ highway {
         }
     }
     SimulatorLocal{
-        timestep=1;
+        timestep=0.1;
     }
 }

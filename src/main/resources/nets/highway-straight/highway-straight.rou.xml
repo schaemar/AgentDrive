@@ -4,6 +4,9 @@
   <vehicle id="0" depart="0.0">
     <route edges="0"/>
   </vehicle>
+<<<<<<< local
+
+=======
   <vehicle id="1" depart="0.0">
     <route edges="0"/>
   </vehicle>
@@ -22,4 +25,5 @@
   <vehicle id="6" depart="0.0">
     <route edges="0"/>
   </vehicle>
+>>>>>>> other
 </routes>

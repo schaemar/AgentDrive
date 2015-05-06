@@ -10,7 +10,7 @@ import javax.vecmath.Vector3f;
 
 public class Agent extends Entity {
 
-    int id;
+    public int id;
     private static final Logger logger = Logger.getLogger(Agent.class);
 
     protected VehicleSensor sensor;
