@@ -31,7 +31,10 @@ highway {
   //      folder = "nets/artificialHighway-funnel";
     //    folder = "nets/hostinne";
      //     folder = "nets/artificialXS-junction";
-        folder = "nets/artificialT-junction";
+ //       folder = "nets/artificialT-junction";
+        folder = "nets/experiments/T-junction";
+//        folder = "nets/experiments/X-junction";
+
 
 
 
@@ -53,10 +56,10 @@ highway {
             straightManeuverDuration = 0.5;     //[s]
             accelerationManeuverDuration = 0.3;   //[s]
             deaccelerationManueverDuration = 0.3;   //[s]
-            acceleration = 4.0;                     //[m/s^2]
-            deacceleration = -6.0;                  //[m/s^2]
-            maximalSpeed = 50.0;                    //[m/s]
-            maxSpeedVariance = 0.30                     //[%]
+            acceleration = 2;// 4.0;                     //[m/s^2]
+            deacceleration= -2;// -6.0;                  //[m/s^2]
+            maximalSpeed = 5.0;                    //[m/s]
+            maxSpeedVariance = 0.0 // 0.30;                     //[%]
         }
 
     }

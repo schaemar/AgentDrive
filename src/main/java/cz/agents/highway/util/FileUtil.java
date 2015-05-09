@@ -103,7 +103,7 @@ public class FileUtil {
     }
     public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond,long timeOfsimulation,
                             Map<Integer,Float> avspeed, Map<Integer, Pair<Point3f,Float>> lenghtOfjourney,
-                            LinkedList<Float> timesOfArrival)
+                            LinkedList<Float> timesOfArrival, LinkedList<Integer> computationTime)
     {
         String file_name = "report.txt";
         try {
@@ -182,9 +182,18 @@ public class FileUtil {
                 out.write("Journey: " + obj.getKey() + " avspeed: " + spped);
                 out.newLine();
             }
-            out.write("Times of arrival:");
+            out.write("Times of arrival in seconds:");
             out.newLine();
             out.write(timesOfArrival.toString());
+            out.newLine();
+            Integer summ=0;
+            for(Integer e : computationTime)
+            {
+                summ+=e;
+            }
+            Float res = (float)summ/computationTime.size();
+            out.write(res.toString() + " miliseconds");
+            out.newLine();
             out.close();
 
             System.out.println("Report created successfully.");

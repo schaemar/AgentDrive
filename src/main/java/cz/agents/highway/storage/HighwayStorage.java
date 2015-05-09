@@ -33,6 +33,8 @@ public class HighwayStorage extends EventBasedStorage {
     private Map<Integer, Queue<Pair<Long,Float>>> speeds = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
     private Map<Integer, Pair<Point3f,Float>> lenghtOfjourney = new LinkedHashMap<Integer, Pair<Point3f,Float>>();
     private LinkedList<Float> timesOfArrival = new LinkedList<Float>();
+    private LinkedList<Integer> computationTime = new LinkedList<Integer>();
+    private long radarDataSystemTime = 0l;
     private final float SAVE_DISTANCE = 10;
     Point3f refcar = new Point3f(0, 0, 0);
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
@@ -74,6 +76,7 @@ public class HighwayStorage extends EventBasedStorage {
             }
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
+            radarDataSystemTime = System.currentTimeMillis();
             RadarData radar_data = (RadarData) event.getContent();
             updateCars(radar_data);
 
@@ -102,7 +105,7 @@ public class HighwayStorage extends EventBasedStorage {
             if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
             {
                 FileUtil.getInstance().writeReport(numberOfCollisons,agents.size()/((ENDTIME-STARTTIME)/1000f),
-                        ENDTIME-STARTTIME,calculateAverageSpeed(speeds),lenghtOfjourney,timesOfArrival);
+                        ENDTIME-STARTTIME,calculateAverageSpeed(speeds),lenghtOfjourney,timesOfArrival,computationTime);
                 logger.info("Number of cars in time is " + agents.size()/((ENDTIME-STARTTIME)));
             }
             logger.info("Number of collisions is " + numberOfCollisons + "\n");
@@ -415,6 +418,13 @@ public class HighwayStorage extends EventBasedStorage {
             averageSpeeds.put(obj.getKey(),sumSpeed/numberOfSpeeds);
         }
         return averageSpeeds;
+    }
+    public void calcPlanCalculation(Long time)
+    {
+        if(radarDataSystemTime != 0l) {
+            Integer planTime = (int)(time - radarDataSystemTime);
+            computationTime.add(planTime);
+        }
     }
     private class QueueComparator implements Comparator<Pair<Integer,Float>>
     {
