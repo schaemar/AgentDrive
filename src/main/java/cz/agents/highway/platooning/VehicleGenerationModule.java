@@ -9,15 +9,15 @@ import java.util.Random;
  */
 public class VehicleGenerationModule {
 
-    static int safeTime = 2;
+    static float safeTime = 2.1f;
     static float reactionTime = 0.1f;
-    static float avrgSpeed = 28;
-    static float speedDispersion = 2;
+    static float avrgSpeed = 30;
+    static float speedDispersion = 3;
     static Random random = new Random();
-    static float probOfPlatoon = 0f;
+    static float probOfPlatoon = 0.5f;
     static float distInPlatoon = 9;
-    static int maxLenghtOfPlatoon = 8;
-    static int vehiclesPerHour = 2500;
+    static int maxLenghtOfPlatoon = 5;
+    static int vehiclesPerHour = 3000;
     static boolean generationLimit = false;
 
 
@@ -29,12 +29,17 @@ public class VehicleGenerationModule {
         return random.nextDouble() < probOfPlatoon;
     }
 
+    static public boolean genPlatoon(float platoonVehicles, float totalVehicles){
+        return platoonVehicles/totalVehicles < probOfPlatoon;
+    }
+
     static public int lengthOfPlatoon(){
         return  random.nextInt(maxLenghtOfPlatoon) + 2;
     }
 
     static public float generateNextSpeed(){
         nextSpeed = (float) random.nextGaussian() * speedDispersion + avrgSpeed;
+        System.out.println(nextSpeed);
         return nextSpeed;
     }
 

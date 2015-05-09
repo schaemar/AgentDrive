@@ -3,7 +3,8 @@ package cz.agents.highway.platooning;
 import cz.agents.highway.storage.HighwayStorage;
 import cz.agents.highway.storage.Pair;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -11,7 +12,7 @@ import java.util.Set;
 /**
  * Created by Ondra Borovec on 4/17/15.
  */
-public class PlatooningCenterModule {
+public class PlatooningCenterModule_normal {
     private long startTime = System.currentTimeMillis();
     private long lastUpdate = System.currentTimeMillis();
     private long lastStartStaticInfo = System.currentTimeMillis();
@@ -37,11 +38,7 @@ public class PlatooningCenterModule {
     PrintWriter  writer;
 
 
-    int overtaking = 1;
-//    0......normla
-//    1......at one time
-
-    public PlatooningCenterModule(HighwayStorage storage){
+    public PlatooningCenterModule_normal(HighwayStorage storage){
         this.storage = storage;
         startTime = System.currentTimeMillis();
         resetMinDist();
@@ -50,7 +47,7 @@ public class PlatooningCenterModule {
         }
 
         try {
-            writer = new PrintWriter("results1.txt");
+            writer = new PrintWriter("collision 100% 3000 limit.txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -74,17 +71,14 @@ public class PlatooningCenterModule {
                 boolean finish = false;
 //                printVehicleGeneralInfo(vehicle);
                 int lane = agent.getLane();
-                float position = getCurrentYposition(vehicle);
+                float position = currentYposition(vehicle);
                 float actSpeed = agent.getActSpeed();
                 float brakingKoef = agent.getBrakingCoef();
 
-                PlatooningAgent lastPlatoonAgent = getLastVehicleOfPlatoon(agent);
                 float orderForFVPosition = Float.MAX_VALUE;
                 int orderForFVDir = 0;
-
 //                if(agent.getLane() == 0 && System.currentTimeMillis() - startTime > 5000){
 //                    changeLaneToLeft(agent, lane);
-//                    lane ++;
 //                    orderForFVPosition = position;
 //                    orderForFVDir = 1;
 //                }
@@ -92,32 +86,17 @@ public class PlatooningCenterModule {
                 if(agent.canChangeToRightLane()){
                     int backRightAgentId = getAgentIdInLaneBackThePos(position, lane - 1);
                     int frontRightAgentId = getAgentIdInLaneFrontThePos(position, lane - 1, agent.id);
-                    switch (overtaking){
-                        case 0:
-                            if((frontRightAgentId == -1 || frontSafeDistanceInLane(actSpeed, brakingKoef, getActSpeed(frontRightAgentId), distanceBetweenVehicles(agent.id, frontRightAgentId)))
+                    if((frontRightAgentId == -1 || frontSafeDistanceInLane(actSpeed, brakingKoef, getActSpeed(frontRightAgentId), distanceBetweenVehicles(agent.id, frontRightAgentId)))
                             && (backRightAgentId == -1 || overtakingDistance(getActSpeed(backRightAgentId), actSpeed, distanceBetweenVehicles(backRightAgentId, agent.id)))){
-                                changeLaneToRight(agent, lane);
-                                orderForFVPosition = position;
-                                orderForFVDir = -1;
-                                finish = true;
-                            }
-                            break;
-                        case 1:
-                            if((frontRightAgentId == -1 || frontSafeDistanceInLane(actSpeed, brakingKoef, getActSpeed(frontRightAgentId), distanceBetweenVehicles(agent.id, frontRightAgentId)))
-                                    && (backRightAgentId == -1 || overtakingDistance(getActSpeed(backRightAgentId), actSpeed, distanceBetweenVehicles(backRightAgentId, lastPlatoonAgent.id)))
-                                    && noVehicleBetween(position, getCurrentYposition(lastPlatoonAgent.getID()), lane -1)){
-                                changeLaneToRight(agent, lane);
-                                orderForFVPosition = position;
-                                orderForFVDir = -1;
-                                finish = true;
-                            }
-                            break;
+                        changeLaneToRight(agent, lane);
+                        orderForFVPosition = position;
+                        orderForFVDir = -1;
+                        finish = true;
                     }
-
                 }
                 if(!finish){
                     int frontAgentId = getAgentIdInLaneFrontThePos(position, lane, agent.id);
-                    if (distanceBetweenVehicles(agent.id, frontAgentId) < agent.getActSpeed() * vehicleGenerationModule.safeTime *0.6f && System.currentTimeMillis()- lastStartStaticInfo >1000 && getCurrentYposition(agent.id) < 4900) {
+                    if (distanceBetweenVehicles(agent.id, frontAgentId) < agent.getActSpeed() * vehicleGenerationModule.safeTime *0.6f && System.currentTimeMillis()- lastStartStaticInfo >1000 && currentYposition(agent.id) < 4900) {
                         numOfColisions++;
                     }
                     if(frontAgentId == -1 || frontSafeDistanceInLane(actSpeed, brakingKoef, getActSpeed(frontAgentId), distanceBetweenVehicles(agent.id, frontAgentId))){
@@ -129,32 +108,15 @@ public class PlatooningCenterModule {
                             if(agent.canChangeToLeftLane()){
                                 int backLeftAgentId = getAgentIdInLaneBackThePos(position, lane + 1);
                                 int frontLeftAgentId = getAgentIdInLaneFrontThePos(position, lane + 1, agent.id);
-                                switch (overtaking){
-                                    case 0:
-                                        if((frontLeftAgentId == -1 || frontSafeDistanceInLane(actSpeed, brakingKoef, getActSpeed(frontLeftAgentId), distanceBetweenVehicles(agent.id, frontLeftAgentId)))
-                                                && (backLeftAgentId == -1 || overtakingDistance(getActSpeed(backLeftAgentId), actSpeed, distanceBetweenVehicles(backLeftAgentId, agent.id)))){
-                                            changeLaneToLeft(agent, lane);
-                                            orderForFVPosition = position;
-                                            orderForFVDir = 1;
-                                            agent.speedUp(lastTimeOfRun);
-                                        }else{
-                                            agent.slowDown(lastTimeOfRun);
-                                        }
-                                        break;
-                                    case 1:
-                                        if((frontLeftAgentId == -1 || frontSafeDistanceInLane(actSpeed, brakingKoef, getActSpeed(frontLeftAgentId), distanceBetweenVehicles(agent.id, frontLeftAgentId)))
-                                                && (backLeftAgentId == -1 || overtakingDistance(getActSpeed(backLeftAgentId), actSpeed, distanceBetweenVehicles(backLeftAgentId, agent.id)))
-                                                && noVehicleBetween(position, getCurrentYposition(lastPlatoonAgent.getID()), lane +1)){
-                                            changeLaneToLeft(agent, lane);
-                                            orderForFVPosition = position;
-                                            orderForFVDir = 1;
-                                            agent.speedUp(lastTimeOfRun);
-                                        }else{
-                                            agent.slowDown(lastTimeOfRun);
-                                        }
-                                        break;
+                                if((frontLeftAgentId == -1 || frontSafeDistanceInLane(actSpeed, brakingKoef, getActSpeed(frontLeftAgentId), distanceBetweenVehicles(agent.id, frontLeftAgentId)))
+                                        && (backLeftAgentId == -1 || overtakingDistance(getActSpeed(backLeftAgentId), actSpeed, distanceBetweenVehicles(backLeftAgentId, agent.id)))){
+                                    changeLaneToLeft(agent, lane);
+                                    orderForFVPosition = position;
+                                    orderForFVDir = 1;
+                                    agent.speedUp(lastTimeOfRun);
+                                }else{
+                                    agent.slowDown(lastTimeOfRun);
                                 }
-
                             }else{
                                 agent.slowDown(lastTimeOfRun);
                             }
@@ -163,25 +125,18 @@ public class PlatooningCenterModule {
                 }
                 PlatooningAgent FVAgent = agent.backFV;
                 while(FVAgent != null){
-                    float FVposition = getCurrentYposition(FVAgent.id);
-                    if(FVposition == 0 && getCurrentYposition(FVAgent.frontAgent.getID()) > FVAgent.fvModule.getOptDistInPlatoon()){
+                    float FVposition = currentYposition(FVAgent.id);
+                    if(FVposition == 0 && currentYposition(FVAgent.frontAgent.getID()) > FVAgent.fvModule.getOptDistInPlatoon()){
                         FVAgent.setActSpeedAsPrefSpeed();
                     }
-                    if (getCurrentYposition(FVAgent.frontAgent.getID()) - FVposition > FVAgent.fvModule.getOptDistInPlatoon()){
+                    if (currentYposition(FVAgent.frontAgent.getID()) - FVposition > FVAgent.fvModule.getOptDistInPlatoon()){
                         FVAgent.speedUp(lastTimeOfRun, agent.getActSpeed()+0.1f);
                     }else{
                         FVAgent.slowDown(lastTimeOfRun);
                     }
-                    switch (overtaking){
-                        case 0:
-                            if(orderForFVPosition!=Float.MAX_VALUE) FVAgent.fvModule.addOrder(orderForFVPosition, orderForFVDir);
-                            break;
-                        case 1:
-                            if(orderForFVPosition!=Float.MAX_VALUE) FVAgent.fvModule.addOrder(FVposition, orderForFVDir);
-                            break;
-                    }
-
-                    Pair<Float, Integer> order = FVAgent.fvModule.executeOrders(getCurrentYposition(FVAgent.getID()));
+                    //if(orderForFVPosition!=Float.MAX_VALUE) FVAgent.fvModule.addOrder(orderForFVPosition, orderForFVDir);
+                    if(orderForFVPosition!=Float.MAX_VALUE) FVAgent.fvModule.addOrder(orderForFVPosition, orderForFVDir);
+                    Pair<Float, Integer> order = FVAgent.fvModule.executeOrders(currentYposition(FVAgent.getID()));
                     if(order != null){
                         if(order.getValue() == 1){
                             changeLaneToLeft(FVAgent, FVAgent.getLane());
@@ -232,21 +187,6 @@ public class PlatooningCenterModule {
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //Platooning staff
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    private PlatooningAgent getLastVehicleOfPlatoon(PlatooningAgent agent){
-        while(agent.backFV != null){
-            agent = agent.backFV;
-        }
-        return agent;
-    }
-
-
-
-
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Distance comparison
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private boolean frontSafeDistanceInLane(float speedOfBackVehicle, float brakingCoefOfBackVehicle, float speedOfFrontVehicle, float distance){
@@ -273,16 +213,6 @@ public class PlatooningCenterModule {
         }
         return false;
     }
-
-    private boolean noVehicleBetween(float frontPosition, float backPosition, int lane){
-        for(Object obj : vehiclesByLanes.get(lane)) {
-            Integer id = (Integer) obj;
-            float position = getCurrentYposition(id);
-            if(position >= backPosition && position <= frontPosition) return false;
-        }
-        return true;
-    }
-
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -388,7 +318,7 @@ public class PlatooningCenterModule {
         int minId = -1;
         for(Object obj : vehiclesByLanes.get(lane)){
             Integer id = (Integer) obj;
-            float pos = getCurrentYposition(id);
+            float pos = currentYposition(id);
             if(pos < minDist && pos >= position && initId != id){
                 minDist = pos;
                 minId = id;
@@ -401,7 +331,7 @@ public class PlatooningCenterModule {
         int minId = -1;
         for(Object obj : vehiclesByLanes.get(lane)){
             Integer id = (Integer) obj;
-            float pos = getCurrentYposition(id);
+            float pos = currentYposition(id);
             if(pos < minDist && pos >= position && initId != id){
                 minDist = pos;
                 minId = id;
@@ -414,7 +344,7 @@ public class PlatooningCenterModule {
         int minId = -1;
         for(Object obj : vehiclesByLanes.get(lane)){
             Integer id = (Integer) obj;
-            float pos = getCurrentYposition(id);
+            float pos = currentYposition(id);
             if(pos > minDist && pos < position){
                 minDist = pos;
                 minId = id;
@@ -427,7 +357,7 @@ public class PlatooningCenterModule {
         int minId = -1;
         for(Object obj : vehiclesByLanes.get(lane)){
             Integer id = (Integer) obj;
-            float pos = getCurrentYposition(id);
+            float pos = currentYposition(id);
             if(pos > minDist && pos < position){
                 minDist = pos;
                 minId = id;
@@ -443,9 +373,9 @@ public class PlatooningCenterModule {
         System.out.println("___________________________________________________________________________________________");
         System.out.println("Vehicle: " + vehicle);
         System.out.println("Actual speed: "+getActSpeed(vehicle)+" m/s");
-        System.out.println("Position: "+ getCurrentYposition(vehicle)+" m");
+        System.out.println("Position: "+currentYposition(vehicle)+" m");
     }
-    private float getCurrentYposition(Integer id){
+    private float currentYposition(Integer id){
         if(storage.getPosCurr().get(id)==null) return Integer.MAX_VALUE;
         if (id==-1) return Integer.MAX_VALUE;
         if (Float.isNaN(storage.getPosCurr().get(id).getPosition().getY())) return 0;
@@ -458,7 +388,7 @@ public class PlatooningCenterModule {
         return (PlatooningAgent) storage.getAgents().get(new Integer(id));
     }
     private float distanceBetweenVehicles(int id1, int id2){
-        return Math.abs(getCurrentYposition(id1) - getCurrentYposition(id2));
+        return Math.abs(currentYposition(id1) - currentYposition(id2));
     }
 
 

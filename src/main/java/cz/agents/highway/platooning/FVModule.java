@@ -12,7 +12,7 @@ public class FVModule {
     private ArrayList<Float> changeLaneAt = new ArrayList<Float>();
     private ArrayList<Integer> changeLaneTo = new ArrayList<Integer>();
 
-    private float distanceBetweenVehicles = 9;
+    private float distanceBetweenVehicles = 10;
 
     public FVModule(){
 
