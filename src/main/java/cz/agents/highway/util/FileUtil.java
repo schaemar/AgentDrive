@@ -101,6 +101,52 @@ public class FileUtil {
             System.out.println(e.getMessage());
         }
     }
+    public void writeGraphOfArrivals(Map<Integer, Pair<Float,Float>>  graphOfArrivals)
+    {
+        String file_name = "graphOfArrivals.m";
+        try {
+            FileWriter fstream = new FileWriter(file_name);
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write("A" + " = [");
+            for (Map.Entry<Integer, Pair<Float, Float>> obj : graphOfArrivals.entrySet()) {
+                if(obj.getValue().getValue() !=null) {
+                    Float element = (Float) obj.getValue().getKey();
+                    out.write(element + " ");
+                }
+            }
+            out.write("]");
+            out.newLine();
+            out.write("Atime" + " = [");
+            for (Map.Entry<Integer, Pair<Float, Float>> obj : graphOfArrivals.entrySet()) {
+                if(obj.getValue().getValue() !=null) {
+                    Float element = obj.getValue().getValue() - obj.getValue().getKey();
+                    out.write(element + " ");
+                }
+            }
+            out.write("]");
+            out.newLine();
+            out.write("p = polyfit(A,Atime,4);");
+            out.newLine();
+            out.write("x1 = linspace(0,A(length(A)));");
+            out.newLine();
+            out.write("y1 = polyval(p,x1);");
+            out.newLine();
+            out.write("figure;");
+            out.newLine();
+            out.write("hold on;");
+            out.newLine();
+            out.write("plot(A,Atime,'o');");
+            out.newLine();
+            out.write("plot(x1,y1);");
+            out.newLine();
+            out.write("hold off;");
+            out.close();
+            System.out.println("Graph of arrivals created");
+        }
+     catch (Exception e) { // TODO Improve this
+        System.out.println(e.getMessage());
+    }
+    }
     public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond,long timeOfsimulation,
                             Map<Integer,Float> avspeed, Map<Integer, Pair<Point3f,Float>> lenghtOfjourney,
                             LinkedList<Float> timesOfArrival, LinkedList<Integer> computationTime)

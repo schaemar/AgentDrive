@@ -31,8 +31,8 @@ highway {
   //      folder = "nets/artificialHighway-funnel";
     //    folder = "nets/hostinne";
      //     folder = "nets/artificialXS-junction";
- //       folder = "nets/artificialT-junction";
-        folder = "nets/experiments/T-junction";
+       folder = "nets/artificialT-junction";
+  //      folder = "nets/experiments/T-junction";
 //        folder = "nets/experiments/X-junction";
 
 
@@ -56,10 +56,10 @@ highway {
             straightManeuverDuration = 0.5;     //[s]
             accelerationManeuverDuration = 0.3;   //[s]
             deaccelerationManueverDuration = 0.3;   //[s]
-            acceleration = 2;// 4.0;                     //[m/s^2]
-            deacceleration= -2;// -6.0;                  //[m/s^2]
-            maximalSpeed = 5.0;                    //[m/s]
-            maxSpeedVariance = 0.0 // 0.30;                     //[%]
+            acceleration = 4.0;                     //[m/s^2]
+            deacceleration= -6.0;                  //[m/s^2]
+            maximalSpeed = 50.0;                    //[m/s]
+            maxSpeedVariance = 0.30;                     //[%]
         }
 
     }
@@ -114,13 +114,13 @@ highway {
 
         }
 
-     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-//  simulatorsToRun = ["SimulatorLite"];
+ //    simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+ simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 50;
+        numberOfCarsInSimulation = 70;
         sumoSimulation = true;
-        systemTime = false;
+        systemTime = true;
     }
 
     netLayer {

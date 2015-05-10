@@ -33,6 +33,7 @@ public class HighwayStorage extends EventBasedStorage {
     private Map<Integer, Queue<Pair<Long,Float>>> speeds = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
     private Map<Integer, Pair<Point3f,Float>> lenghtOfjourney = new LinkedHashMap<Integer, Pair<Point3f,Float>>();
     private LinkedList<Float> timesOfArrival = new LinkedList<Float>();
+    private Map<Integer, Pair<Float,Float>>  graphOfArrivals = new LinkedHashMap<Integer, Pair<Float, Float>>();
     private LinkedList<Integer> computationTime = new LinkedList<Integer>();
     private long radarDataSystemTime = 0l;
     private final float SAVE_DISTANCE = 10;
@@ -76,7 +77,6 @@ public class HighwayStorage extends EventBasedStorage {
             }
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
-            radarDataSystemTime = System.currentTimeMillis();
             RadarData radar_data = (RadarData) event.getContent();
             updateCars(radar_data);
 
@@ -106,6 +106,7 @@ public class HighwayStorage extends EventBasedStorage {
             {
                 FileUtil.getInstance().writeReport(numberOfCollisons,agents.size()/((ENDTIME-STARTTIME)/1000f),
                         ENDTIME-STARTTIME,calculateAverageSpeed(speeds),lenghtOfjourney,timesOfArrival,computationTime);
+                FileUtil.getInstance().writeGraphOfArrivals(graphOfArrivals);
                 logger.info("Number of cars in time is " + agents.size()/((ENDTIME-STARTTIME)));
             }
             logger.info("Number of collisions is " + numberOfCollisons + "\n");
@@ -173,6 +174,7 @@ public class HighwayStorage extends EventBasedStorage {
     }
     public void updateCars(RadarData object) {
      //   if (!object.getCars().isEmpty()) {
+        radarDataSystemTime = System.currentTimeMillis();
         forRemoveFromPosscur = new TreeSet<Integer>(posCurr.keySet());
         for (RoadObject car : object.getCars()) {
                 updateCar(car);
@@ -185,10 +187,14 @@ public class HighwayStorage extends EventBasedStorage {
                     addForInsert(id);
                     if(Configurator.getParamBool("highway.dashboard.systemTime",false)) {
                         timesOfArrival.add((System.currentTimeMillis() - STARTTIME) / 1000f);
+                        Pair<Float, Float> floatFloatPair = graphOfArrivals.get(id);
+                        graphOfArrivals.put(id,new Pair<Float, Float>(floatFloatPair.getKey(),(System.currentTimeMillis() - STARTTIME) / 1000f));
                     }
                     else
                     {
                         timesOfArrival.add(getEventProcessor().getCurrentTime()/1000f);
+                        Pair<Float, Float> floatFloatPair = graphOfArrivals.get(id);
+                        graphOfArrivals.put(id,new Pair<Float, Float>(floatFloatPair.getKey(),getEventProcessor().getCurrentTime()/1000f));
                     }
                 }
             }
@@ -357,6 +363,17 @@ public class HighwayStorage extends EventBasedStorage {
                 agent.setNavigator(routeNavigator);
                 RoadObject newRoadObject = new RoadObject(id,updateTime, agent.getNavigator().getLane().getIndex(),initialPosition,initialVelocity);
                 agent.getNavigator().setMyLifeEnds(false);
+                if(Configurator.getParamBool("highway.dashboard.systemTime",false)) {
+                    if(STARTTIME == 0l)
+                    {
+                        graphOfArrivals.put(id,new Pair<Float, Float>(0f,null));
+                    }
+                    else graphOfArrivals.put(id,new Pair<Float, Float>((System.currentTimeMillis() - STARTTIME) / 1000f,null));
+                }
+                else
+                {
+                    graphOfArrivals.put(id, new Pair<Float, Float>(getEventProcessor().getCurrentTime()/1000f, null));
+                }
                 updateCar(newRoadObject);
             } else
                 notInsertedVehicles.add(vehicle);
