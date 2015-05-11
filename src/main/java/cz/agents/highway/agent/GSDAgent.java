@@ -469,7 +469,7 @@ public class GSDAgent extends RouteAgent {
         //TODO use config for this
         Point2f junctionwaypoint = myNearestJunction.getCenter();
         boolean nearTheJunction = (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
-      //  if(myNearestJunction.getId().equals("preparation")) nearTheJunction = false;
+        if(myNearestJunction.getId().equals("preparation")) nearTheJunction = false;
         //distance from the junction, should be determined by max allowed speed on the lane.
         for(RoadObject entry : nearCars) {
 

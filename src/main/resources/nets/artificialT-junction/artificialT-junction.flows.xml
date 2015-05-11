@@ -1,12 +1,20 @@
 <flows>
-    <!--<flow id="a" from="7" to="7" begin="0" end="5" number="3"/>-->
-    <flow id="a" from="7" to="1" begin="10" end="360" number="80"/>
-    <flow id="b" from="5" to="3" begin="10" end="360" number="80"/>
+    <flow id="a" from="7" to="1" begin="10" end="360" number="40"/>
+    <flow id="b" from="5" to="3" begin="10" end="360" number="40"/>
 
-    <flow id="a" from="7" to="4" begin="6" end="360" number="30"/>
-    <flow id="b" from="5" to="4" begin="11" end="360" number="30"/>
+    <flow id="aa" from="7" to="1" begin="100" end="280" number="20"/>
+    <flow id="bb" from="5" to="3" begin="100" end="280" number="20"/>
 
-    <flow id="c" from="0" to="1" begin="3" end="360" number="50"/>
-    <flow id="d" from="0" to="3" begin="9" end="360" number="50"/>
+    <flow id="c" from="7" to="4" begin="6" end="360" number="15"/>
+    <flow id="d" from="5" to="4" begin="11" end="360" number="15"/>
+
+    <flow id="cc" from="7" to="4" begin="96" end="276" number="7"/>
+    <flow id="dd" from="5" to="4" begin="101" end="281" number="8"/>
+
+    <flow id="e" from="0" to="1" begin="3" end="360" number="25"/>
+    <flow id="f" from="0" to="3" begin="9" end="360" number="25"/>
+
+    <flow id="ee" from="0" to="1" begin="93" end="273" number="13"/>
+    <flow id="ff" from="0" to="3" begin="99" end="279" number="12"/>
 </flows>
 
