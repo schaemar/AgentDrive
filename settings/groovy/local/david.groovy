@@ -28,13 +28,13 @@ highway {
 //        folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
     //   folder = "nets/artificialX-junction";
-  //      folder = "nets/artificialHighway-funnel";
+    //    folder = "nets/artificialHighway-funnel";
     //    folder = "nets/hostinne";
      //     folder = "nets/artificialXS-junction";
-   //    folder = "nets/artificialT-junction";
+       folder = "nets/artificialT-junction";
   //      folder = "nets/experiments/T-junction";
 //        folder = "nets/experiments/X-junction";
-        folder = "nets/artificialHighway";
+  //      folder = "nets/artificialHighway";
 
 
 
@@ -115,13 +115,13 @@ highway {
 
         }
 
-     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-// simulatorsToRun = ["SimulatorLite"];
+ //    simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+ simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 70;
-        sumoSimulation = true;
-        systemTime = false;
+        numberOfCarsInSimulation = 50;
+        sumoSimulation = false;
+        systemTime = true;
     }
 
     netLayer {

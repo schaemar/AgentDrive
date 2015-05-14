@@ -227,7 +227,11 @@ public class HighwayStorage extends EventBasedStorage {
                 {
                     timeKey = getEventProcessor().getCurrentTime();
                 }
-                Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
+                //FUNNEL
+                Float distVal = entry.getValue().getPosition().distance(new Point3f(-1.75f, -600f, 0f));
+                //X JUNTIONS
+              //  Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
+
                 Float speed = entry.getValue().getVelocity().length();
                 /*
                 try {
@@ -332,7 +336,7 @@ public class HighwayStorage extends EventBasedStorage {
             Point3f initialPosition = new Point3f(position.x, position.y, 0);
             Point2f next = routeNavigator.nextWithReset();
             Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
-
+          //  Vector3f initialVelocity = new Vector3f((next.x - position.x)/100, (next.y - position.y)/100, 0);
             int numberOftryes = 1;
             int it = 0;
             for(int j =0;j<routeNavigator.getLane().getEdge().getLanes().size();j++)
@@ -412,7 +416,8 @@ public class HighwayStorage extends EventBasedStorage {
             {
                 if (distanceToSecondCar < SAFETY_RESERVE){
                     if(stateNavigator.getLane().getEdge() == agents.get(entry.getId()).getNavigator().getLane().getEdge() &&
-                            stateNavigator.getLane() != agents.get(entry.getId()).getNavigator().getLane());
+                            stateNavigator.getLane() != agents.get(entry.getId()).getNavigator().getLane()
+                            || stateNavigator.getLane().getEdge() != agents.get(entry.getId()).getNavigator().getLane().getEdge()) ;
                     else return false;
             }
                 List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();

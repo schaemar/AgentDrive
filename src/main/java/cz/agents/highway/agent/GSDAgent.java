@@ -144,6 +144,8 @@ public class GSDAgent extends RouteAgent {
                 logger.info("Nothing is safe, shouldnt happen!");
                 maneuver = dec;
             }
+        isSafeMan(currState, acc, situationPrediction);
+        isSafeMan(currState, str, situationPrediction);
         //testing scenario
         /*if(currState.getId() == 0 && navigator.getActualPointer() > 5)
         {

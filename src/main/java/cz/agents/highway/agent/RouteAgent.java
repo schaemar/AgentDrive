@@ -129,16 +129,43 @@ public class RouteAgent extends Agent {
         //how many waiponts ahead will be chcecked depending on the update time
         maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
         if (maxMove < 10) maxMove = 10;
-        while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
-            navigator.advanceInRoute();
-        }
-        if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
-            navigator.resetToCheckpoint();
-        } else {
-            while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+        if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) {
+            String uniqueIndex = navigator.getUniqueLaneIndex();
+            while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
                 navigator.advanceInRoute();
             }
-            //    navigator.setCheckpoint();
+            if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+                float initialPos = position2D.distance(navigator.getRoutePoint());
+                do {
+                    navigator.advanceInRoute();
+                } while (position2D.distance(navigator.getRoutePoint()) < initialPos);
+                while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                    navigator.advanceInRoute();
+                }
+                navigator.setCheckpoint();
+            }
+            if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+                navigator.resetToCheckpoint();
+            } else {
+                while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                    navigator.advanceInRoute();
+                }
+                //    navigator.setCheckpoint();
+            }
+        }
+        else
+        {
+            while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+                navigator.advanceInRoute();
+            }
+            if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+                navigator.resetToCheckpoint();
+            } else {
+                while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                    navigator.advanceInRoute();
+                }
+                //    navigator.setCheckpoint();
+            }
         }
         if (relativeLane == RIGHT) {
             navigator.changeLaneRight();
@@ -180,7 +207,8 @@ public class RouteAgent extends Agent {
                     speed = 1 / angle * 6;
                 }
             }
-            if (speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
+            if (speed < minSpeed)
+                minSpeed = speed;  // all the next actions get the minimal speed.
             points.add(i, new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
         }
         if (minSpeed > maneuver.getVelocityOut()) {
@@ -270,7 +298,8 @@ public class RouteAgent extends Agent {
                     speed = 1 / angle * 6;
                 }
             }
-            if (speed < minSpeed) minSpeed = speed;  // all the next actions get the minimal speed.
+            if (speed < minSpeed)
+                minSpeed = speed;  // all the next actions get the minimal speed.
             points.add(i, new Point3f(waypoint.x, waypoint.y, me.getPosition().z));
         }
         double speedChangeConst = (me.getVelocity().length() - minSpeed) / wpCount;
