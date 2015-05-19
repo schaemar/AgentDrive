@@ -228,9 +228,9 @@ public class HighwayStorage extends EventBasedStorage {
                     timeKey = getEventProcessor().getCurrentTime();
                 }
                 //FUNNEL
-                Float distVal = entry.getValue().getPosition().distance(new Point3f(-1.75f, -600f, 0f));
+             //   Float distVal = entry.getValue().getPosition().distance(new Point3f(-1.75f, -600f, 0f));
                 //X JUNTIONS
-              //  Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
+                Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
 
                 Float speed = entry.getValue().getVelocity().length();
                 /*

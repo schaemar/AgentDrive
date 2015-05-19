@@ -12,17 +12,11 @@
     <flow id="ee" from="0" to="1" begin="93" end="273" number="13"/>
     <flow id="ff" from="0" to="3" begin="99" end="279" number="12"/>-->
 
-  <!--  <flow id="a" from="7" to="1" begin="10" end="180" number="50"/>
-    <flow id="b" from="5" to="3" begin="10" end="180" number="50"/>
-
-    <flow id="c" from="5" to="4" begin="10" end="180" number="2"/>
-    <flow id="d" from="7" to="4" begin="15" end="180" number="2"/>
-
-    <flow id="e" from="0" to="1" begin="5" end="180" number="6"/>
-    <flow id="f" from="0" to="3" begin="10" end="180" number="6"/> -->
-
     <flow id="a" from="7" to="1" begin="10" end="180" number="160"/>
-    <flow id="b" from="0" to="1" begin="10" end="180" number="160"/>
+    <flow id="b" from="0" to="2" begin="10" end="180" number="160"/>
 
+
+    <!-- <flow id="b" from="5" to="4" begin="10" end="240" number="15"/>
+     <flow id="c" from="5" to="2" begin="10" end="240" number="15"/>-->
 </flows>
 

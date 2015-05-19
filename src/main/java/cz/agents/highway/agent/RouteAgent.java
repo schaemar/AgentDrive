@@ -72,6 +72,11 @@ public class RouteAgent extends Agent {
         return translate(maneuver);
     }
 
+    /**
+     * Method used for translating manoeuvre. It calls original Route Agent's generateWaypointsInLane method.
+     * @param maneuver translated manoeuvre.
+     * @return list of actions.
+     */
     public List<Action> translate(CarManeuver maneuver) {
         if (maneuver == null) {
             LinkedList<Action> actions = new LinkedList<Action>();
@@ -105,10 +110,12 @@ public class RouteAgent extends Agent {
         }
     }
 
-    //TODO Code duplicate with route agent
-    //TODO use point close enough method from original Maneuver Translator
-    //TODO bug when changing edge too early co narrowing mode stops working because car think that it is already on the another route but it is not
-        // MAYBE RESOLVED, viz commented code
+    /**
+     * This method is for translating manoeuvre into the waipoints plan
+     * @param relativeLane this determines if the manoeuvre is lane-changing.
+     * @param maneuver translated manoeuvre.
+     * @return List of waypoint actions.
+     */
     private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
@@ -129,7 +136,8 @@ public class RouteAgent extends Agent {
         //how many waiponts ahead will be chcecked depending on the update time
         maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
         if (maxMove < 10) maxMove = 10;
-        if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) {
+        if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) { //Simulator dependent code.
+            //The difference is in switching between lanes or edges.
             String uniqueIndex = navigator.getUniqueLaneIndex();
             while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
                 navigator.advanceInRoute();
@@ -220,20 +228,17 @@ public class RouteAgent extends Agent {
             //scaling speed to the lowest
             actions.add(new WPAction(sensor.getId(), me.getUpdateTime(), points.get(i), me.getVelocity().length() - (i + 1) * speedChangeConst));
         }
-      /*
-      only minimal speed set
-      for(int i=0;i<=maneuver.getVelocityOut() && i<wpCount;i++)
-        {
-            actions.add(new WPAction(sensor.getId(), me.getUpdateTime(),points.get(i),minSpeed));
-        }*/
-
-
         navigator.resetToCheckpoint();
         lastUpateTime = me.getUpdateTime();
         return actions;
 
     }
     //TODO FIX CODE DUPLICATE
+
+    /**
+     * This method is for original Route Agent. It creates plans consisting of Waypoint actions
+     * @return Route Agent's actions
+     */
     private List<Action> generateWaypointInLane() {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
@@ -313,7 +318,7 @@ public class RouteAgent extends Agent {
         return actions;
 
     }
-
+    @Deprecated
     private WPAction point2Waypoint(Point2f point, CarManeuver maneuver) {
         return new WPAction(sensor.getId(), maneuver.getStartTime() / 1000,
                 new Point3f(point.x, point.y, sensor.senseCurrentState().getPosition().z),

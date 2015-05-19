@@ -22,18 +22,18 @@ highway {
   //      folder = "nets/x-junction";
    //     folder = "nets/nadprysk"
    //     folder = "nets/extest";
-    //   folder = "nets/ulesika";
+       folder = "nets/ulesika";
    //       folder = "nets/jedkriz";
   //     folder = "nets/map";
-//        folder = "nets/pisek";
+  //      folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
-    //   folder = "nets/artificialX-junction";
+   //    folder = "nets/artificialX-junction";
     //    folder = "nets/artificialHighway-funnel";
     //    folder = "nets/hostinne";
      //     folder = "nets/artificialXS-junction";
-       folder = "nets/artificialT-junction";
+  //     folder = "nets/artificialT-junction";
   //      folder = "nets/experiments/T-junction";
-//        folder = "nets/experiments/X-junction";
+  //      folder = "nets/experiments/X-junction";
   //      folder = "nets/artificialHighway";
 
 
@@ -43,7 +43,7 @@ highway {
 
     }
     safeDistanceAgent {
-        safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
+        safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
      //   narrowingModeActive = false;
         distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
@@ -115,13 +115,13 @@ highway {
 
         }
 
- //    simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+    // simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
  simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 50;
-        sumoSimulation = false;
-        systemTime = true;
+        numberOfCarsInSimulation = 30;
+        sumoSimulation = true;
+        systemTime = false;
     }
 
     netLayer {

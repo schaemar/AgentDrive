@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Wed May 13 19:18:17 2015 by SUMO duarouter Version 0.22.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="artificialT-junction/artificialT-junction.net.xml"/>
+        <flow-files value="artificialT-junction/artificialT-junction.flows.xml"/>
+    </input>
+
+    <output>
+        <output-file value="artificialT-junction/artificialT-junction.rou.xml"/>
+    </output>
+
+    <processing>
+        <ignore-errors value="true"/>
+        <routing-algorithm value="astar"/>
+    </processing>
+
+    <report>
+        <no-warnings value="true"/>
+    </report>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vehicle id="2" depart="10.00">
+        <route edges="7 1"/>
+    </vehicle>
+    <vehicle id="3" depart="10.00">
+        <route edges="5 3"/>
+    </vehicle>
+    <vehicle id="4" depart="10.00">
+        <route edges="5 4"/>
+    </vehicle>
+    <vehicle id="5" depart="10.00">
+        <route edges="0 3"/>
+    </vehicle>
+    <vehicle id="8" depart="15.00">
+        <route edges="7 4"/>
+    </vehicle>
+    <vehicle id="10" depart="16.80">
+        <route edges="0 1"/>
+    </vehicle>
+
+    <vehicle id="20" depart="10.00">
+        <route edges="7 1"/>
+    </vehicle>
+    <vehicle id="30" depart="10.00">
+        <route edges="5 3"/>
+    </vehicle>
+    <vehicle id="40" depart="10.00">
+        <route edges="5 4"/>
+    </vehicle>
+    <vehicle id="50" depart="10.00">
+        <route edges="0 3"/>
+    </vehicle>
+    <vehicle id="80" depart="15.00">
+        <route edges="7 4"/>
+    </vehicle>
+    <vehicle id="100" depart="16.80">
+        <route edges="0 1"/>
+    </vehicle>
+    <vehicle id="200" depart="10.00">
+        <route edges="7 1"/>
+    </vehicle>
+    <vehicle id="300" depart="10.00">
+        <route edges="5 3"/>
+    </vehicle>
+    <vehicle id="400" depart="10.00">
+        <route edges="5 4"/>
+    </vehicle>
+    <vehicle id="500" depart="10.00">
+        <route edges="0 3"/>
+    </vehicle>
+    <vehicle id="800" depart="15.00">
+        <route edges="7 4"/>
+    </vehicle>
+    <vehicle id="1000" depart="16.80">
+        <route edges="0 1"/>
+    </vehicle>
+    <vehicle id="2000" depart="10.00">
+        <route edges="7 1"/>
+    </vehicle>
+    <vehicle id="3000" depart="10.00">
+        <route edges="5 3"/>
+    </vehicle>
+    <vehicle id="4000" depart="10.00">
+        <route edges="5 4"/>
+    </vehicle>
+    <vehicle id="5000" depart="10.00">
+        <route edges="0 3"/>
+    </vehicle>
+    <vehicle id="8000" depart="15.00">
+        <route edges="7 4"/>
+    </vehicle>
+    <vehicle id="10000" depart="16.80">
+        <route edges="0 1"/>
+    </vehicle>
+    <vehicle id="20000" depart="10.00">
+        <route edges="7 1"/>
+    </vehicle>
+    <vehicle id="30000" depart="10.00">
+        <route edges="5 3"/>
+    </vehicle>
+    <vehicle id="40000" depart="10.00">
+        <route edges="5 4"/>
+    </vehicle>
+    <vehicle id="50000" depart="10.00">
+        <route edges="0 3"/>
+    </vehicle>
+    <vehicle id="80000" depart="15.00">
+        <route edges="7 4"/>
+    </vehicle>
+    <vehicle id="100000" depart="16.80">
+        <route edges="0 1"/>
+    </vehicle>
+    <vehicle id="200000" depart="10.00">
+        <route edges="7 1"/>
+    </vehicle>
+    <vehicle id="300000" depart="10.00">
+        <route edges="5 3"/>
+    </vehicle>
+    <vehicle id="400000" depart="10.00">
+        <route edges="5 4"/>
+    </vehicle>
+    <vehicle id="500000" depart="10.00">
+        <route edges="0 3"/>
+    </vehicle>
+    <vehicle id="800000" depart="15.00">
+        <route edges="7 4"/>
+    </vehicle>
+    <vehicle id="1000000" depart="16.80">
+        <route edges="0 1"/>
+    </vehicle>
+</routes>
