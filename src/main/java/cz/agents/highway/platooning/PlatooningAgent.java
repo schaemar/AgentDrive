@@ -27,23 +27,35 @@ public class PlatooningAgent extends RouteAgent {
     public PlatooningAgent LV = null;
     public FVModule fvModule = new FVModule();
 
+    public boolean truck = false;
 
 
     private float actSpeed;
     private float preferSpeed;
     private int lane;
 
-    public float hardBrakingAcelDry = 7.5f;
-    public float hardBrakingAcelWet = 6f;
-    public float brakingAcelNormal = 3f;
-    public float brakingAcelNormalH = 3*brakingAcelNormal/4;
+    private float hardBrakingAcelDry = 7.5f;
+    private float hardBrakingAcelWet = 6f;
+    private float hardBrakingAcelSnow = 4f;
+    private float acceleration = 4;
+    private float brakingAcelNormal = 3f;
+    private float brakingAcelNormalH = 3*brakingAcelNormal/4;
 
 
     public PlatooningAgent(int id) {
         super(id);
         preferSpeed = VehicleGenerationModule.nextSpeed;
         actSpeed = 0;
-        System.out.println("New platooning agent id: " + id + " was created");
+    }
+
+    public PlatooningAgent(int id, float hardBrakingAcelDry, float hardBrakingAcelWet, float hardBrakingAcelSnow, float acceleration) {
+        super(id);
+        preferSpeed = VehicleGenerationModule.nextSpeed;
+        actSpeed = 0;
+        this.hardBrakingAcelSnow = hardBrakingAcelSnow;
+        this.hardBrakingAcelWet = hardBrakingAcelWet;
+        this.hardBrakingAcelDry = hardBrakingAcelDry;
+        this.acceleration = acceleration;
     }
 
     public boolean canChangeToLeftLane(){
@@ -63,8 +75,24 @@ public class PlatooningAgent extends RouteAgent {
         navigator.changeLaneRight();
     }
 
+    //returns actual braking coeficient
     public float getBrakingCoef(){
-        return brakingAcelNormalH;
+        float returnValue = 0.45f * hardBrakingAcelDry;
+        switch(VehicleGenerationModule.airConditions){
+            case 0:
+                break;
+            case 1:
+                returnValue = 0.45f *hardBrakingAcelWet;
+                break;
+            case 2:
+                returnValue = 0.45f* hardBrakingAcelSnow;
+                break;
+        }
+        if(truck){
+            return returnValue *2;
+        }else{
+            return returnValue;
+        }
     }
 
     public float getPreferSpeed(){
@@ -73,25 +101,22 @@ public class PlatooningAgent extends RouteAgent {
     public void setPreferSpeed(float speed){
         preferSpeed = speed;
     }
-
     public float getActSpeed() {
         return actSpeed;
     }
-
     public void setActSpeedAsPrefSpeed(){
         actSpeed = preferSpeed;
     }
-
     public void setLane(int lane){ this.lane = lane;}
     public int getLane(){
         return lane;
     }
-
     public int getID(){
         return super.id;
     }
 
 
+    //lastTimeOfRun is time in milisec which is how log the agent  has to brake
     public void speedUp(long lastTimeOfRun) {
         float diff = getBrakingCoef()*lastTimeOfRun/1000;
         if(actSpeed + diff < preferSpeed) {
@@ -110,7 +135,7 @@ public class PlatooningAgent extends RouteAgent {
     }
 
     public void slowDown(long lastTimeOfRun) {
-        float diff = getBrakingCoef()*lastTimeOfRun/1000;
+        float diff = getBrakingCoef()*((float)(lastTimeOfRun))/1000;
         if(actSpeed - diff >=0){
             actSpeed -= diff;
         }else{

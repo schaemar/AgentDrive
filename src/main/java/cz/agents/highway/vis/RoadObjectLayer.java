@@ -4,6 +4,8 @@ package cz.agents.highway.vis;
 import cz.agents.alite.vis.Vis;
 import cz.agents.alite.vis.layer.AbstractLayer;
 import cz.agents.alite.vis.layer.VisLayer;
+import cz.agents.highway.agent.Agent;
+import cz.agents.highway.platooning.PlatooningAgent;
 import cz.agents.highway.storage.RoadObject;
 
 import javax.vecmath.Point3f;
@@ -18,16 +20,23 @@ import java.util.Map;
 public class RoadObjectLayer extends AbstractLayer {
     private static final double CAR_WIDTH = 2.0;
     private static final double CAR_AXE_LENGTH = 3.0;
+    private static final double TRUCK_AXE_LENGTH = 15.0;
     private static final double CAR_PADD = 1.0;
     private static final double REL_WHEEL_WIDTH = 0.333;
     private static final double REL_WHEEL_LEN = 0.25;
 
     private final Map<Integer, RoadObject> objects;
-    
+    private final Map<Integer, Agent> agents;
+
 
 
     RoadObjectLayer(Map<Integer, RoadObject> objects) {
         this.objects = objects;
+        agents = null;
+    }
+    RoadObjectLayer(Map<Integer, RoadObject> objects, Map<Integer, Agent> agents) {
+        this.objects = objects;
+        this.agents = agents;
     }
 
     @Override
@@ -46,7 +55,18 @@ public class RoadObjectLayer extends AbstractLayer {
 
             canvas.setColor(Color.BLUE);
             Point3f pos = roadObject.getPosition();
-            double vehicleLen = CAR_AXE_LENGTH +CAR_PADD;
+
+            double vehicleLen;
+            if(agents!=null){
+                if(((PlatooningAgent)agents.get(id)).truck){
+                    vehicleLen= TRUCK_AXE_LENGTH +CAR_PADD;
+                }else{
+                    vehicleLen= CAR_AXE_LENGTH +CAR_PADD;
+                }
+            }else{
+                vehicleLen = CAR_AXE_LENGTH +CAR_PADD;
+            }
+
             double wheelLen = vehicleLen*REL_WHEEL_LEN;
 
             // Store the current transformation
@@ -92,10 +112,14 @@ public class RoadObjectLayer extends AbstractLayer {
         }
     }
 
-    
+
 
     public static VisLayer create(Map<Integer,RoadObject> objects) {
         RoadObjectLayer layer = new RoadObjectLayer(objects);
+        return layer;
+    }
+    public static VisLayer create(Map<Integer,RoadObject> objects, Map<Integer, Agent> agents) {
+        RoadObjectLayer layer = new RoadObjectLayer(objects, agents);
         return layer;
     }
 }

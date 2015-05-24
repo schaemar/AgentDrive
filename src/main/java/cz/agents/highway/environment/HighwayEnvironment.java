@@ -74,7 +74,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         RandomProvider.init(this);
 
         timestep = Configurator.getParamInt("highway.timestep", 100);
-        final boolean isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
+            final boolean isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
 
         handler = new HighwayEnvironmentHandler();
 

@@ -1,5 +1,6 @@
 package cz.agents.highway.platooning;
 
+import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.storage.Pair;
 
 import java.util.ArrayList;
@@ -12,14 +13,22 @@ public class FVModule {
     private ArrayList<Float> changeLaneAt = new ArrayList<Float>();
     private ArrayList<Integer> changeLaneTo = new ArrayList<Integer>();
 
-    private float distanceBetweenVehicles = 10;
+    private float distanceBetweenVehicles = Configurator.getParamInt("highway.platooning.followingVehiclesSettings.distanceBetweenVehicles", 5);
+
+    public int state = 0;
+    //0...platoon is ready for new action
+    //1...last FV of platoon is in right lane for overtaking action type 2
 
     public FVModule(){
 
     }
 
     public float getOptDistInPlatoon(){
-        return distanceBetweenVehicles;
+        return distanceBetweenVehicles+4;
+    }
+
+    public float getOptTruckDistInPlatoon(){
+        return distanceBetweenVehicles+15;
     }
 
     public void addOrder(float position, int direction){

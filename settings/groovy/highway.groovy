@@ -9,7 +9,8 @@ highway {
 //    agent = "ORCAAgent";
 
     net {
-        folder = "nets/junction-big/";
+        folder = "nets/highway-straight-Ondra/";
+//        folder = "nets/junction-big/";
 //        folder = "nets/highway-straight/";
     }
     safeDistanceAgent {
@@ -104,5 +105,33 @@ highway {
     }
     SimulatorLocal{
         timestep=0.1;
+    }
+    platooning{
+
+        safeTime = 2.0f;
+        reactionTime = 0.1f;
+
+
+
+        VehicleGenerationModule{
+
+            totalNumberOfVehiclesPerHour = 1650;
+            generationLimit = false;
+
+            generateTrucks = false;
+            passengerVehicleRatio = 0.67f;
+            averageSpeed = 34;
+            minimalSpeed = 25;
+           speedDispersion = 3f;
+
+            ratioOfPlatooningVehicles = 1f;
+            maximalLenghtOfPlatoon = 5;
+
+
+            truckSpeed = 25;
+        }
+        followingVehiclesSettings{
+            distanceBetweenVehicles = 6;
+        }
     }
 }

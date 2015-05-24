@@ -155,11 +155,11 @@ public class PlatooningCenterModule_normal {
 
 //        if(placedVehicles.isEmpty()) {
 //
-//            generatePlatoon(useAnotherVehicle(0), 5, 0);
+//            generatePlatoon(startNextAgent(0), 5, 0);
 //        }
 //        if(placedVehicles.isEmpty()) {
-//            useAnotherVehicle(0);
-//            useAnotherVehicle(1);
+//            startNextAgent(0);
+//            startNextAgent(1);
 //        }
         generateNewVehicles();
 
