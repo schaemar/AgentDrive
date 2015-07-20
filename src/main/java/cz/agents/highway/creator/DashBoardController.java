@@ -20,6 +20,9 @@ import cz.agents.highway.storage.plan.PlansOut;
 import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.ros.address.InetAddressFactory;
+import org.ros.node.DefaultNodeMainExecutor;
+import org.ros.node.NodeConfiguration;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -189,6 +192,41 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
         }
     }
+    private class ROSSimulatorHandler extends SimulatorHandler {
+        RosControlNode rosControlNode;
+        private ROSSimulatorHandler(ProtobufFactory factory, Set<Integer> plannedVehicles) {
+            super(factory, plannedVehicles);
+            String hostName = "127.0.0.1";//InetAddressFactory.newNonLoopback().getHostName();
+            //String hostName = InetAddressFactory.newNonLoopback().getHostName();
+            NodeConfiguration nodeConfiguration =
+                    NodeConfiguration.newPublic(hostName, NodeConfiguration.DEFAULT_MASTER_URI);
+            rosControlNode = new RosControlNode();
+            DefaultNodeMainExecutor.newDefault().execute(rosControlNode, nodeConfiguration);
+            //TODO REMOVE THIS!!!! TOTAL BAD PRACTISE!!!! ADD EVENT FOR THIS!!!!!!
+            try{Thread.sleep(10000);}catch (InterruptedException e){};
+        }
+
+        @Override
+        public void sendPlans(Map<Integer, RoadObject> vehicleStates) {
+            RadarData radarData = new RadarData();
+
+            Set<Integer> notPlanned = new HashSet<Integer>(vehicleStates.keySet());
+            notPlanned.removeAll(plannedVehicles);
+
+            for (int id : notPlanned) {
+                radarData.add(vehicleStates.get(id));
+            }
+
+            // Finally send plans and updates
+            executePlans(plans);
+            plans.clear();
+        }
+        private void executePlans(PlansOut plans) {
+            rosControlNode.executePlans(plans);
+           RadarData radarData = rosControlNode.generateRadarData();
+            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, 10);
+        }
+    }
 
     /// Map of all running simulator processes
     private Map<String, Process> simulators = new HashMap<String, Process>();
@@ -281,7 +319,14 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 }
                 else
                 {
-                    simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(plannedVehicles)));
+                    boolean ROSimulation = Configurator.getParamBool("highway.dashboard.ROSimulation", false);
+                    if (ROSimulation) {
+                        simulatorHandlers.add(new ROSSimulatorHandler(null,new HashSet<Integer>(plannedVehicles)));
+                    }
+                    else
+                    {
+                        simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(plannedVehicles)));
+                    }
                 }
                 storage.updateCars(new RadarData());
             }

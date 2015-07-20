@@ -233,17 +233,6 @@ public class HighwayStorage extends EventBasedStorage {
                 Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
 
                 Float speed = entry.getValue().getVelocity().length();
-                /*
-                try {
-                    Point3f temp = posCurr.get(4).getPosition();
-                    refcar = temp;
-                }
-                catch(NullPointerException exp)
-                {
-                    //TODO Fix this structure
-                }
-                 Float dist = entry.getValue().getPosition().distance(refcar);
-                 */
                 if (original.isEmpty() || distVal < original.peek().getValue()) {
                     original.add(new Pair<Long, Float>(timeKey,distVal));
                 }

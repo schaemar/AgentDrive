@@ -551,7 +551,7 @@ public class GSDAgent extends RouteAgent {
     private double getDistanceBetweenTwoRoadObjects(RoadObject me,Lane myLane,RoadObject other,Lane otherLane,List<Edge> rem) {
         int nearestA = getNearestWaipointCloseEnough(me, myLane);
         int nearestB = getNearestWaipointCloseEnough(other, otherLane);
-        //only for debug
+
         Edge myEdg = myLane.getEdge();
         Edge his = otherLane.getEdge();
         double distance = 0;
@@ -579,6 +579,7 @@ public class GSDAgent extends RouteAgent {
         }
         else
         {
+            // calculate distance to the vehicle on the edge that is on my plan.
             int distC = 0;
             for (int i = nearestA + 1; i < myLane.getInnerPoints().size();i++) {
                 distC += myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i));
@@ -599,9 +600,7 @@ public class GSDAgent extends RouteAgent {
                 }
 
             }
-
-            //TODO FIX THIS!!!
-            return distC; // debug
+            return distC;
         }
     }
 

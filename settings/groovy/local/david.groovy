@@ -22,7 +22,7 @@ highway {
   //      folder = "nets/x-junction";
    //     folder = "nets/nadprysk"
    //     folder = "nets/extest";
-       folder = "nets/ulesika";
+  //     folder = "nets/ulesika";
    //       folder = "nets/jedkriz";
   //     folder = "nets/map";
   //      folder = "nets/pisek";
@@ -35,6 +35,11 @@ highway {
   //      folder = "nets/experiments/T-junction";
   //      folder = "nets/experiments/X-junction";
   //      folder = "nets/artificialHighway";
+        folder = "nets/rosarena";
+
+        lane {
+            stepSize = 0.2;
+        }
 
 
 
@@ -115,13 +120,14 @@ highway {
 
         }
 
-    // simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
- simulatorsToRun = ["SimulatorLite"];
+     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+ //simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
         numberOfCarsInSimulation = 30;
         sumoSimulation = true;
         systemTime = false;
+        ROSimulation = true;
     }
 
     netLayer {
