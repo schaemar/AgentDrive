@@ -9,10 +9,8 @@ import org.ros.message.MessageFactory;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 
-import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
-import javax.vecmath.Point4f;
-import javax.vecmath.Vector2f;
+import javax.vecmath.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -22,21 +20,20 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class TrajectoryFollowing {
     private final static long ANGLE_TO_VELOCITY = 1;
     private final static int APPROX_ITERATIONS = 10;
-    LinkedBlockingQueue<WPAction> trajectory;    //!<Defined trajectory.
-    Point2f lastRemoved;    //!<Last point, removed frome the queue.
-    Point2f target;        //!<Target point, which is actual destination of robot.
-    double tolerance;    //!<Distance from destination, which will be tolerated.
-    double speed;        //!<Default speed of robot.
-    double targetDistance;    //!< Distance of target point on trajectory. (targetDistance >> tolerance)
+    private LinkedBlockingQueue<WPAction> trajectory;    //!<Defined trajectory.
+    private Point2f lastRemoved;    //!<Last point, removed frome the queue.
+    private Point2f target;        //!<Target point, which is actual destination of robot.
+    private double tolerance;    //!<Distance from destination, which will be tolerated.
+    private double plannedSpeed;        //!<Default plannedSpeed of robot.
+    private double actualSpeed;
+    private double targetDistance;    //!< Distance of target point on trajectory. (targetDistance >> tolerance)
     private ConnectedNode connectedNode;
     private Point2f actualP2F;
-    private Point4f quaternion;
+    private Quaternion quaternion;
     Publisher<Twist> testPublisher;
     private boolean goalAchieved = false;
+    private final CountDownLatch latch = new CountDownLatch(1);
 
-    public Point4f getQuaternion() {
-        return quaternion;
-    }
 
     public TrajectoryFollowing(final ConnectedNode connectedNode, Publisher<Twist> testPublisher, LinkedBlockingQueue<WPAction> followedTrajectory, double tol, double sp, double targetDist) {
 
@@ -47,8 +44,10 @@ public class TrajectoryFollowing {
         }
         targetDistance = targetDist;
         tolerance = tol;
-        speed = sp;
+        plannedSpeed = sp;
         lastRemoved = point3ftoPoint2f(trajectory.peek().getPosition());
+        plannedSpeed = trajectory.peek().getSpeed();
+        if(plannedSpeed <  0) plannedSpeed =0;
         target = new Point2f(1.0f, 1.0f);
         trajectory.poll();
         this.connectedNode = connectedNode;
@@ -75,33 +74,35 @@ public class TrajectoryFollowing {
         testPublisher.publish(msg);
     }
 
-    public synchronized Point2f getActualP2F() {
-        return actualP2F;
-    }
-
     //Subscriber
     public void messageCallback(Odometry msg) {
         double angleCommand = 0;
         double speedCommand = 0;
         actualP2F = new Point2f((float) msg.getPose().getPose().getPosition().getX(), (float) msg.getPose().getPose().getPosition().getY());
-        Quaternion qutemp = msg.getPose().getPose().getOrientation();
-        quaternion = new Point4f((float)qutemp.getX(),(float)qutemp.getY(),(float)qutemp.getZ(),(float)qutemp.getW());
+        quaternion = msg.getPose().getPose().getOrientation();
+        actualSpeed = msg.getTwist().getTwist().getLinear().getX();
+       // System.out.printf("ACTLINSPEED: %f %f %f\n",msg.getTwist().getTwist().getLinear().getX(),msg.getTwist().getTwist().getLinear().getY(),msg.getTwist().getTwist().getLinear().getZ());
+        latch.countDown();
+        //quaternion = new Point4f((float)qutemp.getX(),(float)qutemp.getY(),(float)qutemp.getZ(),(float)qutemp.getW());
         findTarget(actualP2F);
 
         if (closeEnough(actualP2F) == true && trajectory.isEmpty()) {
-            System.out.println("GOAL ACHIEVED");
+          //  System.out.println("GOAL ACHIEVED");
             goalAchieved = true;
         }
-
-        speedCommand = calculateSpeed(actualP2F);
-        angleCommand = calculateAngle(actualP2F, 2.0 * Math.asin(msg.getPose().getPose().getOrientation().getZ()), speed);
-        //Invoking method for publishing message
-        //publishMessage(angleCommand, speedCommand);
-    /*    if(goalAchieved)
+        if(goalAchieved)
         {
             angleCommand = 0.0;
             speedCommand = 0.0;
-        }*/
+        }
+        else
+        {
+            speedCommand = calculateSpeed(actualP2F);
+            angleCommand = calculateAngle(actualP2F, 2.0 * Math.asin(msg.getPose().getPose().getOrientation().getZ()), plannedSpeed);
+        }
+        //Invoking method for publishing message
+        //publishMessage(angleCommand, speedCommand);
+
         publishMessage(angleCommand, speedCommand);
     }
 
@@ -137,7 +138,7 @@ public class TrajectoryFollowing {
     }
 
     private double calculateSpeed(Point2f actual) {
-        return speed;
+        return plannedSpeed;
     }
 
     private void findTarget(Point2f actual) {
@@ -145,8 +146,10 @@ public class TrajectoryFollowing {
         // from robot than targetDistance is found.
 
         if (trajectory.isEmpty() == false) {
-            while (actual.distance(point3ftoPoint2f(trajectory.peek().getPosition())) < targetDistance){
+            while (actual.distance(point3ftoPoint2f(trajectory.peek().getPosition())) < targetDistance) {
                 lastRemoved = point3ftoPoint2f(trajectory.peek().getPosition());
+                plannedSpeed = trajectory.peek().getSpeed();
+                if(plannedSpeed <  0) plannedSpeed =0;
                 trajectory.poll();
                 if (trajectory.isEmpty() == true) {
                     break;
@@ -205,7 +208,6 @@ public class TrajectoryFollowing {
                    v.setX(v.getX() + (float)Math.pow(2,-i) * s.getX());
                    v.setY(v.getY() + (float)Math.pow(2,-i) * s.getY());
                 }
-
             }
             target.setX(lastRemoved.getX() + v.getX());
             target.setY(lastRemoved.getY() + v.getY());
@@ -229,19 +231,137 @@ public class TrajectoryFollowing {
         return new Point2f(point.getX(),point.getY());
     }
 
-    public void setTrajectory(LinkedBlockingQueue<WPAction> trajectory) {
-        this.trajectory = trajectory;
+    public void setNewPlan(LinkedBlockingQueue<WPAction> trajectory) {
+        synchronized (this) {
+            this.trajectory = trajectory;
+            lastRemoved = point3ftoPoint2f(trajectory.peek().getPosition());
+            plannedSpeed = trajectory.peek().getSpeed();
+            if(plannedSpeed <  0) plannedSpeed =0;
+            trajectory.poll();
+            goalAchieved = false;
+        }
+
     }
-    public Point2f getPosition()
-    {
+    public double getActualSpeed() throws InterruptedException {
+        latch.await();
+        return actualSpeed;
+    }
+
+    public Point2f getTarget() throws InterruptedException {
+        latch.await();
+        return target;
+    }
+
+    public synchronized Point2f getActualP2F() throws InterruptedException {
+        latch.await();
         return actualP2F;
     }
-
-    public double getSpeed() {
-        return speed;
+    public Vector3f getVelocityVector() throws InterruptedException {
+        latch.await();
+       // return rotate_vector_by_quaternion(new Vector3f(1f,1f,0f),quaternion);
+       // return quatToMatrix(new Vector3f(getActualP2F().x,getActualP2F().getY(),0f),quaternion);
+        set(quaternion);
+        return quatToMatrix(new Vector3f(1f,0f,0f),quaternion);
     }
+    private Vector3f rotate_vector_by_quaternion2(Vector3f v, Quaternion q)
+    {
+        // Extract the vector part of the quaternion
+        Vector3f u = new Vector3f((float)q.getX(), (float)q.getY(), (float)q.getZ());
 
-    public Point2f getTarget() {
-        return target;
+        // Extract the scalar part of the quaternion
+        float s = (float)q.getW();
+
+        // Do the math
+
+     /*   vprime = 2.0f * u.dot(v) * u
+                + (s*s - dot(u, u)) * v
+                + 2.0f * s * cross(u, v);
+*/
+        Vector3f first = new Vector3f(2.0f*u.dot(v)*u.getX(),2.0f*u.dot(v)*u.getY(),2.0f*u.dot(v)*u.getZ());
+        Vector3f second = new Vector3f(s*s - u.dot(u)*v.getX(),s*s - u.dot(u)*v.getY(),s*s - u.dot(u)*v.getZ());
+        Vector3f cross = new Vector3f();
+        cross.cross(u,v);
+        Vector3f third = new Vector3f(2.0f * s * cross.getX(),2.0f * s * cross.getY(),2.0f * s * cross.getZ());
+        Vector3f result = new Vector3f();
+        result.add(first,second);
+        result.add(third);
+        return result;
+    }
+    private Vector3f rotate_vector_by_quaternion(Vector3f v,Quaternion q)
+    {
+        float w = (float)q.getW();
+        float x = (float)q.getX();
+        float y = (float)q.getY();
+        float z = (float)q.getZ();
+        float p2x,p2y,p2z;
+       float p1x = v.getX();
+        float p1y = v.getY();
+        float p1z = v.getZ();
+
+        p2x = w*w*p1x + 2*y*w*p1z - 2*z*w*p1y + x*x*p1x + 2*y*x*p1y + 2*z*x*p1z - z*z*p1x - y*y*p1x;
+        p2y = 2*x*y*p1x + y*y*p1y + 2*z*y*p1z + 2*w*z*p1x - z*z*p1y + w*w*p1y - 2*x*w*p1z - x*x*p1y;
+        p2z = 2*x*z*p1x + 2*y*z*p1y + z*z*p1z - 2*w*y*p1x - y*y*p1z + 2*w*x*p1y - x*x*p1z + w*w*p1z;
+
+        return new Vector3f(p2x,p2y,p2z);
+        
+
+
+    }
+    public Vector3f quatToMatrix(Vector3f v,Quaternion q){
+        double sqw = q.getW()*q.getW();
+        double sqx = q.getX()*q.getX();
+        double sqy = q.getY()*q.getY();
+        double sqz = q.getZ()*q.getZ();
+
+        // invs (inverse square length) is only required if quaternion is not already normalised
+        double invs = 1 / (sqx + sqy + sqz + sqw);
+        double m00 = ( sqx - sqy - sqz + sqw)*invs ; // since sqw + sqx + sqy + sqz =1/invs*invs
+        double m11 = (-sqx + sqy - sqz + sqw)*invs ;
+        double m22 = (-sqx - sqy + sqz + sqw) *invs ;
+
+        double tmp1 = q.getX()*q.getY();
+        double tmp2 = q.getZ()*q.getW();
+        double m10 = 2.0 * (tmp1 + tmp2)*invs ;
+        double m01 = 2.0 * (tmp1 - tmp2)*invs ;
+
+        tmp1 = q.getX()*q.getZ();
+        tmp2 = q.getY()*q.getW();
+        double m20 = 2.0 * (tmp1 - tmp2)*invs ;
+        double m02 = 2.0 * (tmp1 + tmp2)*invs ;
+        tmp1 = q.getY()*q.getZ();
+        tmp2 = q.getX()*q.getW();
+        double m21 = 2.0 * (tmp1 + tmp2)*invs ;
+        double m12 = 2.0 * (tmp1 - tmp2)*invs ;
+        //------------------------------------------------
+        //end of creation of the rotation matrix M
+        // ------------------------------------------------
+
+        double vyslx = m00*v.getX() + m01*v.getY() + m02*v.getZ();
+        double vysly = m10*v.getX() + m11*v.getY() + m12*v.getZ();
+        double vyslz = m20*v.getX() + m21*v.getY() + m22*v.getZ();
+        return new Vector3f((float)vyslx,(float)vysly,(float)vyslz);
+    }
+    public void set(Quaternion q1) {
+        double test = q1.getX()*q1.getY() + q1.getZ()*q1.getW();
+        double heading,attitude,bank;
+        if (test > 0.499) { // singularity at north pole
+             heading = 2 * Math.atan2(q1.getX(),q1.getW());
+            attitude = Math.PI/2;
+             bank = 0;
+            return;
+        }
+        if (test < -0.499) { // singularity at south pole
+            heading = -2 * Math.atan2(q1.getX(), q1.getW());
+            attitude = - Math.PI/2;
+            bank = 0;
+            return;
+        }
+        double sqx = q1.getX()*q1.getX();
+        double sqy = q1.getY()*q1.getY();
+        double sqz = q1.getZ()*q1.getZ();
+        heading = Math.atan2(2 * q1.getY() * q1.getW() - 2 * q1.getX() * q1.getZ(), 1 - 2 * sqy - 2 * sqz);
+        attitude = Math.asin(2 * test);
+        bank = Math.atan2(2 * q1.getX() * q1.getW() - 2 * q1.getY() * q1.getZ(), 1 - 2 * sqx - 2 * sqz);
+        System.out.println("Biiiiiird");
     }
 }

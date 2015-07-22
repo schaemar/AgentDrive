@@ -3,6 +3,7 @@ package cz.agents.highway.creator;
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.common.event.EventHandler;
 import cz.agents.alite.common.event.EventProcessor;
+import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.creator.Creator;
 import cz.agents.alite.protobuf.communicator.Communicator;
@@ -28,6 +29,7 @@ import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
+import javax.xml.bind.SchemaOutputResolver;
 import java.io.IOException;
 import java.util.*;
 
@@ -203,7 +205,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             rosControlNode = new RosControlNode();
             DefaultNodeMainExecutor.newDefault().execute(rosControlNode, nodeConfiguration);
             //TODO REMOVE THIS!!!! TOTAL BAD PRACTISE!!!! ADD EVENT FOR THIS!!!!!!
-            try{Thread.sleep(10000);}catch (InterruptedException e){};
+          //  try{Thread.sleep(10000);}catch (InterruptedException e){};
         }
 
         @Override
@@ -222,9 +224,22 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             plans.clear();
         }
         private void executePlans(PlansOut plans) {
-            rosControlNode.executePlans(plans);
-           RadarData radarData = rosControlNode.generateRadarData();
-            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, 10);
+            int count = 0;
+            int maxTries = 3;
+            while(true) {
+                try {
+                    rosControlNode.executePlans(plans);
+                    RadarData radarData = rosControlNode.generateRadarData();
+                    highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, 1);
+                    break;
+                } catch (InterruptedException e) {
+                    if (++count == maxTries)
+                    {
+                        System.out.println(e.getMessage());
+                        getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
+                    }
+                }
+            }
         }
     }
 

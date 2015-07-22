@@ -1,5 +1,6 @@
 package cz.agents.highway.creator;
 
+import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.storage.RadarData;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.plan.Action;
@@ -7,7 +8,6 @@ import cz.agents.highway.storage.plan.PlansOut;
 import cz.agents.highway.storage.plan.WPAction;
 import geometry_msgs.Twist;
 import geometry_msgs.Vector3;
-import groovy.lang.Tuple;
 import org.ros.concurrent.CancellableLoop;
 import org.ros.message.MessageFactory;
 import org.ros.message.MessageListener;
@@ -19,11 +19,11 @@ import org.ros.node.NodeMain;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
-import javax.swing.plaf.InternalFrameUI;
 import javax.vecmath.*;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -39,6 +39,8 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
     private final static float LOOKAHEAD = 0.2f;
     private Map<Integer,TrajectoryFollowing> mapTraj = new LinkedHashMap<Integer, TrajectoryFollowing>();
     private Map<String,TrajectoryFollowing> chanelMap = new LinkedHashMap<String, TrajectoryFollowing>();
+    private final CountDownLatch latch = new CountDownLatch(1);
+    private final static float SCALECONSTANT = Configurator.getParamDouble("highway.dashboard.rosconfig.scale", 1.0).floatValue();;
 
 
     public RosControlNode() {
@@ -74,6 +76,7 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
                 spin();
             }
         });
+        latch.countDown();
     }
 
     @Override
@@ -137,8 +140,9 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
 
     }
 
-    public void executePlans(PlansOut plans) {
+    public void executePlans(PlansOut plans) throws InterruptedException{
       //  while (connectedNode == null){} //TODO FIX THIS!!!!!!
+        latch.await();
         for (Integer carID : plans.getCarIds()) {
             Collection<Action> plan = plans.getPlan(carID);
             LinkedBlockingQueue<WPAction> forNode = new LinkedBlockingQueue<WPAction>(plan.size());
@@ -147,7 +151,7 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
                     WPAction wpAction = (WPAction) action;
                     try {
                         WPAction converted = new WPAction(wpAction.getCarId(),wpAction.getTimeStamp(),
-                                new Point3f(Math.abs(wpAction.getPosition().getX()/100),Math.abs(wpAction.getPosition().getY()/100),0),wpAction.getSpeed()/100);
+                                new Point3f(Math.abs(wpAction.getPosition().getX()/SCALECONSTANT),Math.abs(wpAction.getPosition().getY()/SCALECONSTANT),0),wpAction.getSpeed()/SCALECONSTANT);
                         forNode.put(converted);
                     }
                     catch (InterruptedException e)
@@ -158,7 +162,7 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
             }
             if(mapTraj.containsKey(carID))
             {
-                mapTraj.get(carID).setTrajectory(forNode);
+                mapTraj.get(carID).setNewPlan(forNode);
             }
             else
             {
@@ -177,13 +181,30 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
         RadarData radarData = new RadarData();
         for (Map.Entry<Integer, TrajectoryFollowing> obje : mapTraj.entrySet()) {
            // int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
-            while (obje.getValue().getActualP2F() == null){} //TODO FIX THIS
-            Point2f target = obje.getValue().getTarget();
-            Point2f actual = obje.getValue().getActualP2F();
+            //while (obje.getValue().getActualP2F() == null){} //TODO FIX THIS
+            int count = 0;
+            int maxTries = 3;
+            while(true) {
+                try {
+                    Point2f target = obje.getValue().getTarget();
+                    Point2f actual = obje.getValue().getActualP2F();
 
-            Vector3f vel = new Vector3f((target.getX() - actual.getX()*10),(target.getY()-actual.getY())*10,0);
-            RoadObject state = new RoadObject(obje.getKey(), System.currentTimeMillis(), 0, new Point3f(actual.getX()*100,-actual.getY()*100,0), vel);
-            radarData.add(state);
+                      Vector3f vel = new Vector3f(((target.getX() - actual.getX()) ), ((target.getY() - actual.getY()) *-1), 0);
+                   // Vector3f vel = obje.getValue().getVelocityVector();
+                //    vel.scale(10f);
+                //    vel = new Vector3f(1f,0f,0f);
+                    vel.normalize();
+                    vel.scale((float)obje.getValue().getActualSpeed()*SCALECONSTANT);
+                    RoadObject state = new RoadObject(obje.getKey(), System.currentTimeMillis(), 0, new Point3f(actual.getX() * SCALECONSTANT, -actual.getY() * SCALECONSTANT, 0), vel);
+                    radarData.add(state);
+                    break;
+                } catch (InterruptedException e) {
+                    if (++count == maxTries)
+                    {
+                        System.out.println(e.getMessage());
+                    }
+                }
+            }
         }
         return radarData;
     }

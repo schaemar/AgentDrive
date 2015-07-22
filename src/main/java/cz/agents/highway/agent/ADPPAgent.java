@@ -425,7 +425,7 @@ public class ADPPAgent extends Agent {
 //                    return (point.getTime() >= MAX_TIME+time || goal.distance(point.getPosition()) < 1);
                     return (point.getSpeed() < AccelerationDynamicConstraint.SPEED_TOLERANCE && ((point.getTime() >= maxTime
                     && !spatialGraph.isInJunction(point.getPosition())) || goal.distance(point.getPosition()) < Lane.INNER_POINTS_STEP_SIZE));
-//                    return (point.getTime() >= maxTime && point.getSpeed() < AccelerationDynamicConstraint.SPEED_TOLERANCE);
+//                    return (point.getTime() >= maxTime && point.getActualSpeed() < AccelerationDynamicConstraint.SPEED_TOLERANCE);
 //                    return (goal.distance(point.getPosition()) < 1);
                 }
             });

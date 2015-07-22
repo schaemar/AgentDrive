@@ -26,10 +26,10 @@ public class ShortestPathHeuristic implements HeuristicToGoal<Point4d> {
     @Override
     public double getCostToGoalEstimate(Point4d current) {
         //return current.getTime() + heuristics.getCostToGoalEstimate(current.getPosition())/maxSpeed
-        //        + current.getSpeed()/maxAcceleration;
+        //        + current.getActualSpeed()/maxAcceleration;
         double heuristicsEstimate = heuristics.getCostToGoalEstimate(current.getPosition());
-//        if (current.getTime() + current.getSpeed()/maxAcceleration > maxTime+maxSpeed/maxAcceleration) {
-////            return heuristicsEstimate + PENALTY*(maxTime - current.getTime()-current.getSpeed()/maxAcceleration);
+//        if (current.getTime() + current.getActualSpeed()/maxAcceleration > maxTime+maxSpeed/maxAcceleration) {
+////            return heuristicsEstimate + PENALTY*(maxTime - current.getTime()-current.getActualSpeed()/maxAcceleration);
 //            return Double.POSITIVE_INFINITY;
 //        } else {
 //            return heuristicsEstimate;
@@ -37,8 +37,8 @@ public class ShortestPathHeuristic implements HeuristicToGoal<Point4d> {
 
         return heuristicsEstimate;
 //        double distance = heuristics.getCostToGoalEstimate(current.getPosition());
-//        double timeToMaxSpeed = (maxSpeed - current.getSpeed())/maxAcceleration;
-//        double distanceTraveled = 0.5*maxAcceleration*timeToMaxSpeed*timeToMaxSpeed+current.getSpeed()*timeToMaxSpeed;
+//        double timeToMaxSpeed = (maxSpeed - current.getActualSpeed())/maxAcceleration;
+//        double distanceTraveled = 0.5*maxAcceleration*timeToMaxSpeed*timeToMaxSpeed+current.getActualSpeed()*timeToMaxSpeed;
 //        return timeToMaxSpeed + (distance-distanceTraveled)/maxSpeed;
     }
 }

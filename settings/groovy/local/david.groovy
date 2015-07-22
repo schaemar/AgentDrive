@@ -128,6 +128,9 @@ highway {
         sumoSimulation = true;
         systemTime = false;
         ROSimulation = true;
+        rosconfig{
+            scale = 100;
+        }
     }
 
     netLayer {
