@@ -23,6 +23,7 @@ public class RouteNavigator {
     private int CP_pointPtr;
     private int CP_routePtr;
     private Lane CP_agentLane;
+    private boolean CP_myLifeEnds;
     private int pointPtr;
     private int routePtr;
     private Lane agentLane;
@@ -253,6 +254,7 @@ public class RouteNavigator {
         agentLane = CP_agentLane;
         pointPtr = CP_pointPtr;
         routePtr = CP_routePtr;
+        myLifeEnds = CP_myLifeEnds;
     }
 
     public String getUniqueLaneIndex() {

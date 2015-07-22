@@ -127,7 +127,7 @@ highway {
         numberOfCarsInSimulation = 30;
         sumoSimulation = true;
         systemTime = false;
-        ROSimulation = true;
+        ROSimulation = false;
         rosconfig{
             scale = 100;
         }

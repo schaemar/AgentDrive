@@ -175,6 +175,10 @@ public class RouteAgent extends Agent {
                 //    navigator.setCheckpoint();
             }
         }
+        if(navigator.isMyLifeEnds()) {
+               actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+               return actions;
+        }
         if (relativeLane == RIGHT) {
             navigator.changeLaneRight();
             navigator.setCheckpoint();
@@ -196,8 +200,12 @@ public class RouteAgent extends Agent {
             navigator.advanceInRoute();
             }
             if(navigator.isMyLifeEnds()) {
-                actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
-                return actions;
+                if(i==0) {
+                       actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+                       return actions;
+                }
+                wpCount = i;
+                break;
             }
             waypoint = navigator.getRoutePoint();
             wps.add(waypoint);
