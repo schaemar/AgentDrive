@@ -141,7 +141,6 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
     }
 
     public void executePlans(PlansOut plans) throws InterruptedException{
-      //  while (connectedNode == null){} //TODO FIX THIS!!!!!!
         latch.await();
         for (Integer carID : plans.getCarIds()) {
             Collection<Action> plan = plans.getPlan(carID);
@@ -149,7 +148,7 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
             for (Action action : plan) {
                 if (action.getClass().equals(WPAction.class)) {
                     WPAction wpAction = (WPAction) action;
-                    try {
+                    try { //Transform AgentDrive coordinates into the Stageros coordinates
                         WPAction converted = new WPAction(wpAction.getCarId(),wpAction.getTimeStamp(),
                                 new Point3f(Math.abs(wpAction.getPosition().getX()/SCALECONSTANT),Math.abs(wpAction.getPosition().getY()/SCALECONSTANT),0),wpAction.getSpeed()/SCALECONSTANT);
                         forNode.put(converted);
@@ -160,18 +159,21 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
                     }
                 }
             }
-            if(mapTraj.containsKey(carID))
+            if(mapTraj.containsKey(carID)) // Actualise plan for existing robot
             {
                 mapTraj.get(carID).setNewPlan(forNode);
             }
-            else
+            else // Setup a new robot
             {
                 String robotString = "robot_" + carID;
 
-                Publisher<Twist> pubForNode = setupPublishing(connectedNode,robotString);
+                Publisher<Twist> pubForNode = setupPublishing(connectedNode,robotString); // Creating a publisher for controling selected robot
                 setupSubscriptions(connectedNode,robotString);
+                // Creating separate object for controling specific robot
                 TrajectoryFollowing newTraj = new TrajectoryFollowing(connectedNode,pubForNode,forNode,TOLERANCE,SPEED,LOOKAHEAD);
+                // map to identify to which TrajectoryFollowing object send the actualised position and rotation
                 chanelMap.put(robotString,newTraj);
+                // map to connect ID from AgentDrive to the specific TrajectoryFollowing object.
                 mapTraj.put(carID,newTraj);
             }
         }
@@ -180,19 +182,20 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
     {
         RadarData radarData = new RadarData();
         for (Map.Entry<Integer, TrajectoryFollowing> obje : mapTraj.entrySet()) {
-           // int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
-            //while (obje.getValue().getActualP2F() == null){} //TODO FIX THIS
             int count = 0;
             int maxTries = 3;
-            while(true) {
+            while(true) { //Three tries to get the data from TrajectoryFollowing object
                 try {
                     Point2f target = obje.getValue().getTarget();
                     Point2f actual = obje.getValue().getActualP2F();
 
-                      Vector3f vel = new Vector3f(((target.getX() - actual.getX()) ), ((target.getY() - actual.getY()) *-1), 0);
+                    //simple calculation of velocity vector, should be replaced by calculating it from the robots rotation. The commented code is for this purpose but does not work
+                    Vector3f vel = new Vector3f(((target.getX() - actual.getX()) ), ((target.getY() - actual.getY()) *-1), 0);
                    // Vector3f vel = obje.getValue().getVelocityVector();
                 //    vel.scale(10f);
                 //    vel = new Vector3f(1f,0f,0f);
+
+                    //Transform the coordinates back to the AgentDrive ones.
                     vel.normalize();
                     vel.scale((float)obje.getValue().getActualSpeed()*SCALECONSTANT);
                     RoadObject state = new RoadObject(obje.getKey(), System.currentTimeMillis(), 0, new Point3f(actual.getX() * SCALECONSTANT, -actual.getY() * SCALECONSTANT, 0), vel);

@@ -15,6 +15,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by david on 7/10/15.
+ * The code itself is mainly this c++ demo
+ * https://syrotek.felk.cvut.cz/data/files/codes/dem_trajectory_following_2.tar.gzhttps://syrotek.felk.cvut.cz/data/files/codes/dem_trajectory_following_2.tar.gz
+ * rewritten to the java
  */
 
 public class TrajectoryFollowing {
@@ -25,14 +28,14 @@ public class TrajectoryFollowing {
     private Point2f target;        //!<Target point, which is actual destination of robot.
     private double tolerance;    //!<Distance from destination, which will be tolerated.
     private double plannedSpeed;        //!<Default plannedSpeed of robot.
-    private double actualSpeed;
+    private double actualSpeed;         //actual robot speed
     private double targetDistance;    //!< Distance of target point on trajectory. (targetDistance >> tolerance)
-    private ConnectedNode connectedNode;
-    private Point2f actualP2F;
-    private Quaternion quaternion;
-    Publisher<Twist> testPublisher;
+    private ConnectedNode connectedNode; //to be able to create updates
+    private Point2f actualP2F;          //actual position
+    private Quaternion quaternion;      //actual rotation
+    private Publisher<Twist> testPublisher;     //for sending updates
     private boolean goalAchieved = false;
-    private final CountDownLatch latch = new CountDownLatch(1);
+    private final CountDownLatch latch = new CountDownLatch(1); //lock for thread syncing. Running Rosjava node takes some time.
 
 
     public TrajectoryFollowing(final ConnectedNode connectedNode, Publisher<Twist> testPublisher, LinkedBlockingQueue<WPAction> followedTrajectory, double tol, double sp, double targetDist) {
@@ -57,7 +60,7 @@ public class TrajectoryFollowing {
 
     private void publishMessage(double angleCommand, double speedCommand) {
         // $ rostopic pub -1 /turtle1/cmd_vel geometry_msgs/Twist -- '[2.0, 0.0, 0.0]' '[0.0, 0.0, 1.8]'
-        MessageFactory msgFactory = connectedNode.getTopicMessageFactory();
+        MessageFactory msgFactory = connectedNode.getTopicMessageFactory(); //factorty fro creating Twist messages
         std_msgs.Header header = msgFactory.newFromType(std_msgs.Header._TYPE);
 
         Twist msg = testPublisher.newMessage();
@@ -84,7 +87,7 @@ public class TrajectoryFollowing {
        // System.out.printf("ACTLINSPEED: %f %f %f\n",msg.getTwist().getTwist().getLinear().getX(),msg.getTwist().getTwist().getLinear().getY(),msg.getTwist().getTwist().getLinear().getZ());
         latch.countDown();
         //quaternion = new Point4f((float)qutemp.getX(),(float)qutemp.getY(),(float)qutemp.getZ(),(float)qutemp.getW());
-        findTarget(actualP2F);
+        findTarget(actualP2F); //some magic
 
         if (closeEnough(actualP2F) == true && trajectory.isEmpty()) {
           //  System.out.println("GOAL ACHIEVED");
@@ -258,6 +261,7 @@ public class TrajectoryFollowing {
         latch.await();
         return actualP2F;
     }
+    //These methods are for calculating the velocity vector from the quaternion. Does not work as expected.
     public Vector3f getVelocityVector() throws InterruptedException {
         latch.await();
        // return rotate_vector_by_quaternion(new Vector3f(1f,1f,0f),quaternion);
