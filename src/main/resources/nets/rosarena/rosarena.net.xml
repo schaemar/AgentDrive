@@ -3,12 +3,16 @@
 <net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
     <location netOffset="0.0,0.0" convBoundary="0.00,0.00,665.37,811.53" origBoundary="14.388600,50.068250,14.516399,50.128835" projParameter="+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
     <edge id="0" from="left" to="center" priority="7" type="highway.secondary">
-        <lane id="0_0" index="0" speed="42" length="16.72" shape="100.00,100.00 240.0,100.0"/>
+        <lane id="0_0" index="0" speed="42" length="16.72" shape="50.00,100.00 175.0,100.0"/>
     </edge>
-    <edge id="1" from="left" to="right" priority="7" type="highway.secondary">
-        <lane id="1_0" index="0" speed="42" length="16.72" shape="250.00,110.00 250.0,300.0"/>
+    <edge id="1" from="top" to="center" priority="7" type="highway.secondary">
+        <lane id="1_0" index="0" speed="42" length="16.72" shape="180.00,220.00 180.0,105.0"/>
     </edge>
-    <junction id="center" type="unregulated" x="3.00" y="03.00" incLanes="0_0" intLanes="" shape="250,100"/>
-    <junction id="right" type="unregulated" x="3.00" y="03.00" incLanes="0_0" intLanes="" shape="250,300"/>
-    <connection from="0" to="1" fromLane="0" toLane="0" dir="l" state="m"/>
+    <edge id="2" from="center" to="right" priority="7" type="highway.secondary">
+        <lane id="2_0" index="0" speed="42" length="16.72" shape="185.00,100.00 310.0,100.0"/>
+    </edge>
+    <junction id="center" type="unregulated" x="180.00" y="100.00" incLanes="0_0 1_0" intLanes="" shape="175,100 180,105 185,100"/>
+    <junction id="right" type="unregulated" x="310.00" y="100.00" incLanes="2_0" intLanes="" shape="310,100"/>
+    <connection from="0" to="2" fromLane="0" toLane="0" dir="l" state="m"/>
+    <connection from="1" to="2" fromLane="0" toLane="0" dir="l" state="m"/>
 </net>

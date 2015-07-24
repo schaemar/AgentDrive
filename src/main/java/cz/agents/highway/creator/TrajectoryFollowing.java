@@ -146,21 +146,23 @@ public class TrajectoryFollowing {
         // from robot than targetDistance is found.
 
         if (trajectory.isEmpty() == false) {
-            while (actual.distance(point3ftoPoint2f(trajectory.peek().getPosition())) < targetDistance) {
-                lastRemoved = point3ftoPoint2f(trajectory.peek().getPosition());
-                plannedSpeed = trajectory.peek().getSpeed();
-                if(plannedSpeed <  0) plannedSpeed =0;
-                trajectory.poll();
-                if (trajectory.isEmpty() == true) {
-                    break;
+            System.out.println();
+                while (actual.distance(point3ftoPoint2f(trajectory.peek().getPosition())) < targetDistance) {
+                    lastRemoved = point3ftoPoint2f(trajectory.peek().getPosition());
+                    plannedSpeed = trajectory.peek().getSpeed();
+                    if (plannedSpeed < 0) plannedSpeed = 0;
+                    trajectory.poll();
+                    if (trajectory.isEmpty() == true) {
+                        break;
+                    }
                 }
-            }
         }
         if (trajectory.isEmpty() == true) {
             target.setX(lastRemoved.getX());
             target.setY(lastRemoved.getY());
         } else {
             //circle - line aproximation
+
 
             //vector: FRONT - LAST REMOVED
             Point2f s = new Point2f(point3ftoPoint2f(trajectory.peek().getPosition()).getX() - lastRemoved.getX(), point3ftoPoint2f(trajectory.peek().getPosition()).getY()

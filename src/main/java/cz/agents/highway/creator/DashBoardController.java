@@ -204,8 +204,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     NodeConfiguration.newPublic(hostName, NodeConfiguration.DEFAULT_MASTER_URI);
             rosControlNode = new RosControlNode();
             DefaultNodeMainExecutor.newDefault().execute(rosControlNode, nodeConfiguration);
-            //TODO REMOVE THIS!!!! TOTAL BAD PRACTISE!!!! ADD EVENT FOR THIS!!!!!!
-          //  try{Thread.sleep(10000);}catch (InterruptedException e){};
         }
 
         @Override

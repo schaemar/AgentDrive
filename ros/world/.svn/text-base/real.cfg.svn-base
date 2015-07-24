@@ -1,0 +1,31 @@
+# Desc: Player  configuration file 
+# Author:  Miroslav kulich
+# Date: 20 May 2011
+
+driver
+( 
+ name "syrdriv"
+ plugin "libsyrdriv"
+ provides ["base:::position2d:0" "global:::position2d:2" "laser:::ranger:0"]
+ logger_configuration_file "logger.cfg"
+ driver_loop_period "100"
+ robacem_socket "/tmp/one"
+ perf_report_period "5000"
+ forward_velocity_command_factor "2000"
+ angular_velocity_command_factor "2000"
+)
+
+driver
+(
+   name "rangertolaser"
+     requires ["ranger:0"] # read from ranger:0
+       provides ["laser:0"] # output results on laser:0
+)
+
+
+driver
+(
+  name "snd"
+  provides ["position2d:1"]
+  requires ["input:::position2d:2" "output:::position2d:0" "laser:0"]
+)

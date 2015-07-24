@@ -34,7 +34,7 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
     private long nodeStartedAt;
     Publisher<Twist> testPublisher;
     TrajectoryFollowing trajectoryFollowing;
-    private final static float TOLERANCE = 0.05f;
+    private final static float TOLERANCE = 0.1f;
     private final static float SPEED = 0.15f;
     private final static float LOOKAHEAD = 0.2f;
     private Map<Integer,TrajectoryFollowing> mapTraj = new LinkedHashMap<Integer, TrajectoryFollowing>();
