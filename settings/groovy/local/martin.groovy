@@ -4,8 +4,8 @@ highway {
     simulationSpeed = 1.0;             //not relevant
     timestep = 10; //ms               //not relevant
 
-//    agent = "SDAgent";
-    agent = "RouteAgent";
+   agent = "SDAgent";
+ //   agent = "RouteAgent";
 //    agent = "ORCAAgent";
 
     net {
@@ -87,7 +87,7 @@ highway {
 
         }
 
-//        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+        //simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
         simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //        simulatorsToRun = ["Empty"];

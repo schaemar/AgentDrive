@@ -10,6 +10,7 @@ import cz.agents.alite.protobuf.communicator.callback.ConnectCallback;
 import cz.agents.alite.protobuf.factory.ProtobufFactory;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.Agent;
+import cz.agents.highway.agent.ComAgent;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.HighwayStorage;
@@ -25,6 +26,8 @@ import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.*;
 
@@ -93,13 +96,14 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
+            //SVANDRLIK
+            //manageListeners();
             plans.clear();
         }
 
     }
 
-    private class LocalSimulatorHandler extends SimulatorHandler {
+    private class LocalSimulatorHandler extends SimulatorHandler{
 
         private LocalSimulatorHandler(ProtobufFactory factory, Set<Integer> plannedVehicles) {
             super(factory, plannedVehicles);
@@ -172,6 +176,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 radarData.add(state);
                 duration = 0;
             }
+
             //send radar-data to storage with duration delay
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
         }
@@ -199,7 +204,25 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         runSimulation();
     }
 
+    // SVANDRLIK
+    // assign listeners to individual agents - but not himself
+    public void manageListeners(Map<Integer, Agent> agents ){
 
+        int size = agents.size();
+
+        for (int i = 0; i < size; i++) {
+            if (agents.get(i).getClass().equals(ComAgent.class)){
+                ComAgent agent = (ComAgent) agents.get(i);
+                agent.setCapacity(size+1);
+                for (int j = 0; j < size; j++) {
+                    if (agents.get(j).getClass().equals(ComAgent.class)){
+                        agent.addComListener(j,(ComAgent) agents.get(j));
+                        agent.addActiveListener((ComAgent) agents.get(j), true);
+                    }
+                }
+            }
+        }
+    }
     /**
      * This method is responsible for even distribution of vehicles between all configured simulators
      */
@@ -252,7 +275,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             simulatorHandlers.add(new LocalSimulatorHandler(null, new HashSet<Integer>(vehicles)));
             storage.updateCars(update);
         }
-
         // Divide vehicles evenly to the simulators
         communicator.registerConnectCallback(new ConnectCallback() {
             private int section = 1;
@@ -278,6 +300,20 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                         agent = storage.createAgent(vehicleID);
                     }
 
+                    //SVANDRLIK random lane change
+
+                    //System.out.println("Initial lane: " + agent.getNavigator().getLane().getLaneId());
+
+
+
+
+/*
+                    if (Math.random() < 0.5) {
+                        agent.getNavigator().changeLaneLeft();
+                    }
+*/
+
+
                     Point2f position = agent.getNavigator().next();
                     for (int j = 0; j < initPos.size(); j++) {
                         while (!saveDistance(initPos.get(j), position)) {
@@ -287,7 +323,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                     initPos.add(position);
                     Point3f initialPosition = new Point3f(position.x, position.y, 0);
                     Point2f next = agent.getNavigator().nextWithReset();
-                    Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
+                    //Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
+                    Vector3f initialVelocity = new Vector3f(next.x - position.x, 1f, 0);
                     logger.info("" + initialVelocity);
                     int lane = highwayEnvironment.getRoadNetwork().getLaneNum(initialPosition);
 
@@ -321,6 +358,12 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
 //                        update.add(new RoadObject(vehicleID, 0d, lane, initialPosition, initialVelocity));
 //                    }
                 }
+                // SVANDRLIK
+                // assign listeners to individual agents
+                // move somewhere to update periodically
+                manageListeners(agents);
+
+
 
                 // Create new simulator handler
                 simulatorHandlers.add(new SimulatorHandler(factory, plannedVehicles));
@@ -396,7 +439,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
 
                     numberOfPlanCalculations++;
                     handler.sendPlans(highwayEnvironment.getStorage().getPosCurr());
-
                 }
             }
         } else if (event.isType(HighwayEventType.UPDATED)) {

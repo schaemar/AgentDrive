@@ -1,5 +1,7 @@
 package cz.agents.highway.storage;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +49,6 @@ public class HighwayStorage extends EventBasedStorage {
 
     public void updateCar(RoadObject carState) {
         int carId = carState.getId();
-
 //        if (!agents.containsKey(carId)) {
 //            createAgent(carId);
 //        }
@@ -62,6 +63,16 @@ public class HighwayStorage extends EventBasedStorage {
             agent = new RouteAgent(id);
         } else if (agentClassName.equals("SDAgent")) {
             agent = new SDAgent(id);
+        } else if (agentClassName.equals("ComAgent")) {
+            // here we define if ComAgent is capable of communication
+            double prob = Math.random();
+            double penetration = 0.9;
+            if (prob < penetration){
+                agent = new ComAgent(id,0.8);
+            } else {
+                agent = new ComAgent(id,0);
+            }
+
         }
         else if (agentClassName.equals("DESDAgent")) {
             agent = new DESDAgent(id,(HighwayEnvironment)getEnvironment());
