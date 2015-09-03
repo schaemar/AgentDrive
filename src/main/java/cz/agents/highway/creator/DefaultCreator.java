@@ -4,8 +4,7 @@ import java.awt.Color;
 
 import javax.vecmath.Point2d;
 
-import cz.agents.highway.vis.NetLayer;
-import cz.agents.highway.vis.RoadObjectLayer;
+import cz.agents.highway.vis.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -23,8 +22,6 @@ import cz.agents.alite.vis.layer.common.LogoLayer;
 import cz.agents.alite.vis.layer.common.VisInfoLayer;
 import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.util.Utils;
-import cz.agents.highway.vis.ProtobufVisLayer;
-import cz.agents.highway.vis.SimulationControlLayer;
 
 public class DefaultCreator implements Creator {
     protected String DEFAULT_CONFIG_FILE = "settings/groovy/highway.groovy";
@@ -80,8 +77,9 @@ public class DefaultCreator implements Creator {
             createVisualization();
             VisManager.registerLayer(new NetLayer(highwayEnvironment.getRoadNetwork()));
             VisManager.registerLayer(ProtobufVisLayer.create(highwayEnvironment.getStorage()));
-            VisManager.registerLayer(RoadObjectLayer.create(highwayEnvironment.getStorage().getPosCurr()));
-            VisManager.registerLayer(SimulationControlLayer.create(simulation,highwayEnvironment));
+            VisManager.registerLayer(RoadObjectLayer.create(highwayEnvironment.getStorage().getPosCurr(),highwayEnvironment.getStorage().getActions()));
+            VisManager.registerLayer(SimulationControlLayer.create(simulation, highwayEnvironment));
+           // VisManager.registerLayer(PlansLayer.create(highwayEnvironment.getStorage()));
         }
         simulation.setSimulationSpeed(simulationSpeed);
  

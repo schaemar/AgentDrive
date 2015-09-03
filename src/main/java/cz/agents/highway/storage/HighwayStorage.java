@@ -27,8 +27,8 @@ public class HighwayStorage extends EventBasedStorage {
     private final RoadDescription roadDescription;
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
-    TreeSet<Integer>  forRemoveFromPosscur;
-    private final Map<Integer, Action> actions = new LinkedHashMap<Integer, Action>();
+    private TreeSet<Integer>  forRemoveFromPosscur;
+    private final Map<Integer, List<Action>> actions = new LinkedHashMap<Integer, List<Action>>();
     private Map<Integer, Queue<Pair<Long,Float>>> distances = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
     private Map<Integer, Queue<Pair<Long,Float>>> speeds = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
     private Map<Integer, Pair<Point3f,Float>> lenghtOfjourney = new LinkedHashMap<Integer, Pair<Point3f,Float>>();
@@ -146,13 +146,8 @@ public class HighwayStorage extends EventBasedStorage {
         return agent;
     }
 
-    public void act(int carId, Action action) {
-        actions.put(carId, action);
-
-    }
-
     public void act(int carId, List<Action> action) {
-        actions.put(carId, action.get(0));
+        actions.put(carId, action);
     }
 
     public RoadDescription getRoadDescription() {
@@ -167,7 +162,7 @@ public class HighwayStorage extends EventBasedStorage {
         return posCurr;
     }
 
-    public Map<Integer, Action> getActions() {
+    public Map<Integer, List<Action>> getActions() {
         return actions;
     }
 
