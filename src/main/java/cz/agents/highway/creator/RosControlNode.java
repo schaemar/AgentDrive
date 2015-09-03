@@ -189,16 +189,19 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
                     Point2f target = obje.getValue().getTarget();
                     Point2f actual = obje.getValue().getActualP2F();
 
-                    //simple calculation of velocity vector, should be replaced by calculating it from the robots rotation. The commented code is for this purpose but does not work
-                    Vector3f vel = new Vector3f(((target.getX() - actual.getX()) ), ((target.getY() - actual.getY()) *-1), 0);
-                   // Vector3f vel = obje.getValue().getVelocityVector();
+                    //vel is a simple calculation of velocity vector, vel2 is calculated from the robots rotation.
+                    //vel is now depreceated
+                    //Vector3f vel = new Vector3f(((target.getX() - actual.getX()) ), ((target.getY() - actual.getY()) *-1), 0);
+                    Vector3f vel2 = convertVector2to3f(obje.getValue().getActualVelocityVector());
                 //    vel.scale(10f);
                 //    vel = new Vector3f(1f,0f,0f);
-
                     //Transform the coordinates back to the AgentDrive ones.
-                    vel.normalize();
-                    vel.scale((float)obje.getValue().getActualSpeed()*SCALECONSTANT);
-                    RoadObject state = new RoadObject(obje.getKey(), System.currentTimeMillis(), 0, new Point3f(actual.getX() * SCALECONSTANT, -actual.getY() * SCALECONSTANT, 0), vel);
+                   // vel.normalize();
+                   // vel.scale((float) obje.getValue().getActualSpeed() * SCALECONSTANT);
+                    vel2.y = vel2.getY()*-1;
+                    vel2.scale((float)obje.getValue().getActualSpeed()*SCALECONSTANT);
+
+                    RoadObject state = new RoadObject(obje.getKey(), System.currentTimeMillis(), 0, new Point3f(actual.getX() * SCALECONSTANT, -actual.getY() * SCALECONSTANT, 0), vel2);
                     radarData.add(state);
                     break;
                 } catch (InterruptedException e) {
@@ -210,5 +213,9 @@ public class RosControlNode extends AbstractNodeMain implements NodeMain {
             }
         }
         return radarData;
+    }
+    private Vector3f convertVector2to3f(Vector2f v2f)
+    {
+        return new Vector3f(v2f.getX(),v2f.getY(),0);
     }
 }
