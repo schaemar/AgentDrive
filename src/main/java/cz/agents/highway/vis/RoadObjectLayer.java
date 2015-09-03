@@ -5,12 +5,15 @@ import cz.agents.alite.vis.Vis;
 import cz.agents.alite.vis.layer.AbstractLayer;
 import cz.agents.alite.vis.layer.VisLayer;
 import cz.agents.highway.storage.RoadObject;
+import cz.agents.highway.storage.plan.Action;
+import cz.agents.highway.storage.plan.WPAction;
 
 import javax.vecmath.Point3f;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 /**
  * Created by martin on 14.7.14.
@@ -23,11 +26,13 @@ public class RoadObjectLayer extends AbstractLayer {
     private static final double REL_WHEEL_LEN = 0.25;
 
     private final Map<Integer, RoadObject> objects;
+    Map<Integer, List<Action>> actions;
     
 
 
-    RoadObjectLayer(Map<Integer, RoadObject> objects) {
+    RoadObjectLayer(Map<Integer, RoadObject> objects,Map<Integer, List<Action>> actions) {
         this.objects = objects;
+        this.actions = actions;
     }
 
     @Override
@@ -62,7 +67,8 @@ public class RoadObjectLayer extends AbstractLayer {
             canvas.rotate(vehicleRotation);
 
             // Draw vehicle body
-            canvas.setColor(AgentColors.getColorForAgent(id));
+            Color colorForAgent = AgentColors.getColorForAgent(id);
+            canvas.setColor(colorForAgent);
             Rectangle2D body = new Rectangle2D.Double(-vehicleLen/2,  -CAR_WIDTH/2,
                     vehicleLen, CAR_WIDTH);
             canvas.fill(body);
@@ -77,25 +83,51 @@ public class RoadObjectLayer extends AbstractLayer {
             // Front
             Rectangle2D frontWheel = new Rectangle2D.Double(-wheelLen/2, -wheelWidth/2, wheelLen, wheelWidth);
             AffineTransform t2 = canvas.getTransform();
-            canvas.translate(vehicleLen/2-wheelLen/2, -CAR_WIDTH/2+wheelWidth/2);
+            canvas.translate(vehicleLen / 2 - wheelLen / 2, -CAR_WIDTH / 2 + wheelWidth / 2);
             //we do not know steering angle
             canvas.rotate(0);
             canvas.fill(frontWheel);
             canvas.setTransform(t2);
 
-            canvas.translate(vehicleLen/2-wheelLen/2, CAR_WIDTH/2-wheelWidth/2);
+            canvas.translate(vehicleLen / 2 - wheelLen / 2, CAR_WIDTH / 2 - wheelWidth / 2);
           //  canvas.rotate(vehicle.getSteeringAngle());
             canvas.fill(frontWheel);
 
             canvas.setTransform(t);
+            // draw waipoints
+            canvas.setColor(colorForAgent);
+            paintWaipoints(canvas,id);
+
 
         }
     }
+    public void paintWaipoints(Graphics2D canvas,int id)
+    {
+        List<Action> entry = actions.get(id);
+        if(entry.get(0) instanceof WPAction)
+        {
+            for(int i =0;i<entry.size();i++)
+            {
+                WPAction temp =(WPAction)entry.get(i);
+                paintCircle(canvas,temp.getPosition(), 1);
+            }
+        }
+    }
+    void paintCircle(Graphics2D canvas, Point3f p, int size){
+        AffineTransform t = canvas.getTransform();
+        int x = Vis.transX(p.x);
+        int y = Vis.transY(p.y);
+        canvas.translate(x, y);
+        canvas.scale(Vis.getZoomFactor(), Vis.getZoomFactor());
 
+        float offset = size / 2 ;
+        canvas.fillOval((int) (- offset),(int) (- offset), size, size);
+        canvas.setTransform(t);
+    }
     
 
-    public static VisLayer create(Map<Integer,RoadObject> objects) {
-        RoadObjectLayer layer = new RoadObjectLayer(objects);
+    public static VisLayer create(Map<Integer,RoadObject> objects,Map<Integer, List<Action>> actions) {
+        RoadObjectLayer layer = new RoadObjectLayer(objects,actions);
         return layer;
     }
 }
