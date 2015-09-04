@@ -93,7 +93,7 @@ public class SimulationControlLayer extends AbstractLayer {
         if (simulation.isFinished()) {
             if(Configurator.getParamBool("highway.dashboard.systemTime", false)) {
                 label.append("TIME in seconds: ");
-                label.append((highwayEnvironment.getStorage().getENDTIME() - highwayEnvironment.getStorage().getSTARTTIME()) / 1000.0);
+                label.append((highwayEnvironment.getStorage().getExperimentsData().getENDTIME() - highwayEnvironment.getStorage().getSTARTTIME()) / 1000.0);
             }
             label.append(" ");
             label.append("(FINISHED)");
