@@ -10,6 +10,7 @@ import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.protobuf.generated.InitMessage;
 import cz.agents.highway.storage.plan.Action;
+import cz.agents.highway.util.ExperimentsData;
 import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
 import cz.agents.highway.environment.planning.euclid4d.Region;
@@ -24,51 +25,48 @@ public class HighwayStorage extends EventBasedStorage {
 
     private final Logger logger = Logger.getLogger(HighwayStorage.class);
 
+    private ExperimentsData experimentsData;
+
+
+
     private final RoadDescription roadDescription;
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
     private final Map<Integer, RoadObject> posCurr = new LinkedHashMap<Integer, RoadObject>();
     private TreeSet<Integer>  forRemoveFromPosscur;
     private final Map<Integer, List<Action>> actions = new LinkedHashMap<Integer, List<Action>>();
-    private Map<Integer, Queue<Pair<Long,Float>>> distances = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
-    private Map<Integer, Queue<Pair<Long,Float>>> speeds = new LinkedHashMap<Integer, Queue<Pair<Long,Float>>>();
-    private Map<Integer, Pair<Point3f,Float>> lenghtOfjourney = new LinkedHashMap<Integer, Pair<Point3f,Float>>();
-    private LinkedList<Float> timesOfArrival = new LinkedList<Float>();
-    private Map<Integer, Pair<Float,Float>>  graphOfArrivals = new LinkedHashMap<Integer, Pair<Float, Float>>();
-    private LinkedList<Integer> computationTime = new LinkedList<Integer>();
-    private LinkedList<Pair<Float,Integer>> numberOfCarsInSimulation = new LinkedList<Pair<Float, Integer>>();
-    private long radarDataSystemTime = 0l;
     private final float SAVE_DISTANCE = 10;
-    Point3f refcar = new Point3f(0, 0, 0);
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
     private Queue<Pair<Integer,Float>> vehiclesForInsert;
     private final float CHECKING_DISTANCE = 500;
     private final float SAFETY_RESERVE = 12;
-    Comparator<Pair<Integer,Float>> comparator;
+    private Comparator<Pair<Integer,Float>> comparator;
+
+
     private long STARTTIME =0;
-    private long ENDTIME =0;
+
+
     public HighwayStorage(HighwayEnvironment environment) {
         super(environment);
+        experimentsData = new ExperimentsData(this);
         environment.getEventProcessor().addEventHandler(this);
         roadDescription = new RoadDescription(environment.getRoadNetwork());
         comparator = new QueueComparator();
         vehiclesForInsert = new PriorityQueue<Pair<Integer, Float>>(20,comparator);
         // number 20 is random, it is only needed to be java 1.7 compatible
     }
+    public ExperimentsData getExperimentsData()
+    {
+        return experimentsData;
+    }
 
     public long getSTARTTIME() {
         return STARTTIME;
     }
-
-    public long getENDTIME() {
-        return ENDTIME;
-    }
-
     @Override
     public void handleEvent(Event event) {
 
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
-            logger.debug("HighwayStorage: handled simulation START");
-            if(Configurator.getParamBool("highway.dashboard.systemTime",false))
+            if(Configurator.getParamBool("highway.dashboard.systemTime", false))
             {
                 STARTTIME = System.currentTimeMillis();
             }
@@ -76,6 +74,7 @@ public class HighwayStorage extends EventBasedStorage {
             {
                 STARTTIME = getEventProcessor().getCurrentTime();
             }
+            logger.debug("HighwayStorage: handled simulation START");
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();
@@ -93,27 +92,7 @@ public class HighwayStorage extends EventBasedStorage {
 //                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
 //            }
         } else if (event.isType(EventProcessorEventType.STOP)) {
-            if(Configurator.getParamBool("highway.dashboard.systemTime",false))
-            {
-                ENDTIME = System.currentTimeMillis();
-            }
-            else
-            {
-               ENDTIME = getEventProcessor().getCurrentTime();
-            }
-            int numberOfCollisons = calculateNumberOfCollisions()/2;
-            FileUtil.getInstance().writeToFile(speeds, 1);
-            if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
-            {
-                Map<List<String>, Pair<Integer, Float>> listPairMap = FileUtil.getInstance().writeReport(numberOfCollisons, agents.size() / ((ENDTIME - STARTTIME) / 1000f),
-                        ENDTIME - STARTTIME, calculateAverageSpeed(speeds), lenghtOfjourney, timesOfArrival, computationTime);
-                FileUtil.getInstance().writeGraphOfArrivals(graphOfArrivals,listPairMap);
-                FileUtil.getInstance().writeNumberOfCarsInSimulation(numberOfCarsInSimulation);
-                logger.info("Number of cars in time is " + agents.size()/((ENDTIME-STARTTIME)));
-            }
-            logger.info("Number of collisions is " + numberOfCollisons + "\n");
-            FileUtil.getInstance().writeToFile(distances, 0);
-            System.out.println(timesOfArrival);
+            experimentsData.simulationEnded();
         }
     }
 
@@ -171,16 +150,9 @@ public class HighwayStorage extends EventBasedStorage {
     }
     public void updateCars(RadarData object) {
      //   if (!object.getCars().isEmpty()) {
-        radarDataSystemTime = System.currentTimeMillis();
-        if(Configurator.getParamBool("highway.dashboard.systemTime",false)) {
-            if(STARTTIME != 0l) {
-                numberOfCarsInSimulation.add(new Pair<Float, Integer>((System.currentTimeMillis() - STARTTIME) / 1000f, object.getCars().size()));
-            }
-            else numberOfCarsInSimulation.add(new Pair<Float, Integer>(0f, object.getCars().size()));
-        }
-        else{
-            numberOfCarsInSimulation.add(new Pair<Float, Integer>(getEventProcessor().getCurrentTime() / 1000f, object.getCars().size()));
-        }
+
+        experimentsData.updateNumberOfCars(object);
+
         forRemoveFromPosscur = new TreeSet<Integer>(posCurr.keySet());
         for (RoadObject car : object.getCars()) {
                 updateCar(car);
@@ -191,68 +163,15 @@ public class HighwayStorage extends EventBasedStorage {
                 for(Integer id : forRemoveFromPosscur)
                 {
                     addForInsert(id);
-                    if(Configurator.getParamBool("highway.dashboard.systemTime",false)) {
-                        timesOfArrival.add((System.currentTimeMillis() - STARTTIME) / 1000f);
-                        Pair<Float, Float> floatFloatPair = graphOfArrivals.get(id);
-                        graphOfArrivals.put(id,new Pair<Float, Float>(floatFloatPair.getKey(),(System.currentTimeMillis() - STARTTIME) / 1000f));
-                    }
-                    else
-                    {
-                        timesOfArrival.add(getEventProcessor().getCurrentTime()/1000f);
-                        Pair<Float, Float> floatFloatPair = graphOfArrivals.get(id);
-                        graphOfArrivals.put(id,new Pair<Float, Float>(floatFloatPair.getKey(),getEventProcessor().getCurrentTime()/1000f));
-                    }
+                    experimentsData.updateTimesAndGraphOfArrivals(object,id);
                 }
             }
             logger.debug("HighwayStorage updated vehicles: received " + object);
 
-
-            for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet()) {
-                Queue<Pair<Long,Float>> original = distances.get(entry.getKey());
-                if (original == null)
-                    original = new LinkedList<Pair<Long,Float>>();
-                Queue<Pair<Long,Float>> originalS = speeds.get(entry.getKey());
-                if (originalS == null)
-                    originalS = new LinkedList<Pair<Long,Float>>();
-                Long timeKey;
-                if(Configurator.getParamBool("highway.dashboard.systemTime",false)) {
-                    timeKey = (System.currentTimeMillis() - STARTTIME);
-                }
-                else
-                {
-                    timeKey = getEventProcessor().getCurrentTime();
-                }
-                //FUNNEL
-             //   Float distVal = entry.getValue().getPosition().distance(new Point3f(-1.75f, -600f, 0f));
-                //X JUNTIONS
-                Float distVal = entry.getValue().getPosition().distance(new Point3f(0f, 0f, 0f));
-
-                Float speed = entry.getValue().getVelocity().length();
-                if (original.isEmpty() || distVal < original.peek().getValue()) {
-                    original.add(new Pair<Long, Float>(timeKey,distVal));
-                }
-                distances.put(entry.getKey(), original);
-                originalS.add(new Pair<Long, Float>(timeKey, speed));
-                speeds.put(entry.getKey(), originalS);
-
-                Pair<Point3f,Float> loj = lenghtOfjourney.get(entry.getKey());
-                Point3f newPosition;
-                Float distance;
-                if(loj == null)
-                {
-                    newPosition = entry.getValue().getPosition();
-                    distance = 0f;
-                }
-                else {
-                    Point3f oldPosition = lenghtOfjourney.get(entry.getKey()).getKey();
-                    newPosition = entry.getValue().getPosition();
-                    distance = lenghtOfjourney.get(entry.getKey()).getValue();
-                    distance += oldPosition.distance(newPosition);
-                }
-                lenghtOfjourney.put(entry.getKey(), new Pair<Point3f, Float>(newPosition, distance));
-
-            }
-        recreate(object);
+        for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet()) {
+            experimentsData.updateDistances(object,entry);
+        }
+            recreate(object);
         if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true) &&
                 posCurr.size() == 0 && vehiclesForInsert.isEmpty()) {
             getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
@@ -262,16 +181,7 @@ public class HighwayStorage extends EventBasedStorage {
      //   }
     }
 
-    private int calculateNumberOfCollisions() {
-        int num = 0;
-        for (Map.Entry<Integer, Agent> entry : agents.entrySet()) {
-            Agent pair = entry.getValue();
-            if (pair instanceof GSDAgent) {
-                num += ((GSDAgent) pair).getNumberOfColisions();
-            }
-        }
-        return num;
-    }
+
     public void removeAgent(Integer carID) {
         agents.remove(carID);
     }
@@ -362,17 +272,7 @@ public class HighwayStorage extends EventBasedStorage {
                 agent.setNavigator(routeNavigator);
                 RoadObject newRoadObject = new RoadObject(id,updateTime, agent.getNavigator().getLane().getIndex(),initialPosition,initialVelocity);
                 agent.getNavigator().setMyLifeEnds(false);
-                if(Configurator.getParamBool("highway.dashboard.systemTime",false)) {
-                    if(STARTTIME == 0l)
-                    {
-                        graphOfArrivals.put(id,new Pair<Float, Float>(0f,null));
-                    }
-                    else graphOfArrivals.put(id,new Pair<Float, Float>((System.currentTimeMillis() - STARTTIME) / 1000f,null));
-                }
-                else
-                {
-                    graphOfArrivals.put(id, new Pair<Float, Float>(getEventProcessor().getCurrentTime()/1000f, null));
-                }
+                experimentsData.vehicleCreation(id);
                 updateCar(newRoadObject);
             } else
                 notInsertedVehicles.add(vehicle);
@@ -424,29 +324,7 @@ public class HighwayStorage extends EventBasedStorage {
         return safeDist;
     }
 
-    private Map<Integer,Float> calculateAverageSpeed(Map<Integer, Queue<Pair<Long,Float>>> speeds) {
-        Map<Integer,Float> averageSpeeds = new HashMap<Integer, Float>();
-        for (Map.Entry<Integer, Queue<Pair<Long,Float>>> obj : speeds.entrySet())
-        {
-            Queue<Pair<Long,Float>> carspeeds = obj.getValue();
-            Float sumSpeed = 0f;
-            int numberOfSpeeds = 0;
-            while(carspeeds.peek() != null)
-            {
-                sumSpeed += carspeeds.poll().getValue();
-                numberOfSpeeds++;
-            }
-            averageSpeeds.put(obj.getKey(),sumSpeed/numberOfSpeeds);
-        }
-        return averageSpeeds;
-    }
-    public void calcPlanCalculation(Long time)
-    {
-        if(radarDataSystemTime != 0l) {
-            Integer planTime = (int)(time - radarDataSystemTime);
-            computationTime.add(planTime);
-        }
-    }
+
     private class QueueComparator implements Comparator<Pair<Integer,Float>>
     {
         @Override
@@ -462,4 +340,5 @@ public class HighwayStorage extends EventBasedStorage {
             return 0;
         }
     }
+
 }

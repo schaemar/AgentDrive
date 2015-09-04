@@ -396,7 +396,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
                 }
                 if (handler.isReady()) {
                     double fTimeStamp = actions.get(0).getTimeStamp();
-                    highwayEnvironment.getStorage().calcPlanCalculation(System.currentTimeMillis());
+                    highwayEnvironment.getStorage().getExperimentsData().calcPlanCalculation(System.currentTimeMillis());
                     numberOfPlanCalculations++;
                     handler.sendPlans(highwayEnvironment.getStorage().getPosCurr());
 
