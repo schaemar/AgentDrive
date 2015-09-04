@@ -1,0 +1,10 @@
+<flows>
+  <!--<flow id="a" from="7" to="1" begin="5" end="10" number="3"/>-->
+    <flow id="a" from="7" to="1" begin="0" end="360" number="70"/>
+    <flow id="b" from="5" to="3" begin="0" end="360" number="70"/>
+    <flow id="c" from="0" to="1" begin="0" end="360" number="23"/>
+    <flow id="d" from="0" to="3" begin="0" end="360" number="20"/>
+    <flow id="e" from="7" to="4" begin="0" end="360" number="20"/>
+    <flow id="f" from="5" to="4" begin="0" end="360" number="20"/>
+</flows>
+

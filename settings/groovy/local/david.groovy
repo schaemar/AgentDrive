@@ -11,7 +11,7 @@ highway {
 
     net {
 //        folder = "nets/kosik/";
-  //      folder = "nets/x-junction/";
+       folder = "nets/x-junction/";
 //     folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
  //       folder = "nets/highway-straight/";
@@ -22,16 +22,25 @@ highway {
   //      folder = "nets/x-junction";
    //     folder = "nets/nadprysk"
    //     folder = "nets/extest";
-    //   folder = "nets/ulesika";
+  //     folder = "nets/ulesika";
    //       folder = "nets/jedkriz";
   //     folder = "nets/map";
-//        folder = "nets/pisek";
+  //      folder = "nets/pisek";
      //   folder = "nets/CharlesSquare";
-    //   folder = "nets/artificialX-junction";
-  //      folder = "nets/artificialHighway-funnel";
+   //    folder = "nets/artificialX-junction";
+    //    folder = "nets/artificialHighway-funnel";
     //    folder = "nets/hostinne";
      //     folder = "nets/artificialXS-junction";
-        folder = "nets/artificialT-junction";
+  //     folder = "nets/artificialT-junction";
+  //      folder = "nets/experiments/T-junction";
+  //      folder = "nets/experiments/X-junction";
+  //      folder = "nets/artificialHighway";
+ //       folder = "nets/rosarena";
+
+        lane {
+            stepSize = 0.2;
+        }
+
 
 
 
@@ -39,7 +48,7 @@ highway {
 
     }
     safeDistanceAgent {
-        safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
+        safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
      //   narrowingModeActive = false;
         distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
@@ -54,9 +63,9 @@ highway {
             accelerationManeuverDuration = 0.3;   //[s]
             deaccelerationManueverDuration = 0.3;   //[s]
             acceleration = 4.0;                     //[m/s^2]
-            deacceleration = -6.0;                  //[m/s^2]
+            deacceleration= -6.0;                  //[m/s^2]
             maximalSpeed = 50.0;                    //[m/s]
-            maxSpeedVariance = 0.30                     //[%]
+            maxSpeedVariance = 0;//0.30;                     //[%]
         }
 
     }
@@ -111,11 +120,11 @@ highway {
 
         }
 
-     simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-//  simulatorsToRun = ["SimulatorLite"];
+   //  simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+ simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 50;
+        numberOfCarsInSimulation = 30;
         sumoSimulation = true;
         systemTime = false;
     }

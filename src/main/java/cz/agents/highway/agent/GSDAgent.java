@@ -8,11 +8,8 @@ import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Junction;
 import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.Network;
-import cz.agents.highway.protobuf.generated.simplan.VectorProto;
-import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Logger;
 
-import cz.agents.alite.common.event.Event;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.environment.RandomProvider;
 import cz.agents.highway.maneuver.AccelerationManeuver;
@@ -22,18 +19,15 @@ import cz.agents.highway.maneuver.HighwaySituation;
 import cz.agents.highway.maneuver.LaneLeftManeuver;
 import cz.agents.highway.maneuver.LaneRightManeuver;
 import cz.agents.highway.maneuver.StraightManeuver;
-import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.RoadObject;
-import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.Action;
-import cz.agents.highway.storage.plan.ManeuverAction;
 
 public class GSDAgent extends RouteAgent {
 
     protected static final Logger logger = Logger.getLogger(SDAgent.class);
 
     //private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
-    private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance",   4.0  );
+    private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance", 4.0);
     private final static double MAX_SPEED               = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0  );
     private final static double MAX_SPEED_VARIANCE      = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.8 );
 
@@ -44,12 +38,11 @@ public class GSDAgent extends RouteAgent {
 
     private final static int DISTANCE_TO_THE_JUNCTION = Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400);
     private final static int CHECKING_DISTANCE = 500;
-    //FIXME: Determine number of lanes based on agent's current position
     protected int num_of_lines;
 
     private int numberOfCollisions=0;
     private CarManeuver currentManeuver = null;
-    private boolean narrowingMode = false;
+    private boolean junctionMode = false;
 
     // maximal speed after variance application
     private final double initialMaximalSpeed = (RandomProvider.getRandom().nextDouble() - 0.5) * 2 *MAX_SPEED_VARIANCE * MAX_SPEED  + MAX_SPEED;
@@ -60,27 +53,10 @@ public class GSDAgent extends RouteAgent {
     public List<Action> agentReact() {
         return super.agentReact(plan());
     }
-
-    private Action man2Action(CarManeuver man) {
-        if(man ==null){
-            return new WPAction(id, 0d, getInitialPosition(), 0);
-        }
-        return new ManeuverAction(sensor.getId(), man.getStartTime() / 1000.0, man.getVelocityOut(), man.getLaneOut(), man.getDuration());
-    }
-
-    public GSDAgent(int id) { // TODO don't use whole HighwayEnviroment in agent
+    public GSDAgent(int id) {
         super(id);
         num_of_lines = 1;
     }
-    /*
-    public void predictNext(HighwaySituation situationPrediction, RoadObject car, long predictionEndTime) {
-        CarManeuver man = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car), (long) (car.getUpdateTime() * 1000));
-        if (!isCollision(man, situationPrediction)) {
-            situationPrediction.add(man);
-        }
-    }*/
-    long time = -1;
-    boolean test = true;
     public CarManeuver plan() {
         CarManeuver maneuver = null;
         RoadObject currState = sensor.senseCurrentState();
@@ -92,16 +68,7 @@ public class GSDAgent extends RouteAgent {
         {
             return null;
         }
-       /* if(navigator.isMyLifeEnds() == true)
-        {
-            logger.info("My id is " + this.id + " number of colisions is " + numberOfCollisions);
-            highwayEnvironment.getStorage().addForInsert(this.id);
-            return null;
-        }*/
-       // logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
-      //  logger.debug("Situation: " + situationPrediction);
-
         int lane = currState.getLaneIndex();
         double velocity = currState.getVelocity().length();
         long updateTime = (long) (currState.getUpdateTime() * 1000);
@@ -111,95 +78,39 @@ public class GSDAgent extends RouteAgent {
         CarManeuver left  = new LaneLeftManeuver      (lane, velocity, 0, updateTime);
         CarManeuver right = new LaneRightManeuver     (lane, velocity, 0, updateTime);
         CarManeuver dec   = new DeaccelerationManeuver(lane, velocity, 0, updateTime);
-
-        int preferredLane = 0;
-       // logger.debug("PreferredLane: " + preferredLane);
         /*
-        Original order of maneuvers
-        1. in maneuver left so continu that maneuver
-        2. in maneuver right so continue that maneuver
-        3. try to switch right
-        4. try to accelerate
-        5. try to not to change anything
-        6. try to to switch left
-        7. try to decelerate
+        Order of maneuvers
+        1. try to switch right
+        2. try to accelerate
+        3. try to not to change anything
+        4. try to to switch left
+        5. try to decelerate
         */
-     /*   if (currentManeuver != null && currentManeuver.getClass().equals(LaneLeftManeuver.class) && isSafeMan(currState, left, situationPrediction)) {
-            maneuver = left;
-        } else if (currentManeuver != null && currentManeuver.getClass().equals(LaneRightManeuver.class) && isSafeMan(currState, right, situationPrediction)) {
+        if (!junctionMode && isSafeMan(currState, right, situationPrediction)) {
             maneuver = right;
+        } else if (isSafeMan(currState, acc, situationPrediction)) {
+            maneuver = acc;
+        } else if (isSafeMan(currState, str, situationPrediction)) {
+            maneuver = str;
+        } else if (!junctionMode && isSafeMan(currState, left, situationPrediction)) {
+            maneuver = left;
+        } else if (isSafeMan(currState, dec, situationPrediction)) {
+            maneuver = dec;
         } else {
-            */
-            if (!narrowingMode && isSafeMan(currState, right, situationPrediction)) {
-                maneuver = right;
-            } else if (isSafeMan(currState, acc, situationPrediction)) {
-                maneuver = acc;
-            } else if (isSafeMan(currState, str, situationPrediction)) {
-                maneuver = str;
-            } else if (!narrowingMode && isSafeMan(currState, left, situationPrediction)) {
-                maneuver = left;
-            } else if (isSafeMan(currState, dec, situationPrediction)) {
-                maneuver = dec;
-            } else {
-                logger.info("Nothing is safe, shouldnt happen!");
-                maneuver = dec;
-            }
-        //testing scenario
-        /*if(currState.getId() == 0 && navigator.getActualPointer() > 5)
-        {
+            logger.info("Nothing is safe, shouldnt happen!");
             maneuver = dec;
-        }*/
-/*
-        if(currState.getId() == 1 && navigator.getActualPointer() > 140 && test)
-        {
-            maneuver = dec;
-            if(time==-1) time= System.currentTimeMillis();
-            if(System.currentTimeMillis() - time > 50000)
-            {
-                test = false;
-            }
-        }*/
-
-      //  logger.info("Planned maneuver for carID " + currState.getId() + " " +maneuver);
+        }
+        isSafeMan(currState, acc, situationPrediction);
+        isSafeMan(currState, str, situationPrediction);
         currentManeuver = maneuver;
         return maneuver;
     }
-
-    private double transGeoToDistance(double x, double y) {
-        return sensor.getRoadDescription().distance(new Point2d(x, y));
-    }
-    @Deprecated
-    protected double transGeoToDistance(Point3f position) {
-        return transGeoToDistance(position.x, position.y);
-    }
-    @Deprecated
-    private boolean isLaneGoingOn(double position, double distance, int lane) {
-        Collection<RoadObject> obstacles = sensor.senseObstacles();
-        for (RoadObject obs : obstacles) {
-            if (obs.getLaneIndex() != lane)
-                continue;
-            double obsDist = getDistance(obs);
-            if (obsDist > position && obsDist < position + distance) {
-                return false;
-            }
-        }
-        return true;
-    }
-    @Deprecated
-    protected double getDistance(RoadObject state) {
-        // return transGeoToDistance(state.getPosition());
-        return 0;
-    }
-
     private boolean isSafeMan(RoadObject state, CarManeuver man, HighwaySituation situation) {
         if (isHighwayCollision(state, man)) {
-            if(id ==2) logger.info("Highway Collision detected!" + man);
             return false;
         }
         if (isRulesCollision(man)) {
-            if(id ==2) logger.info("Rules Collision detected! " + man);
             return false;
-
         }
         HighwaySituation emptySituation = new HighwaySituation();
         emptySituation.clear();
@@ -209,10 +120,8 @@ public class GSDAgent extends RouteAgent {
         if (man.getClass().equals(AccelerationManeuver.class)
                 || man.getClass().equals(StraightManeuver.class)) {
 
-            return isInSafeDistance(situation.getCarAheadMan(), man);// sufficient if not narrowing
+            return isInSafeDistance(situation.getCarAheadMan(), man);
         } else if (man.getClass().equals(LaneLeftManeuver.class)) {
-            if(id ==2) logger.info("LEFT_MAN_OUTPUT: " + isInSafeDistance(situation.getCarLeftAheadMan(), man)
-                    + " " + isInSafeDistance(man, situation.getCarLeftMan()));
             return isInSafeDistance(situation.getCarLeftAheadMan(), man)
                     && isInSafeDistance(man, situation.getCarLeftMan());
         } else if (man.getClass().equals(LaneRightManeuver.class)) {
@@ -221,30 +130,19 @@ public class GSDAgent extends RouteAgent {
         } else {
             return true;
         }
-
     }
 
+    /**
+     * Controls if there is a collision with the road structure.
+     */
     private boolean isHighwayCollision(RoadObject state, CarManeuver man) {
         if (!canPerformManeuver(man)) {
             return true;
-            // NOT USED, code for obstacles on the road
-        } /*else if (!isLaneGoingOn(man.getPositionOut(), safeDistance(man, SAFETY_RESERVE), state.getLaneIndex())) {
-            return true;
-        }*/ else
+        }  else
             return false;
     }
-    @Deprecated
-    private double safeDistance(CarManeuver man, double safetyReserve) {
-        // TODO get the a0 from the car
-        double a0 = -4;
-        double v0 = man.getVelocityOut();
-        double v1 = 0;
-        return safeDistance(a0, v0, v1, safetyReserve);
-    }
-
     private double safeDistance(CarManeuver manAhead, CarManeuver manBehind, double safetyReserve) {
         // TODO get the a0 from the car
-        // TODO Discover what the hell is a0
         double a0 = -1;
         double v0 = manBehind.getVelocityOut();
         double v1 = manAhead.getVelocityIn();
@@ -252,6 +150,9 @@ public class GSDAgent extends RouteAgent {
         return safeDist;
     }
 
+    /**
+     * calculation of the safe distance.
+     */
     private double safeDistance(double a0, double v0, double v1) {
         double safeDist = (v1 * v1 - v0 * v0) / (2 * a0);
         return safeDist;
@@ -265,8 +166,6 @@ public class GSDAgent extends RouteAgent {
     private boolean isInSafeDistance(CarManeuver manAhead, CarManeuver manBehind) {
         if (manAhead == null || manBehind == null) return true;
         double realDist = manAhead.getPositionIn() - manBehind.getPositionOut();
-        // continousHighway condition
-        // if(realDist<0)realDist+=carSensorManeuver.getHighwayLength();
         if (safeDistance(manAhead, manBehind, SAFETY_RESERVE) < realDist) return true;
         else return false;
     }
@@ -371,24 +270,9 @@ public class GSDAgent extends RouteAgent {
                 return true;
             }
         }
-
-
         // TODO check - observed that StraightManeuver accelerates vehicle
-        //if(carManeuver.getClass().equals(AccelerationManeuver.class) || carManeuver.getClass().equals(StraManeuver.class)){
         double laneMaxSpeed = maximalSpeed + carManeuver.getLaneIn() * LANE_SPEED_RATIO * maximalSpeed;
-       // logger.info("laneMasSpeed= "+laneMaxSpeed +" maximalSpeed="+maximalSpeed+" speedVariance="+MAX_SPEED_VARIANCE+ " MAX_SPEED conf = "+MAX_SPEED);
         return carManeuver.getVelocityOut() > laneMaxSpeed;
-
-//    	boolean ret = false;
-
-        // what does this mean??
-//        else if (carManeuver.getClass().equals(AccelerationManeuver.class)
-//                && carManeuver.getVelocityIn() < 10.0) {
-//            if (isCollision(new AccelerationManeuver(carManeuver), getStatespace())) {
-//                ret = true;
-//            }
-//        }
-//        return ret;
     }
 
     public boolean canPerformManeuver(CarManeuver carManeuver) {
@@ -399,18 +283,27 @@ public class GSDAgent extends RouteAgent {
 
         int laneOut = carManeuver.getExpectedLaneOut();
         if (laneOut < 0) {
-          //  logger.debug("LaneOut= " + laneOut);
             return false;
         }
         if (laneOut >= num_of_lines) {
-           // logger.debug("laneOut = " + laneOut);
             return false;
         }
 
         return true;
     }
-    // Returns 1 if the lines intersect, otherwise 0. In addition, if the lines
-    // intersect the intersection point may be stored in the floats i_x and i_y.
+
+    /**
+     * This method is for detection of intersection between two lane segments
+     * @param p0_x x coordinate of the starting point of the first lane segment
+     * @param p0_y y coordinate of the starting point of the first lane segment
+     * @param p1_x x coordinate of the ending point of the first lane segment
+     * @param p1_y y coordinate of the ending point of the first lane segment
+     * @param p2_x x coordinate of the starting point of the second lane segment
+     * @param p2_y y coordinate of the starting point of the second lane segment
+     * @param p3_x x coordinate of the ending point of the second lane segment
+     * @param p3_y y coordinate of the ending point of the second lane segment
+     * @return null if no intersection point found or the point of intersection.
+     */
     private Point2f isColision(float p0_x, float p0_y, float p1_x, float p1_y,
                                float p2_x, float p2_y, float p3_x, float p3_y)
     {
@@ -430,17 +323,22 @@ public class GSDAgent extends RouteAgent {
         }
         return null; // No collision
     }
+
+    /**
+     * This method gets vehicles around and generates the HighwaySituation that is used for reasoning.
+     * @param state This is the RoadObject of the operating vehicles.
+     * @param cars Vehicles nearby.
+     * @param from Starting time
+     * @param to Ending time.
+     * @return HighwaySituation
+     */
     public HighwaySituation generateSS(RoadObject state, Collection<RoadObject> cars, long from, long to) {
 
         HighwaySituation situationPrediction = new HighwaySituation();
 
-       // logger.debug("GenerateSS:");
+        // logger.debug("GenerateSS:");
         Collection<RoadObject> nearCars = new Vector<RoadObject>();
-        //FAST SOLUTION
         myLane = navigator.getLane();
-        //SLOW
-      //  myLane = highwayEnvironment.getRoadNetwork().getLane(state.getPosition());
-
         myEdge = myLane.getEdge();
         num_of_lines = myEdge.getLanes().size();
         int myIndexOnRoute=getNearestWaipointIndex(state,myLane);
@@ -459,34 +357,24 @@ public class GSDAgent extends RouteAgent {
                 nearCars.add(entry);
             }
         }
-        //adding my prediction to the collection
-       // situationPrediction.addAll(getPlannedManeuvers(state, from, to));
 
-        Lane entryLane =null;
-        int numberOfLanes = myEdge.getLanes().size();
+        Lane entryLane;
         Junction myNearestJunction = Network.getInstance().getJunctions().get(myEdge.getTo());
-
-        //TODO use config for this
         Point2f junctionwaypoint = myNearestJunction.getCenter();
         boolean nearTheJunction = (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
-        if(myNearestJunction.getId().equals("preparation")) nearTheJunction = false;
         //distance from the junction, should be determined by max allowed speed on the lane.
         for(RoadObject entry : nearCars) {
-
-
             Point2f intersectionWaypoint = junctionwaypoint;
             ArrayList<CarManeuver> predictedManeuvers;
-
             entryLane =Network.getInstance().getLane(entry.getPosition());
-            //TODO Fix this if else structur
             if(myNearestJunction.equals(Network.getInstance().getJunctions().get(entryLane.getEdge().getTo()))) {
+            // if operating vehicle and other vehicle is heading to the same junction
                 if (nearTheJunction)
                 {
-                    narrowingMode = true;
-                    //TODO maybe better implementation that does not use highway storage
-                    //TODO Optimilize to run this once
+                    junctionMode = true;
                     Map<Integer, Agent> agents = sensor.getStorage().getAgents();
                     GSDAgent entryAgent = (GSDAgent)agents.get(entry.getId());
+                    //calculation of optimised intersection point, if not found, other vehicle is ignored.
                     if(!entryAgent.navigator.getFollowingEdgesInPlan().isEmpty() && !navigator.getFollowingEdgesInPlan().isEmpty()) {
                         Edge entryNextEdge = entryAgent.navigator.getFollowingEdgesInPlan().iterator().next();
                         Edge myNextEdge = navigator.getFollowingEdgesInPlan().iterator().next();
@@ -500,13 +388,9 @@ public class GSDAgent extends RouteAgent {
                         if (newCenter == null && !myLane.equals(entryLane)) {
                             continue;
                         } else if (newCenter != null && !myLane.equals(entryLane)) {
-                            //TODO fix this hotfix, probably in route agent.
                             if (junctionwaypoint.distance(newCenter) < 30) {
                                 intersectionWaypoint = new Point2f((newCenter.x + junctionwaypoint.x) / 2, (newCenter.y + junctionwaypoint.y) / 2);
                             }
-                            /*else {
-                                System.out.println("Something is terribly wrong");
-                            }*/
                         }
                     }
 
@@ -517,56 +401,41 @@ public class GSDAgent extends RouteAgent {
                             (intersectionWaypoint.y - convertPoint3ftoPoint2f(entry.getPosition()).y));
 
                     double maxAngle = ANGLE_TO_JUNCTION * Math.PI / 180;    //Max used angle
-                    double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre);
-                    if (ange > maxAngle) { //TODO Fix
-
-                    } else {
+                    double ange = convertVector3ftoVector2f(entry.getVelocity()).angle(toTheCentre); //other vehicle's angle to the junction
+                    if (ange <= maxAngle) {
                         double hypotenuse = entry.getVelocity().length();
                         double d = hypotenuse * Math.cos(ange);
                         if (Double.isNaN(d)) d = 0;
                         toTheCentre.normalize();
                         Vector2f resultant = new Vector2f((float) toTheCentre.x * (float) d, (float) toTheCentre.y * (float) d);
+                        //calculation of the transformed vehicle's speed to the predicted distance to the junction.
                         float myDistance = myPosition.distance(intersectionWaypoint);
                         float entryDistance = entryPosition.distance(intersectionWaypoint);
                         if (entryDistance < myDistance) {
-                            //Možná bude třeba setnout i v pravo a vlevo aby auto neměnilo pruh
                             StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
                             situationPrediction.trySetCarAheadManeuver(man);
-                          /*  situationPrediction.trySetCarRightAheadMan(man);
-                            situationPrediction.trySetCarLeftAheadMan(man);
-
-                            situationPrediction.trySetCarRightMan(man);
-                            situationPrediction.trySetCarLeftMan(man);*/
                         }
-                        else if(entryDistance == myDistance) //TODO check this
+                        else if(entryDistance == myDistance) //solution when distances are the same.
                         {
                             Random rand = new Random();
                             if(rand.nextFloat() > 0.5)
                             {
                                 StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
                                 situationPrediction.trySetCarAheadManeuver(man);
-                              /*  situationPrediction.trySetCarRightAheadMan(man);
-                                situationPrediction.trySetCarLeftAheadMan(man);*/
                             }
                         }
-                       /* else if(entryDistance > myDistance)
-                        {
-                            StraightManeuver man = new StraightManeuver(entry.getId(), resultant.length(), myDistance - entryDistance, (long) (entry.getUpdateTime() * 1000));
-                            situationPrediction.trySetCarRightMan(man);
-                            situationPrediction.trySetCarLeftMan(man);
-
-                        }*/
                     }
-
                 } else {
-                    narrowingMode = false;
+                    // other vehicle is heading to the same junction but the junction is not close.
+                    //this is the classical Safe-distance method, all five states can be set.
+                    junctionMode = false;
                     if (entryLane.getEdge().equals(myEdge)) {
                         predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, null);
                         situationPrediction.addAll(predictedManeuvers);
 
                         CarManeuver man = predictedManeuvers.get(0);
 
-                        int entryNearestWaipoint = getNearestWaipointIndex(entry, entryLane);
+                        int entryNearestWaipoint = getNearestWaipointIndex(entry, entryLane); // finding nearest waipoint on the road.
                         if (myLane.getLaneId().equals(entryLane.getLaneId())) {
                             if (entryNearestWaipoint > myIndexOnRoute) {
                                 situationPrediction.trySetCarAheadManeuver(man);
@@ -590,27 +459,13 @@ public class GSDAgent extends RouteAgent {
                     }
                 }
             }
-            if (!entryLane.getEdge().equals(myEdge)) {
-                // TODO situation where car is in the different road
-                List<Edge> rem = navigator.getFollowingEdgesInPlan();
-              //  logger.info("Checking this entry " + entry);
-                for (Edge planned : rem) {
+            if (!entryLane.getEdge().equals(myEdge)) { // This is for checking vehicles behind the junction.
+                List<Edge> remE = navigator.getFollowingEdgesInPlan();
+                for (Edge planned : remE) {
                     if (planned.equals(entryLane.getEdge())) {
-                        predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, rem);
+                        predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, remE);
                         situationPrediction.addAll(predictedManeuvers);
                         CarManeuver man = predictedManeuvers.get(0);
-
-                       /* if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
-                            //right
-                            situationPrediction.trySetCarRightAheadMan(man);
-                        } else if ((state.getLaneIndex() - entry.getLaneIndex()) == 1) {
-                            // left
-                            situationPrediction.trySetCarLeftAheadMan(man);
-                        } else {
-                            //same
-                            situationPrediction.trySetCarAheadManeuver(man);
-                        }
-                        */
                         //TODO Improve this part to allow 2 lanes throw junction
                         if((Math.abs(state.getLaneIndex() - entry.getLaneIndex()) <= 1))
                         {
@@ -625,14 +480,20 @@ public class GSDAgent extends RouteAgent {
         }
         return situationPrediction;
     }
+
+    /**
+     * Method for fining nearest waipoint on the Lane
+     * @param state Vehicle's state
+     * @param myLane Vehicle's lane.
+     * @return index on the lane.
+     */
+    @Deprecated
     private int getNearestWaipointIndex(RoadObject state,Lane myLane)
     {
         int myIndexOnRoute = 0;
-
-        float test = distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y));
         while(distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y))  > CIRCLE_AROUND_FOR_SEARCH) // Magical value
         {
-            myIndexOnRoute++;  //TODO fix this
+            myIndexOnRoute++;
             if(myLane.getInnerPoints().size() == myIndexOnRoute)
             {
                 myIndexOnRoute--;
@@ -641,7 +502,7 @@ public class GSDAgent extends RouteAgent {
         }
         while(distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y))  <= CIRCLE_AROUND_FOR_SEARCH)
         {
-            myIndexOnRoute++;  //TODO fix this
+            myIndexOnRoute++;
             if(myLane.getInnerPoints().size() == myIndexOnRoute)
             {
                 myIndexOnRoute--;
@@ -650,12 +511,18 @@ public class GSDAgent extends RouteAgent {
         }
         if(myIndexOnRoute >= myLane.getInnerPoints().size())
             myIndexOnRoute=myLane.getInnerPoints().size()-1;
-       // logger.debug("nearest waipoint id " + myIndexOnRoute);
+        // logger.debug("nearest waipoint id " + myIndexOnRoute);
         return  myIndexOnRoute;
     }
+
+    /**
+     * Calculate distance between two points
+     * @param innerPoint
+     * @param position
+     * @return distance
+     */
     public float distanceP2P2(Point2f innerPoint, Point2f position) {
         return innerPoint.distance(position);
-
     }
 
     public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject me,Lane myLane,RoadObject car,Lane hisLane, long from, long to,List<Edge> rem) {
@@ -672,58 +539,19 @@ public class GSDAgent extends RouteAgent {
 
         return plan;
     }
-    @Deprecated
-    public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject car, long from, long to) {
-        // if has no plan -> predict TODO use more sofisticated prediction - not
-        // here, on all the statespace
-        ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();
-        // TODO add a part of plan that is between from and to
-        CarManeuver lastManeuver;
-//      there is no sensing of braking and directional lights
-//        boolean braking = false;
-//        String turning = null;
-//        if (braking) {
-//            lastManeuver = new DeaccelerationManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car),
-//                    (long) (car.getUpdateTime() * 1000));
-//
-//        } else if (turning != null) {
-//            if (turning.equals("left")) {
-//                lastManeuver = new LaneLeftManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car),
-//                        (long) (car.getUpdateTime() * 1000));
-//            } else {
-//                lastManeuver = new LaneRightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car),
-//                        (long) (car.getUpdateTime() * 1000));
-//            }
-//        } else {
-        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), 0, (long) (car.getUpdateTime() * 1000));
-//        }
-        plan.add(lastManeuver);
-        while (lastManeuver.getEndTime() <= to) {
-            lastManeuver = new StraightManeuver(lastManeuver);
-            plan.add(lastManeuver);
-        }
-
-        return plan;
-    }
-
     /**
      * Distance betwenn two road objects is calculated by finding two nearest waipoints of the cars and distance between them,
      * on the "same" line.
-     * @param me
+     * @param me my road state
      * @param myLane
-     * @param other
+     * @param other other's vehicle road state.
      * @param otherLane
-     * @return
+     * @return distance
      */
     private double getDistanceBetweenTwoRoadObjects(RoadObject me,Lane myLane,RoadObject other,Lane otherLane,List<Edge> rem) {
-        //two possibilities how to find nearest waipoint, point close enough more sophisticated but does not work always
-
-        int nearestAa = getNearestWaipointIndex(me, myLane);
-        int nearestBb = getNearestWaipointIndex(other, otherLane);
-
         int nearestA = getNearestWaipointCloseEnough(me, myLane);
         int nearestB = getNearestWaipointCloseEnough(other, otherLane);
-        //only for debug
+
         Edge myEdg = myLane.getEdge();
         Edge his = otherLane.getEdge();
         double distance = 0;
@@ -751,19 +579,20 @@ public class GSDAgent extends RouteAgent {
         }
         else
         {
+            // calculate distance to the vehicle on the edge that is on my plan.
             int distC = 0;
             for (int i = nearestA + 1; i < myLane.getInnerPoints().size();i++) {
                 distC += myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i));
             }
             for(int i =0;i<rem.size();i++)
             {
-               if(rem.get(i).equals(his))
-               {
-                   for (int d = 1; d <= nearestB;d++) {
-                       distC += otherLane.getInnerPoints().get(d - 1).distance(otherLane.getInnerPoints().get(d));
-                   }
-                   break;
-               }
+                if(rem.get(i).equals(his))
+                {
+                    for (int d = 1; d <= nearestB;d++) {
+                        distC += otherLane.getInnerPoints().get(d - 1).distance(otherLane.getInnerPoints().get(d));
+                    }
+                    break;
+                }
                 //TODO FIX MORE LANES LENGHT
                 Lane tem = rem.get(i).getLaneByIndex(0);
                 for (int d = 1; d < tem.getInnerPoints().size();d++) {
@@ -771,11 +600,16 @@ public class GSDAgent extends RouteAgent {
                 }
 
             }
-
-            //TODO FIX THIS!!!
-            return distC; // debug
+            return distC;
         }
     }
+
+    /**
+     * Method for finding nearest waypoint
+     * @param me Road object of operating vehicle
+     * @param myLane vehicle's lane
+     * @return index on the lane.
+     */
     public int getNearestWaipointCloseEnough(RoadObject me,Lane myLane)
     {
         Point2f myPosition = convertPoint3ftoPoint2f(me.getPosition());
@@ -801,6 +635,11 @@ public class GSDAgent extends RouteAgent {
     {
         return new Vector2f(vec.x,vec.y);
     }
+
+    /**
+     * This method is for measuring number of collisons by HighwayStorage.
+     * @return number of vehicle's collisions
+     */
     public int getNumberOfColisions()
     {
         return numberOfCollisions;

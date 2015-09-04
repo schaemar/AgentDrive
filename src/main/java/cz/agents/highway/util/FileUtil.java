@@ -15,7 +15,45 @@ import java.io.*;
  */
 public class FileUtil {
     private FileUtil(){}
-
+    public void writeNumberOfCarsInSimulation(LinkedList<Pair<Float, Integer>> numberOfCarsInSimulation) {
+        String file_name = "numberOfCars.m";
+        try {
+            FileWriter fstream = new FileWriter(file_name);
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write("time = [");
+            for (Pair<Float, Integer> p : numberOfCarsInSimulation) {
+                Float element = p.getKey();
+                out.write(element + " ");
+            }
+            out.write("]");
+            out.newLine();
+            out.write("number = [");
+            for (Pair<Float, Integer> p : numberOfCarsInSimulation) {
+                Integer element = p.getValue();
+                out.write(element + " ");
+            }
+            out.write("]");
+            out.newLine();
+            out.write("figure;");
+            out.newLine();
+            out.write("hold on;");
+            out.newLine();
+            out.write("plot(time,number);");
+            out.newLine();
+            out.write("title('Number of cars in simulation in time')");
+            out.newLine();
+            out.write("xlabel('Simulation time')");
+            out.newLine();
+            out.write("ylabel('Number of cars in simulation')");
+            out.newLine();
+            out.write("hold off;");
+            out.newLine();
+            out.close();
+        }
+        catch (Exception e) { // TODO Improve this
+            System.out.println(e.getMessage());
+        }
+    }
     public void writeToFile(Map<Integer, Queue<Pair<Long,Float>>> distances, int speedOrDistances)
     {
         String file_name;
@@ -101,9 +139,158 @@ public class FileUtil {
             System.out.println(e.getMessage());
         }
     }
-    public void writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond,long timeOfsimulation,
+    public void writeGraphOfArrivals(Map<Integer, Pair<Float,Float>>  graphOfArrivals,Map<List<String>,Pair<Integer,Float>> journeys)
+    {
+        String file_name = "graphOfArrivals.m";
+        final XMLReader reader = XMLReader.getInstance();
+        //reader.getRoutes().get(obj.getKey()
+        HashMap<Integer,List<String>> vehRoutes = new LinkedHashMap<Integer, List<String>>();
+        char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+        for (Map.Entry<Integer, Pair<Float, Float>> obj : graphOfArrivals.entrySet())
+        {
+            vehRoutes.put(obj.getKey(),reader.getRoutes().get(obj.getKey()));
+        }
+
+        try {
+            FileWriter fstream = new FileWriter(file_name);
+            BufferedWriter out = new BufferedWriter(fstream);
+            int index = 0;
+            String addstring = "";
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : journeys.entrySet())
+            {
+                if(index > 25)
+                {
+                    addstring +="A";
+                    index = 0;
+                }
+                out.write(addstring + alphabet[index] + " = [");
+                for (Map.Entry<Integer, Pair<Float, Float>> obje : graphOfArrivals.entrySet()) {
+                    if (obje.getValue().getValue() != null) {
+                        if(vehRoutes.get(obje.getKey()).equals(obj.getKey())) {
+                            Float element = (Float) obje.getValue().getKey();
+                            out.write(element + " ");
+                        }
+                    }
+                }
+                out.write("]");
+                out.newLine();
+                out.write(addstring + alphabet[index] + "time" + " = [");
+                for (Map.Entry<Integer, Pair<Float, Float>> obje : graphOfArrivals.entrySet()) {
+                    if (obje.getValue().getValue() != null) {
+                        if(vehRoutes.get(obje.getKey()).equals(obj.getKey())) {
+                            Float element = obje.getValue().getValue() - obje.getValue().getKey();
+                            out.write(element + " ");
+                        }
+                    }
+                }
+                out.write("]");
+                out.newLine();
+                index++;
+            }
+/*            index = 0;
+            addstring = "";
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : journeys.entrySet()) {
+                if(index > 25)
+                {
+                    addstring +="A";
+                    index = 0;
+                }
+                out.write("p"+addstring + alphabet[index]+" = polyfit("+addstring + alphabet[index]+","+addstring + alphabet[index] + "time"+",4);");
+                out.newLine();
+                index++;
+            }
+            index = 0;
+            addstring = "";
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : journeys.entrySet()) {
+                if(index > 25)
+                {
+                    addstring +="A";
+                    index = 0;
+                }
+                out.write("x1"+addstring + alphabet[index]+" = linspace(0,"+addstring + alphabet[index]+"(length("+addstring + alphabet[index] +")));");
+                out.newLine();
+                index++;
+            }
+            index = 0;
+            addstring = "";
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : journeys.entrySet()) {
+                if (index > 25) {
+                    addstring += "A";
+                    index = 0;
+                }
+                out.write("y1"+addstring + alphabet[index]+" = polyval("+"x1"+addstring + alphabet[index]+","+"x1"+addstring + alphabet[index]+");");
+                out.newLine();
+                index++;
+            }
+            out.write("figure;");
+            out.newLine();
+            out.write("hold on;");
+            out.newLine();
+            index = 0;
+            addstring = "";
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : journeys.entrySet()) {
+                if (index > 25) {
+                    addstring += "A";
+                    index = 0;
+                }
+                out.write("plot("+addstring + alphabet[index]+","+addstring + alphabet[index] + "time"+",'o');");
+                out.newLine();
+                index++;
+            }
+            index = 0;
+            addstring = "";
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : journeys.entrySet()) {
+                if (index > 25) {
+                    addstring += "A";
+                    index = 0;
+                }
+                out.write("plot(x1"+addstring + alphabet[index]+",y1"+addstring + alphabet[index]+");");
+                out.newLine();
+                index++;
+            }
+            */
+            out.write("figure;");
+            out.newLine();
+            out.write("hold on;");
+            out.newLine();
+            index = 0;
+            addstring = "";
+            Random rand = new Random();
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : journeys.entrySet()) {
+                if (index > 25) {
+                    addstring += "A";
+                    index = 0;
+                }
+                float r = rand.nextFloat();
+                float g = rand.nextFloat();
+                float b = rand.nextFloat();
+                out.write("plot("+addstring + alphabet[index]+","+addstring + alphabet[index] + "time"+",'x'"+",'Color'," +"[" + r +" " + g + " " + b + "])");
+                out.newLine();
+                index++;
+            }
+            out.write("legend(");
+            int ppp = 0;
+            for (Map.Entry<List<String>, Pair<Integer,Float>> obj : journeys.entrySet()) {
+                out.write("'"+ obj.getKey().toString()+"'");
+                if(ppp<journeys.size()-1)
+                {
+                    out.write(",");
+                }
+                ppp++;
+            }
+            out.write(");");
+            out.newLine();
+            out.write("hold off;");
+            out.close();
+            System.out.println("Graph of arrivals created");
+        }
+        catch (Exception e) { // TODO Improve this
+            System.out.println(e.getMessage());
+        }
+    }
+    public Map<List<String>,Pair<Integer,Float>> writeReport(int numberOfCollisions,float numberOfVehiclesPerSecond,long timeOfsimulation,
                             Map<Integer,Float> avspeed, Map<Integer, Pair<Point3f,Float>> lenghtOfjourney,
-                            LinkedList<Float> timesOfArrival)
+                            LinkedList<Float> timesOfArrival, LinkedList<Integer> computationTime)
     {
         String file_name = "report.txt";
         try {
@@ -182,20 +369,34 @@ public class FileUtil {
                 out.write("Journey: " + obj.getKey() + " avspeed: " + spped);
                 out.newLine();
             }
-            out.write("Times of arrival:");
+            out.write("Times of arrival in seconds:");
             out.newLine();
             out.write(timesOfArrival.toString());
+            out.newLine();
+            Integer summ=0;
+            for(Integer e : computationTime)
+            {
+                summ+=e;
+            }
+            Float res = (float)summ/computationTime.size();
+            out.write(res.toString() + " miliseconds");
+            out.newLine();
             out.close();
 
             System.out.println("Report created successfully.");
+            return averageJourneySpeed;
         }
      catch (Exception e) { // TODO Improve this
         System.out.println(e.getMessage());
+         return null;
         }
     }
     public static FileUtil getInstance() {
         return FileUtilHolder.INSTANCE;
     }
+
+
+
     private static class FileUtilHolder {
         private static final FileUtil INSTANCE = new FileUtil();
     }

@@ -2,6 +2,8 @@ package cz.agents.highway.environment.roadnet;
 
 
 
+import cz.agents.alite.configurator.Configurator;
+
 import javax.vecmath.Point2f;
 import javax.vecmath.Vector2f;
 import java.util.ArrayList;
@@ -11,7 +13,7 @@ import java.util.ArrayList;
  * Created by pavel on 19.6.14.
  */
 public class Lane {
-    public static final float INNER_POINTS_STEP_SIZE = 1;
+    public static final float INNER_POINTS_STEP_SIZE = Configurator.getParamDouble("highway.net.lane.stepSize", 1d).floatValue();
     private final String laneId;
     private final int index;
     private final float speed;
