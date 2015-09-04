@@ -50,10 +50,10 @@ public class ExperimentsData {
         FileUtil.getInstance().writeToFile(speeds, 1);
         if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
         {
-            Map<List<String>, Pair<Integer, Float>> listPairMap = FileUtil.getInstance().writeReport(numberOfCollisons, storage.getAgents().size() / ((ENDTIME - storage.getSTARTTIME()) / 1000f),
-                    ENDTIME - storage.getSTARTTIME(), calculateAverageSpeed(speeds), lenghtOfjourney, timesOfArrival, computationTime);
-            FileUtil.getInstance().writeGraphOfArrivals(graphOfArrivals,listPairMap);
-            FileUtil.getInstance().writeNumberOfCarsInSimulation(numberOfCarsInSimulation);
+            FileUtil.getInstance().writeReport(numberOfCollisons, storage.getAgents().size() / ((ENDTIME - storage.getSTARTTIME()) / 1000f),
+                    ENDTIME - storage.getSTARTTIME(), calculateAverageSpeed(speeds), lenghtOfjourney, timesOfArrival);//, computationTime);
+          //  FileUtil.getInstance().writeGraphOfArrivals(graphOfArrivals,listPairMap);
+          //  FileUtil.getInstance().writeNumberOfCarsInSimulation(numberOfCarsInSimulation);
             logger.info("Number of cars in time is " + storage.getAgents().size()/((ENDTIME-storage.getSTARTTIME())));
         }
         logger.info("Number of collisions is " + numberOfCollisons + "\n");
