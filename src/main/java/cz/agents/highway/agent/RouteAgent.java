@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class RouteAgent extends Agent {
     ///
-    private static final float CIRCLE_AROUND = 5.0f;  // Does not exactly correspond to the actual wayPoint distance, used to make circle around the car
+    private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly correspond to the actual wayPoint distance, used to make circle around the car
     private final static double MAX_SPEED   = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0);
     private static final float WP_COUNT_CONST = 0.2f;
     private double lastUpateTime;
