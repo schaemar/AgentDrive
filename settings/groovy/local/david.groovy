@@ -5,9 +5,9 @@ highway {
     timestep = 10; //ms               //not relevant
 
 //    agent = "SDAgent";
-//   agent = "RouteAgent";
+   agent = "RouteAgent";
 //   agent = "ORCAAgent";
-    agent = "GSDAgent";
+//    agent = "GSDAgent";
 
     net {
 //        folder = "nets/kosik/";
@@ -28,10 +28,10 @@ highway {
         //      folder = "nets/pisek";
         //   folder = "nets/CharlesSquare";
         //    folder = "nets/artificialX-junction";
-        //    folder = "nets/artificialHighway-funnel";
+            folder = "nets/artificialHighway-funnel";
         //    folder = "nets/hostinne";
         //     folder = "nets/artificialXS-junction";
-        folder = "nets/artificialT-junction";
+        //folder = "nets/artificialT-junction";
         //      folder = "nets/experiments/T-junction";
         //      folder = "nets/experiments/X-junction";
         //      folder = "nets/artificialHighway";
@@ -119,7 +119,7 @@ highway {
 
         }
 
-        //       simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+   //            simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
         simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //     simulatorsToRun = ["Empty"];

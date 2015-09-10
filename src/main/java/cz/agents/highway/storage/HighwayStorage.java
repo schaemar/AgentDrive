@@ -175,7 +175,6 @@ public class HighwayStorage extends EventBasedStorage {
         if (Configurator.getParamBool("highway.dashboard.sumoSimulation",true) &&
                 posCurr.size() == 0 && vehiclesForInsert.isEmpty()) {
             getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
-            //System.out.println("Sedim na kameni a cekam");
         }
         getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
      //   }

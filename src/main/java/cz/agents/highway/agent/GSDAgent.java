@@ -26,7 +26,6 @@ public class GSDAgent extends RouteAgent {
 
     protected static final Logger logger = Logger.getLogger(SDAgent.class);
 
-    //private final static double DISTANCE_TO_ACTIVATE_NM = Configurator.getParamDouble("highway.safeDistanceAgent.distanceToActivateNM",  300.0  );
     private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance", 4.0);
     private final static double MAX_SPEED               = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0  );
     private final static double MAX_SPEED_VARIANCE      = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maxSpeedVariance", 0.8 );
@@ -357,7 +356,8 @@ public class GSDAgent extends RouteAgent {
                 nearCars.add(entry);
             }
         }
-
+        // Main logic, first there is a check if there is a junction nearby. If so the junction mode is enabled. If not,
+        //vehicle is driven by standart Safe-distance agent
         Lane entryLane;
         Junction myNearestJunction = Network.getInstance().getJunctions().get(myEdge.getTo());
         Point2f junctionwaypoint = myNearestJunction.getCenter();
@@ -372,6 +372,9 @@ public class GSDAgent extends RouteAgent {
                 if (nearTheJunction)
                 {
                     junctionMode = true;
+
+                    //This part of code requires the knowledge of the long-term plan of the other vehicle.
+                    // It determines if the vehicles croses their paths at the junction.
                     Map<Integer, Agent> agents = sensor.getStorage().getAgents();
                     GSDAgent entryAgent = (GSDAgent)agents.get(entry.getId());
                     //calculation of optimised intersection point, if not found, other vehicle is ignored.
@@ -394,6 +397,8 @@ public class GSDAgent extends RouteAgent {
                         }
                     }
 
+                    // Transformation from the 2D space into the 1D space. Vehicles are virtually put on the one line
+                    // to the junction by their distance to the junction.
                     Point2f myPosition = convertPoint3ftoPoint2f(state.getPosition());
                     Point2f entryPosition = convertPoint3ftoPoint2f(entry.getPosition());
 
