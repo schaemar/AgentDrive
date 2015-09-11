@@ -54,7 +54,6 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
     private final static double ENVIRONMENT_DEPTH  = 15000.0;
  //   private final HighwayEnvironmentHandler handler;
 
-    private Communicator communicator;
     private HighwayStorage storage;
     private Network roadNetwork;
     int numberOfPlanCalculations = 0;
@@ -64,20 +63,17 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
 
     // [DEBUG]
     int counter = 0;
-    long time   = 0;
     long min    = 1000000000;
     long max    = -1;
     double sum    = 0;
-    boolean meas = false;
     double hundrt = 0;
     //--------
-    protected long timestep;
 
     public HighwayEnvironment(final EventProcessor eventProcessor) {
         super(eventProcessor);
         RandomProvider.init(this);
 
-        timestep = Configurator.getParamInt("highway.timestep", 100);
+
         final boolean isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
 
      //   handler = new HighwayEnvironmentHandler();
@@ -92,16 +88,10 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
         final PlansOut plans = new PlansOut();
         eventProcessor.addEventHandler(this);
 
-        initProtoCommunicator();
 
         eventProcessor.addEventHandler(new EventHandler() {
             public void handleEvent(Event event) {
-                if (event.isType(HighwayEventType.TIMESTEP)) {
-                    communicator.run(); //should use this, to avoid adding events to EventProcessor from different thread
-                    getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
-                } else if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
-                    getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
-                }
+
 
             }
 
@@ -151,65 +141,13 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
 
     }
     */
-    private void initProtoCommunicator() {
-        FactoryInterface factoryUpdate = null;
-        FactoryInterface factoryPlans = null;
-        TransportLayerInterface transportInterface = new SocketTransportLayer();
-        String uri = Configurator.getParamString("highway.protobuf.uri",
-                "socket://localhost:2222");
 
-        // initializing protobuf communicator sending by a thread, but not receiveing by thread
-        // (cannot addEvent to EventQUeue from different threads)
-        boolean isSendThread = true;
-        boolean isReceiveThread = false;
-        int port = URI.create(uri).getPort();
-
-        String protocol = Configurator.getParamString("highway.protobuf.protocol", "DLR");
-        if (protocol.equals("DLR")) {
-            communicator = new ServerCommunicator<Header, Message>(
-                    port, DLR_MessageContainer.Header.getDefaultInstance(),
-                    DLR_MessageContainer.Message.getDefaultInstance(), transportInterface, isSendThread, isReceiveThread);
-            factoryUpdate = new DLR_UpdateFactory();
-            factoryPlans = new DLR_PlansFactory();
-
-        } else if (protocol.equals("simplan")) {
-            communicator = new ServerCommunicator<MessageContainer.Header, MessageContainer.Message>(
-                    port, MessageContainer.Header.getDefaultInstance(), MessageContainer.Message.getDefaultInstance(),
-                    transportInterface, isSendThread, isReceiveThread
-            );
-            factoryUpdate = new UpdateFactory();
-            factoryPlans = new PlansFactory();
-        }
-        
-        try {
-            communicator.registerOutFactory(factoryPlans);
-            communicator.registerOutFactory(factoryUpdate);
-            communicator.registerReceiveCallback(factoryUpdate, new ProtobufMessageHandler<RadarData>() {
-
-                public void notify(RadarData object) {
-                    if (object != null) {
-                    	meas = true;
-                    	time = System.currentTimeMillis();
-                    	
-                        logger.debug("Received RadarData");
-                        storage.updateCars(object);
-
-                    }
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public HighwayStorage getStorage() {
         return storage;
     }
 
-    public Communicator getCommunicator() {
-        return communicator;
-    }
-
+    long timeDifference;
     @Override
     public void handleEvent(Event event) {
          if (event.isType(HighwayEventType.NEW_PLAN)) {
@@ -227,6 +165,9 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
                      handler.sendPlans(getStorage().getPosCurr());
                  }
              }
+         }
+         else if (event.isType(HighwayEventType.UPDATED)) {
+             timeDifference = System.currentTimeMillis();
          }
     }
 
