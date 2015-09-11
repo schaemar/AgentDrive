@@ -56,24 +56,24 @@ public class DefaultCreator implements Creator {
 
     public void create() {
         int seed = Configurator.getParamInt("highway.seed", 0);
-        logger.info("Seed set to: " + seed);
+        logger.info("Seed set to " + seed);
         double simulationSpeed = Configurator.getParamDouble("highway.simulationSpeed", 1.0);
         logger.info("Simulation speed: " + simulationSpeed);
         long simulationDuration = Configurator.getParamInt("highway.simulationDuration", -1);
         logger.info("Simulation duration: " + simulationDuration);
 
-        logger.info("\n>>> SIMULATION CREATION\n");
+        logger.info(">>> SIMULATION CREATION");
         if(simulationDuration==-1){
             simulation = new Simulation();
         }else {
             simulation = new Simulation(simulationDuration);
         }
-        logger.info("\n>>> ENVIRONMENT CREATION\n");
-        //FIXME
+        logger.info(">>> ENVIRONMENT CREATION");
+        //FIXME - fix what?.. identify or delete "fixme"
         highwayEnvironment = new HighwayEnvironment(simulation);
 
         if (Configurator.getParamBool("highway.vis.isOn", false)) {
-            logger.info("\n>>> VISUALISATION CREATION\n");
+            logger.info(">>> VISUALISATION CREATION");
             createVisualization();
             VisManager.registerLayer(new NetLayer(highwayEnvironment.getRoadNetwork()));
             VisManager.registerLayer(ProtobufVisLayer.create(highwayEnvironment.getStorage()));
@@ -89,7 +89,6 @@ public class DefaultCreator implements Creator {
     }
 
     protected void createVisualization() {
-        logger.info(">>> VISUALIZATION CREATED");
 
         VisManager.setInitParam("Highway Protobuf Operator", 1024, 768);
         VisManager.setSceneParam(new VisManager.SceneParams() {
@@ -114,6 +113,7 @@ public class DefaultCreator implements Creator {
         VisManager.registerLayer(FpsLayer.create());
         VisManager.registerLayer(LogoLayer.create(Utils.getResourceUrl("img/atg_blue.png")));
         VisManager.registerLayer(HelpLayer.create());
+        logger.info(">>> VISUALIZATION CREATED");
 
     }
 

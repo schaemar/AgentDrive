@@ -41,7 +41,8 @@ import java.util.*;
  * <p/>
  * Created by wmatex on 27.6.14.
  */
-public class DashBoardController extends DefaultCreator implements EventHandler, Creator {
+//TODO rename class
+public class DashBoardController extends DefaultCreator implements EventHandler {
     private Communicator communicator;
     private final Logger logger = Logger.getLogger(DashBoardController.class);
     boolean meas = false;  //debug
@@ -56,11 +57,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
     /// Map of all running simulator processes
     private Map<String, Process> simulators = new HashMap<String, Process>();
 
-    @Override
-    public void init(String[] args) {
-        super.init(args);
-        logger.setLevel(Level.INFO);
-    }
 
     @Override
     public void create() {
