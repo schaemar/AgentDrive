@@ -11,23 +11,17 @@ import cz.agents.alite.protobuf.factory.ProtobufFactory;
 import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.Agent;
 import cz.agents.highway.environment.SimulatorHandlers.LocalSimulatorHandler;
-import cz.agents.highway.environment.SimulatorHandlers.ProtobufSimulationHandler;
+import cz.agents.highway.environment.SimulatorHandlers.ProtobufSimulatorHandler;
 import cz.agents.highway.environment.SimulatorHandlers.SimulatorHandler;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.HighwayStorage;
 import cz.agents.highway.storage.RadarData;
-import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.PlansOut;
-import cz.agents.highway.storage.plan.WPAction;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector2f;
-import javax.vecmath.Vector3f;
 import java.io.IOException;
 import java.util.*;
 
@@ -75,70 +69,60 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         final Map<Integer, Float> departures = reader.getDepartures();
         // final int size = vehicles.size();
         final int size;
-        if(!Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
-        {
+        if (!Configurator.getParamBool("highway.dashboard.sumoSimulation", true)) {
             size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
-        }
-        else
-        {
+        } else {
             size = vehicles.size();
         }
         final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = highwayEnvironment.getStorage();
         // Divide vehicles evenly to the simulators
-         //
-          ConnectCallback col = new ConnectCallback() {
-            private int section = 1;
+        //
+        Iterator<Integer> vehicleIt = vehicles.iterator();
+        PlansOut plans = new PlansOut();
+        //   RadarData update = ;
+        Map<Integer, Agent> agents = storage.getAgents();
+        Set<Integer> plannedVehiclesLocal = new HashSet<Integer>();
+        int sizeL = size;
+        if (size > vehicles.size()) sizeL = vehicles.size();
+        // Iterate over all configured vehicles
 
+        for (int i = 0; i < sizeL; i++) {
+            int vehicleID = vehicleIt.next();
+            if (Configurator.getParamBool("highway.dashboard.sumoSimulation", true)) {
+                storage.addForInsert(vehicleID, departures.get(vehicleID));
+            } else {
+                storage.addForInsert(vehicleID);
+            }
+            plannedVehiclesLocal.add(vehicleID);
+        }
+        final Set<Integer> plannedVehicles = plannedVehiclesLocal;
+
+
+        ConnectCallback col = new ConnectCallback() {
+            private int section = 1;
             @Override
             public void invoke(ProtobufFactory factory) {
-                Iterator<Integer> vehicleIt = vehicles.iterator();
-                PlansOut plans = new PlansOut();
-             //   RadarData update = ;
-                Map<Integer, Agent> agents = storage.getAgents();
-                Set<Integer> plannedVehicles = new HashSet<Integer>();
-                int sizeL = size;
-                if(size > vehicles.size()) sizeL = vehicles.size();
-                // Iterate over all configured vehicles
-
-                for (int i = 0; i < sizeL; i++) {
-                    int vehicleID = vehicleIt.next();
-                    if(Configurator.getParamBool("highway.dashboard.sumoSimulation",true))
-                    {
-                        storage.addForInsert(vehicleID,departures.get(vehicleID));
-                    }
-                    else {
-                        storage.addForInsert(vehicleID);
-                    }
-                    if (factory!= null && i < section * size / simulatorCount && i >= (section - 1) * size / simulatorCount) {
-                        plannedVehicles.add(vehicleID);
-                    } else {
-                        plannedVehicles.add(vehicleID);
+                // Create new simulator handler
+                simulatorHandlers.add(new ProtobufSimulatorHandler(highwayEnvironment, plannedVehicles, factory));
+                // This is the last simulator, start the simulation
+                if (section >= simulatorCount) {
+                    synchronized (simulation) {
+                        simulation.notify();
                     }
                 }
-
-                if(factory != null)
-                {
-                    // Create new simulator handler
-                    simulatorHandlers.add(new ProtobufSimulationHandler(highwayEnvironment,plannedVehicles,factory));
-                    // This is the last simulator, start the simulation
-                    if (section >= simulatorCount) {
-                        synchronized (simulation) {
-                            simulation.notify();
-                        }
-                    }
-                    // Increase the section so the next simulator will simulate different vehicles
-                    section++;
-                }
-                else
-                {
-                    simulatorHandlers.add(new LocalSimulatorHandler(highwayEnvironment,new HashSet<Integer>(plannedVehicles)));
-                }
+                // Increase the section so the next simulator will simulate different vehicles
+                section++;
                 storage.updateCars(new RadarData());
             }
         };
-        if(simulatorCount == 0) col.invoke(null);
-        communicator.registerConnectCallback(col);
+        if (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty())
+        { //Simulator dependent code.
+            simulatorHandlers.add(new LocalSimulatorHandler(highwayEnvironment, new HashSet<Integer>(plannedVehicles)));
+            storage.updateCars(new RadarData());
+        }
+        else communicator.registerConnectCallback(col);
+
     }
 
     @Override

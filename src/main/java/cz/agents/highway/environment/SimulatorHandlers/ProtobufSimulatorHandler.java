@@ -13,9 +13,9 @@ import java.util.Set;
 /**
  * Created by david on 9/11/15.
  */
-public class ProtobufSimulationHandler extends SimulatorHandler {
+public class ProtobufSimulatorHandler extends SimulatorHandler {
     protected final ProtobufFactory factory;
-    public ProtobufSimulationHandler(HighwayEnvironment highwayEnvironment,Set<Integer> plannedVehicles,ProtobufFactory factory)
+    public ProtobufSimulatorHandler(HighwayEnvironment highwayEnvironment, Set<Integer> plannedVehicles, ProtobufFactory factory)
     {
         super(highwayEnvironment,plannedVehicles);
         this.factory = factory;
