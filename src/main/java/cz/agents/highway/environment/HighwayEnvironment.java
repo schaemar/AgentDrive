@@ -2,6 +2,8 @@ package cz.agents.highway.environment;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.vecmath.Vector3d;
 
@@ -10,6 +12,7 @@ import cz.agents.alite.protobuf.communicator.ServerCommunicator;
 import cz.agents.alite.protobuf.factory.FactoryInterface;
 import cz.agents.alite.transport.SocketTransportLayer;
 import cz.agents.alite.transport.TransportLayerInterface;
+import cz.agents.highway.environment.SimulatorHandlers.SimulatorHandler;
 import cz.agents.highway.environment.roadnet.Network;
 import cz.agents.highway.environment.roadnet.XMLReader;
 import cz.agents.highway.protobuf.factory.simplan.PlansFactory;
@@ -42,18 +45,22 @@ import cz.agents.highway.storage.plan.PlansOut;
  * {@link HighwayEnvironmentHandler}
  */
 @SuppressWarnings("JavadocReference")
-public class HighwayEnvironment extends EventBasedEnvironment {
+public class HighwayEnvironment extends EventBasedEnvironment implements EventHandler {
 
     private final Logger logger = Logger.getLogger(HighwayEnvironment.class);
     
     private final static double ENVIRONMENT_WIDTH  = 10000.0;
     private final static double ENVIRONMENT_HEIGHT = 10000.0;
     private final static double ENVIRONMENT_DEPTH  = 15000.0;
-    private final HighwayEnvironmentHandler handler;
+ //   private final HighwayEnvironmentHandler handler;
 
     private Communicator communicator;
     private HighwayStorage storage;
     private Network roadNetwork;
+    int numberOfPlanCalculations = 0;
+
+    private List<SimulatorHandler> simulatorHandlers = new LinkedList<SimulatorHandler>();
+
 
     // [DEBUG]
     int counter = 0;
@@ -73,7 +80,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         timestep = Configurator.getParamInt("highway.timestep", 100);
         final boolean isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
 
-        handler = new HighwayEnvironmentHandler();
+     //   handler = new HighwayEnvironmentHandler();
 
         // Initialize Network from given xml
         XMLReader.getInstance().read(Configurator.getParamString("highway.net.folder","nets/junction-big/"));
@@ -83,6 +90,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         logger.info("Initialized handler and storages");
 
         final PlansOut plans = new PlansOut();
+        eventProcessor.addEventHandler(this);
 
         initProtoCommunicator();
 
@@ -107,11 +115,6 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
     }
 
-    @Override
-    public HighwayEnvironmentHandler handler() {
-        return handler;
-    }
-
     public Network getRoadNetwork() {
         return roadNetwork;
     }
@@ -120,6 +123,11 @@ public class HighwayEnvironment extends EventBasedEnvironment {
      * public class TacticalEnvironmentHandler provides methods addAction, addSensor and
      * getEnvironmentDimensions
      */
+    /*
+    @Override
+    public HighwayEnvironmentHandler handler() {
+        return handler;
+    }
     public class HighwayEnvironmentHandler extends EventBasedHandler {
 
         protected HighwayEnvironmentHandler() {
@@ -142,7 +150,7 @@ public class HighwayEnvironment extends EventBasedEnvironment {
         }
 
     }
-
+    */
     private void initProtoCommunicator() {
         FactoryInterface factoryUpdate = null;
         FactoryInterface factoryPlans = null;
@@ -200,5 +208,30 @@ public class HighwayEnvironment extends EventBasedEnvironment {
 
     public Communicator getCommunicator() {
         return communicator;
+    }
+
+    @Override
+    public void handleEvent(Event event) {
+         if (event.isType(HighwayEventType.NEW_PLAN)) {
+             List<cz.agents.highway.storage.plan.Action> actions = (List<cz.agents.highway.storage.plan.Action>) event.getContent();
+             int id = actions.get(0).getCarId();
+             if (!getStorage().getPosCurr().containsKey(id)) return;
+             for (SimulatorHandler handler : simulatorHandlers) {
+                 if (handler.hasVehicle(id)) {
+                     handler.addActions(id, actions);
+                 }
+                 if (handler.isReady()) {
+                     double fTimeStamp = actions.get(0).getTimeStamp();
+                     getStorage().getExperimentsData().calcPlanCalculation(System.currentTimeMillis());
+                     numberOfPlanCalculations++;
+                     handler.sendPlans(getStorage().getPosCurr());
+                 }
+             }
+         }
+    }
+
+    public void addSimulatorHandler(SimulatorHandler sim)
+    {
+        simulatorHandlers.add(sim);
     }
 }

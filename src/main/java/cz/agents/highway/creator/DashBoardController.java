@@ -39,10 +39,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
     /// Map of all running simulator processes
     private Map<String, Process> simulators = new HashMap<String, Process>();
 
-    private Communicator communicator;
-
-    private List<SimulatorHandler> simulatorHandlers = new LinkedList<SimulatorHandler>();
-
     @Override
     public void init(String[] args) {
         super.init(args);
@@ -52,7 +48,6 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
     @Override
     public void create() {
         super.create();
-        communicator = highwayEnvironment.getCommunicator();
         simulation.addEventHandler(this);
         // Finally start the simulation
         runSimulation();
@@ -104,7 +99,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             @Override
             public void invoke(ProtobufFactory factory) {
                 // Create new simulator handler
-                simulatorHandlers.add(new ProtobufSimulatorHandler(highwayEnvironment, plannedVehicles, factory));
+                highwayEnvironment.addSimulatorHandler(new ProtobufSimulatorHandler(highwayEnvironment, plannedVehicles, factory));
                 // This is the last simulator, start the simulation
                 if (section >= simulatorCount) {
                     synchronized (simulation) {
@@ -118,10 +113,10 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
         };
         if (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty())
         { //Simulator dependent code.
-            simulatorHandlers.add(new LocalSimulatorHandler(highwayEnvironment, new HashSet<Integer>(plannedVehicles)));
+            highwayEnvironment.addSimulatorHandler(new LocalSimulatorHandler(highwayEnvironment, new HashSet<Integer>(plannedVehicles)));
             storage.updateCars(new RadarData());
         }
-        else communicator.registerConnectCallback(col);
+        else highwayEnvironment.getCommunicator().registerConnectCallback(col);
 
     }
 
@@ -157,28 +152,13 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
     }
 
     long timeDifference;
-    int numberOfPlanCalculations = 0;
 
     @Override
     public void handleEvent(Event event) {
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             System.out.println("Caught SIMULATION_STARTED from DashBoard");
-        } else if (event.isType(HighwayEventType.NEW_PLAN)) {
-            List<Action> actions = (List<Action>) event.getContent();
-            int id = actions.get(0).getCarId();
-            if (!highwayEnvironment.getStorage().getPosCurr().containsKey(id)) return;
-            for (SimulatorHandler handler : simulatorHandlers) {
-                if (handler.hasVehicle(id)) {
-                    handler.addActions(id, actions);
-                }
-                if (handler.isReady()) {
-                    double fTimeStamp = actions.get(0).getTimeStamp();highwayEnvironment.getStorage().getExperimentsData().calcPlanCalculation(System.currentTimeMillis());
-                    numberOfPlanCalculations++;
-                    handler.sendPlans(highwayEnvironment.getStorage().getPosCurr());
-
-                }
-            }
-        } else if (event.isType(HighwayEventType.UPDATED)) {
+        }
+         else if (event.isType(HighwayEventType.UPDATED)) {
               timeDifference = System.currentTimeMillis();
         }
 
