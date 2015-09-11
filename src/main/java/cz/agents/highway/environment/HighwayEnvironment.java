@@ -74,7 +74,6 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
         RandomProvider.init(this);
 
 
-        final boolean isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
 
      //   handler = new HighwayEnvironmentHandler();
 
@@ -87,22 +86,6 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
 
         final PlansOut plans = new PlansOut();
         eventProcessor.addEventHandler(this);
-
-
-        eventProcessor.addEventHandler(new EventHandler() {
-            public void handleEvent(Event event) {
-
-
-            }
-
-            public EventProcessor getEventProcessor() {
-                return eventProcessor;
-            }
-
-        });
-
-      
-
     }
 
     public Network getRoadNetwork() {

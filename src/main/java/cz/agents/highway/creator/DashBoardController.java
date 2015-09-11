@@ -47,7 +47,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
     boolean meas = false;  //debug
     long time   = 0;       //debug
     protected long timestep = Configurator.getParamInt("highway.timestep", 100);
-
+    boolean isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
 
     /**
      * This class is responsibSimulatorHandlerle for sending simulator an appropriate plans and updates
@@ -65,7 +65,18 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
     @Override
     public void create() {
         super.create();
-        initProtoCommunicator();
+        if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) {
+            isProtobufOn = false;
+        }
+        else {
+            for (String s : (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class))) {
+                if (s.equals("SimulatorLite")) {
+                    initProtoCommunicator();
+                    isProtobufOn = true;
+                    break;
+                }
+            }
+        }
         simulation.addEventHandler(this);
         // Finally start the simulation
         runSimulation();
@@ -134,8 +145,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             highwayEnvironment.addSimulatorHandler(new LocalSimulatorHandler(highwayEnvironment, new HashSet<Integer>(plannedVehicles)));
             storage.updateCars(new RadarData());
         }
-        else communicator.registerConnectCallback(col);
-
+        if(isProtobufOn) communicator.registerConnectCallback(col);
     }
 
     @Override
@@ -177,7 +187,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler,
             getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
         }
         else if (event.isType(HighwayEventType.TIMESTEP)) {
-            communicator.run(); //should use this, to avoid adding events to EventProcessor from different thread
+            if(isProtobufOn) communicator.run();
             getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
         }
     }
