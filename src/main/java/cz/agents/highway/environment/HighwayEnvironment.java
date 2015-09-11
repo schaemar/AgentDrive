@@ -90,49 +90,9 @@ public class HighwayEnvironment extends EventBasedEnvironment {
             public void handleEvent(Event event) {
                 if (event.isType(HighwayEventType.TIMESTEP)) {
                     communicator.run(); //should use this, to avoid adding events to EventProcessor from different thread
-                   //long timeout = timestep - (getEventProcessor().getCurrentTime()-(lastTick+timestep));
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
                 } else if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
-//                    if(isProtobufOn){
-//                        initProtoCommunicator();
-//                    }
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
-//                } else if (event.isType(HighwayEventType.NEW_PLAN)) {
-//                    try {
-//                        plans.addAction((cz.agents.highway.storage.plan.Action) event.getContent());
-//                        // send all plans at once
-//                        if (plans.getCarIds().size() == getStorage().getAgents().size()) {
-//                            logger.debug("Sending new plans");
-//
-//                            comm.send(new PlansOut(plans));
-//
-//                            if(!meas) logger.error("TO SE NESMI STAT");
-//                            else {
-//                            	meas = false;
-//                            	long duration = System.currentTimeMillis() - time;
-//                            	min = Math.min(min, duration);
-//                            	max = Math.max(max, duration);
-//                            	counter++;
-//                            	sum += duration;
-//                            	if(counter == 100){
-//                            		System.out.println("HUNDRT: " + 10/(time - hundrt));
-//                            		hundrt = time;
-//                            		System.out.println("------------");
-//                            		System.out.println("MIN: " + min);
-//                            		System.out.println("MAX: " + max);
-//                            		System.out.println("AVG: " + (sum/counter));
-//                            		min = 1000000000;
-//                            		max = -1;
-//                            		sum = 0;
-//                            		counter = 0;
-//                            	}
-//                            }
-//                            plans.clear();
-//                        }
-//
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
                 }
 
             }

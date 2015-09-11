@@ -5,9 +5,9 @@ highway {
     timestep = 10; //ms               //not relevant
 
 //    agent = "SDAgent";
-   agent = "RouteAgent";
+//   agent = "RouteAgent";
 //   agent = "ORCAAgent";
-//    agent = "GSDAgent";
+    agent = "GSDAgent";
 
     net {
 //        folder = "nets/kosik/";
