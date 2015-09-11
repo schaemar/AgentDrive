@@ -29,6 +29,8 @@ public class RouteAgent extends Agent {
     private double lastUpateTime;
     private static int RIGHT = -1;
     private static int LEFT = 1;
+    private static int STRAIGHT = 0;
+
     private static final double RADIUS = 1f;
     private static final double MAX_ANGLE = Math.PI / 2;
     private static final float EPSILON = 0.01f;
@@ -72,7 +74,7 @@ public class RouteAgent extends Agent {
 
     private List<Action> prepare() {
         if(sensor.senseCurrentState() == null) return translate(null);
-        else return generateWaypointInLane(0,null);
+        else return generateWaypointInLane(STRAIGHT,null);
     }
 
     protected List<Action> agentReact(CarManeuver maneuver) {
@@ -103,11 +105,11 @@ public class RouteAgent extends Agent {
         // Check the type of maneuver
         if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
                 || (maneuver instanceof DeaccelerationManeuver)) {
-            return generateWaypointInLane(0, maneuver);
+            return generateWaypointInLane(STRAIGHT, maneuver);
         } else if (maneuver instanceof LaneLeftManeuver) {
-            return generateWaypointInLane(/*me.getLaneIndex() + 1*/ LEFT, maneuver);
+            return generateWaypointInLane(LEFT, maneuver);
         } else if (maneuver instanceof LaneRightManeuver) {
-            return generateWaypointInLane(/*me.getLaneIndex() - 1*/ RIGHT, maneuver);
+            return generateWaypointInLane(RIGHT, maneuver);
         } else {
             LinkedList<Action> actions = new LinkedList<Action>();
             ManeuverAction res = new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
