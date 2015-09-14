@@ -23,7 +23,7 @@ public final class RandomProvider {
 		if (seed != -1) {
 			environment.getRandom().setSeed(seed);
 		}
-		logger.info(" RandomProviden initialized with seed: " + seed);
+		logger.info(" RandomProvider initialized with the seed = " + seed);
 
 	}
 
