@@ -9,6 +9,7 @@ import cz.agents.alite.common.entity.Entity;
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
 import cz.agents.alite.environment.eventbased.EventBasedSensor;
+import cz.agents.highway.agent.Agent;
 import cz.agents.highway.agent.Reaction;
 import cz.agents.highway.environment.planning.euclid4d.Region;
 import cz.agents.highway.util.Utils;
@@ -60,12 +61,6 @@ public class VehicleSensor extends EventBasedSensor {
         return ret;
     }
 
-    public int senseMaxLane() {
-//        RoadObject state = senseCurrentState();
-//        Point2d currPoint = new Point2d(state.getPosition().x,state.getPosition().y);
-        return 2;//(int) storage.getRoadDescription().getNearestHighwayPoint(currPoint).z - 1;
-    }
-
     public void registerReaction(Reaction reaction) {
         this.reaction = reaction;
     }
@@ -78,7 +73,7 @@ public class VehicleSensor extends EventBasedSensor {
         return storage.getTrajectories();
     }
 
-    public HighwayStorage getStorage() {
-        return storage;
+    public Map<Integer, Agent> getAgents() {
+        return storage.getAgents();
     }
 }

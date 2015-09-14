@@ -375,7 +375,7 @@ public class GSDAgent extends RouteAgent {
 
                     //This part of code requires the knowledge of the long-term plan of the other vehicle.
                     // It determines if the vehicles croses their paths at the junction.
-                    Map<Integer, Agent> agents = sensor.getStorage().getAgents();
+                    Map<Integer, Agent> agents = sensor.getAgents();
                     GSDAgent entryAgent = (GSDAgent)agents.get(entry.getId());
                     //calculation of optimised intersection point, if not found, other vehicle is ignored.
                     if(!entryAgent.navigator.getFollowingEdgesInPlan().isEmpty() && !navigator.getFollowingEdgesInPlan().isEmpty()) {

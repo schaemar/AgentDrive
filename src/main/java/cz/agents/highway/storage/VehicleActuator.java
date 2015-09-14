@@ -3,6 +3,7 @@ package cz.agents.highway.storage;
 import cz.agents.alite.common.entity.Entity;
 import cz.agents.alite.environment.eventbased.EventBasedAction;
 import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
+import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.Utils;
 
@@ -29,9 +30,4 @@ public class VehicleActuator extends EventBasedAction {
         storage.act(id, actions);
         getEventProcessor().addEvent(HighwayEventType.NEW_PLAN, null, null, actions);
     }
-    public void reportColisions(int colNumber)
-    {
-
-    }
-
 }
