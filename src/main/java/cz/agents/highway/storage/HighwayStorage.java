@@ -42,7 +42,7 @@ public class HighwayStorage extends EventBasedStorage {
     private Comparator<Pair<Integer,Float>> comparator;
 
 
-    private long STARTTIME =0;
+    private long STARTTIME;
 
 
     public HighwayStorage(HighwayEnvironment environment) {
@@ -74,7 +74,12 @@ public class HighwayStorage extends EventBasedStorage {
             {
                 STARTTIME = getEventProcessor().getCurrentTime();
             }
+            updateCars(new RadarData());
             logger.debug("HighwayStorage: handled simulation START");
+
+        }
+        else if (event.isType(HighwayEventType.TIMESTEP)){
+            if(!vehiclesForInsert.isEmpty() && posCurr.isEmpty()) updateCars(new RadarData());
         } else if (event.isType(HighwayEventType.RADAR_DATA)) {
             logger.debug("HighwayStorage: handled: RADAR_DATA");
             RadarData radar_data = (RadarData) event.getContent();

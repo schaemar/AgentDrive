@@ -24,7 +24,7 @@ import cz.agents.highway.storage.plan.Action;
 
 public class GSDAgent extends RouteAgent {
 
-    protected static final Logger logger = Logger.getLogger(SDAgent.class);
+    protected static final Logger logger = Logger.getLogger(GSDAgent.class);
 
     private final static double SAFETY_RESERVE          = Configurator.getParamDouble("highway.safeDistanceAgent.safetyReserveDistance", 4.0);
     private final static double MAX_SPEED               = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0  );

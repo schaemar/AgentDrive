@@ -47,8 +47,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
     private final Logger logger = Logger.getLogger(DashBoardController.class);
     boolean meas = false;  //debug
     long time   = 0;       //debug
-    protected long timestep = Configurator.getParamInt("highway.timestep", 100);
-    boolean isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
+    protected long timestep;
+    boolean isProtobufOn;
 
     /**
      * This class is responsibSimulatorHandlerle for sending simulator an appropriate plans and updates
@@ -60,6 +60,8 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
 
     @Override
     public void create() {
+        isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
+        timestep = Configurator.getParamInt("highway.timestep", 100);
         super.create();
         if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) {
             isProtobufOn = false;
@@ -67,12 +69,12 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
         else {
             for (String s : (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class))) {
                 if (s.equals("SimulatorLite")) {
-                    initProtoCommunicator();
                     isProtobufOn = true;
                     break;
                 }
             }
         }
+        if(isProtobufOn)initProtoCommunicator();
         simulation.addEventHandler(this);
         // Finally start the simulation
         runSimulation();
@@ -133,13 +135,11 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
                 }
                 // Increase the section so the next simulator will simulate different vehicles
                 section++;
-                storage.updateCars(new RadarData());
             }
         };
         if (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty())
         { //Simulator dependent code.
             highwayEnvironment.addSimulatorHandler(new LocalSimulatorHandler(highwayEnvironment, new HashSet<Integer>(plannedVehicles)));
-            storage.updateCars(new RadarData());
         }
         if(isProtobufOn) communicator.registerConnectCallback(col);
     }
@@ -180,6 +180,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
     public void handleEvent(Event event) {
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             System.out.println("Caught SIMULATION_STARTED from DashBoard");
+          //  highwayEnvironment.getStorage().updateCars(new RadarData());
             getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
         }
         else if (event.isType(HighwayEventType.TIMESTEP)) {
