@@ -28,6 +28,7 @@ public class RouteNavigator {
     private int routePtr;
     private Lane agentLane;
     private boolean myLifeEnds;
+    private Point2f initialPosition;
 
     /// Route represented as a list of edges, that the car should visit
     private List<Edge> route = new ArrayList<Edge>();
@@ -41,6 +42,7 @@ public class RouteNavigator {
         {
             initRoute(id);
         }
+        initialPosition = route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
         myLifeEnds = false;
     }
 
@@ -221,7 +223,11 @@ public class RouteNavigator {
     }
 
     public Point2f getInitialPosition() {
-        return route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
+        return initialPosition;
+    }
+
+    public void setInitialPosition(Point2f initialPosition) {
+        this.initialPosition = initialPosition;
     }
 
     public Vector3f getInitialVelocity() {

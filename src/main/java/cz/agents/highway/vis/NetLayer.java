@@ -112,7 +112,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
                 }
             }
         }
-        if(Configurator.getParamBool("highway.netLayer.crossRoad.view", false)){
+        if(Configurator.getParamBool("highway.netLayer.crossRoad.view", true)){
             canvas.setColor(Color.green);
             int size = Configurator.getParamInt("highway.netLayer.crossRoad.width", CROSSROAD_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));

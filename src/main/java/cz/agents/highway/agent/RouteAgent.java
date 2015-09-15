@@ -73,7 +73,7 @@ public class RouteAgent extends Agent {
 
     private List<Action> prepare() {
         if(sensor.senseCurrentState() == null) return translate(null);
-        else return generateWaypointInLane(STRAIGHT,null);
+        else return generateWaypointInLane(STRAIGHT, null);
     }
 
     protected List<Action> agentReact(CarManeuver maneuver) {
@@ -128,11 +128,11 @@ public class RouteAgent extends Agent {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
 
-         if(navigator.getActualPointer() == 0 && navigator.getRoutePtr() == 0) {
-             Point2f initial = navigator.getInitialPosition();
-             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), me.getVelocity().length()));
-         }
+        Point2f initial = navigator.getInitialPosition();
+        Point2f current = new Point2f(me.getPosition().getX(),me.getPosition().getY());
 
+        if(initial.equals(current))
+            actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), me.getVelocity().length()));
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
         int wpCount = (int) me.getVelocity().length() * 2 + 1; // how many waypoints before me will be calculated.
