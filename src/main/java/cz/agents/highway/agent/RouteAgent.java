@@ -37,7 +37,6 @@ public class RouteAgent extends Agent {
     public static final float INNER_POINTS_STEP_SIZE = Configurator.getParamDouble("highway.net.lane.stepSize", 1d).floatValue();
 
 
-
     @Override
     public Point3f getInitialPosition() {
 
@@ -128,6 +127,11 @@ public class RouteAgent extends Agent {
     private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
+
+         if(navigator.getActualPointer() == 0 && navigator.getRoutePtr() == 0) {
+             Point2f initial = navigator.getInitialPosition();
+             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), me.getVelocity().length()));
+         }
 
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 

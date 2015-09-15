@@ -8,10 +8,8 @@ import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.highway.agent.*;
 import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.protobuf.generated.InitMessage;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.ExperimentsData;
-import cz.agents.highway.util.FileUtil;
 import org.apache.log4j.Logger;
 import cz.agents.highway.environment.planning.euclid4d.Region;
 import cz.agents.highway.environment.planning.euclid4d.region.MovingCircle;
@@ -43,6 +41,7 @@ public class HighwayStorage extends EventBasedStorage {
 
 
     private long STARTTIME;
+    private static final double INSERT_SPEED = Configurator.getParamDouble("highway.storage.insertSpeed",0d);
 
 
     public HighwayStorage(HighwayEnvironment environment) {
@@ -230,10 +229,14 @@ public class HighwayStorage extends EventBasedStorage {
                 continue;
             }
             RouteNavigator routeNavigator = new RouteNavigator(id);
+            routeNavigator.setCheckpoint();
             Point2f position = routeNavigator.next();
             Point3f initialPosition = new Point3f(position.x, position.y, 0);
-            Point2f next = routeNavigator.nextWithReset();
+            Point2f next = routeNavigator.next();
+            routeNavigator.resetToCheckpoint();
             Vector3f initialVelocity = new Vector3f(next.x - position.x, next.y - position.y, 0);
+            initialVelocity.normalize();
+            initialVelocity.scale((float)INSERT_SPEED);
           //  Vector3f initialVelocity = new Vector3f((next.x - position.x)/100, (next.y - position.y)/100, 0);
             int numberOftryes = 1;
             int it = 0;

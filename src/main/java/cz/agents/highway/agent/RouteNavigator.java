@@ -216,6 +216,10 @@ public class RouteNavigator {
         return agentLane.getInnerPoints().get(pointPtr);
     }
 
+    public int getRoutePtr() {
+        return routePtr;
+    }
+
     public Point2f getInitialPosition() {
         return route.get(0).getLanes().values().iterator().next().getInnerPoints().get(0);
     }

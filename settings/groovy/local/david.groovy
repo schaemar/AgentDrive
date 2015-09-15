@@ -64,9 +64,12 @@ highway {
             acceleration = 4.0;                     //[m/s^2]
             deacceleration= -6.0;                  //[m/s^2]
             maximalSpeed = 50.0;                    //[m/s]
-            maxSpeedVariance = 0;//0.30;                     //[%]
+            maxSpeedVariance = 0.30;                     //[%]
         }
 
+    }
+    storage{
+        insertSpeed = 20.0;  //[m/s]
     }
     protobuf {
         isOn = true;
@@ -119,8 +122,8 @@ highway {
 
         }
 
-        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
- //       simulatorsToRun = ["SimulatorLite"];
+  //      simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+        simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
   //   simulatorsToRun = ["Empty"];
         numberOfCarsInSimulation = 30;
