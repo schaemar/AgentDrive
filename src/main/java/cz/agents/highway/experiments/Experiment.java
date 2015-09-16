@@ -1,6 +1,5 @@
 package cz.agents.highway.experiments;
 
-import cz.agents.highway.environment.roadnet.XMLReader;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 

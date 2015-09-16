@@ -11,7 +11,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -26,27 +25,30 @@ import java.util.*;
 /**
  * XMLReader reads a .net.xml, .rou.xml file and creates a street network.
  * Note: connections are not parsed
- * Created by pavel on 19.6.14.
- * Modified by martin on 11.7.14
  */
 public class XMLReader {
     private static XMLReader instance = null;
     private static HashMap<String, Edge> edgeMap = new HashMap<String, Edge>();
     private static HashMap<String, Junction> junctionMap = new HashMap<String, Junction>();
     private static HashMap<String, Lane> laneMap = new HashMap<String, Lane>();
+    private File netfile;
     private ArrayList<Connection> connectionList = new ArrayList<Connection>();
     private ArrayList<String> tunnels = new ArrayList<String>();
     private ArrayList<String> bridges = new ArrayList<String>();
 
     private final static Logger log = Logger.getLogger(XMLReader.class);
     private HashMap<Integer, List<String>> routes;
-    private final Map<Integer, Point2f> initalPositions = new HashMap<Integer, Point2f>();
+    private final Map<Integer, Point2f> initialPositions = new HashMap<Integer, Point2f>();
     private final Map<Integer, Float> departures = new HashMap<Integer, Float>();
 
 
 
     private XMLReader() {
 
+    }
+
+    public XMLReader(File netFile){
+        this.netfile = netFile;
     }
 
     public static synchronized XMLReader getInstance() {
@@ -224,7 +226,7 @@ public class XMLReader {
                     String initPosition = l.getAttribute("initialPosition");
                     if (initPosition != null && !initPosition.isEmpty()) {
                         Point2f initialPosition = getShape(initPosition).get(0);
-                        initalPositions.put(id, initialPosition);
+                        initialPositions.put(id, initialPosition);
                     }
                     Element route = (Element) l.getElementsByTagName("route").item(0);
                     ArrayList<String> plan = separateStrings(route.getAttribute("edges"));
@@ -364,7 +366,7 @@ public class XMLReader {
     }
 
     public Map<Integer, Point2f> getInitialPositions() {
-        return initalPositions;
+        return initialPositions;
     }
 
     public String getFile(URL folderPath, String suffix) {
@@ -394,6 +396,11 @@ public class XMLReader {
      */
     private Point2f transSUMO2Alite(float x, float y) {
         return new Point2f(x, -y);
+    }
+
+    public Network parseNetwork() {
+        //TODO implement
+        return null;
     }
 
 

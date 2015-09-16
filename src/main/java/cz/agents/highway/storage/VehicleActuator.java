@@ -3,7 +3,6 @@ package cz.agents.highway.storage;
 import cz.agents.alite.common.entity.Entity;
 import cz.agents.alite.environment.eventbased.EventBasedAction;
 import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
-import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.util.Utils;
 
