@@ -354,7 +354,7 @@ public class XMLReader {
             }
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.warn("osm file not found, exception caught");
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (SAXException e) {

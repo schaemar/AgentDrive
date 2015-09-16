@@ -38,6 +38,10 @@ public class UtilsTest {
         File file = Utils.getFileWithSuffix(testFolder, ".txt");
         assertNotNull(file);
     }
+    @Test(expected = FileNotFoundException.class)
+    public void testGetFileWithSuffixException() throws Exception {
+       Utils.getFileWithSuffix("notExisting/foledr/asdad3/", ".txt");
+    }
 
     @Test(expected = NumberFormatException.class)
     public void testName2IDException() throws Exception {

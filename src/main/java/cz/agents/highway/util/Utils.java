@@ -31,11 +31,11 @@ public class Utils {
             File[] files = folder.listFiles();
             for (File f : files) {
                 if (f.getName().endsWith(suffix)) {
-                    return new File(f.getAbsolutePath());
+                    return f;
                 }
             }
         }
-        return null;
+        throw new FileNotFoundException("File with \""+suffix+"\" suffix in "+resourceFolderPath+" not found");
     }
 
     // this might get more complex regarding OpenDS config
@@ -49,7 +49,7 @@ public class Utils {
         if (file.exists()) {
             return file;
         } else {
-            return null;
+            throw new FileNotFoundException("File: "+url.getPath());
         }
     }
 
