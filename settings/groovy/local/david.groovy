@@ -71,7 +71,7 @@ highway {
     storage{
         insertSpeed = 2.0;  //[m/s]
         checkingDistance = 500;
-        safetyReserve = 6;
+        safetyReserve = 4;
     }
     protobuf {
         isOn = true;
