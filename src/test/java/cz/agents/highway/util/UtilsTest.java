@@ -35,8 +35,7 @@ public class UtilsTest {
 
     @Test
     public void testGetFileWithSuffix() throws Exception {
-        URL testFolderURL = Utils.getResourceUrl(testFolder);
-        File file = Utils.getFileWithSuffix(testFolderURL, ".txt");
+        File file = Utils.getFileWithSuffix(testFolder, ".txt");
         assertNotNull(file);
     }
 

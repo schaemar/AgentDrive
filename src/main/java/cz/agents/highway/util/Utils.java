@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 
@@ -26,19 +25,15 @@ public class Utils {
         return url;
     }
 
-    public static File getFileWithSuffix(URL folderPath, String suffix) {
-        try {
-            File folder = new File(folderPath.toURI());
-            if (folder.isDirectory()) {
-                File[] files = folder.listFiles();
-                for (File f : files) {
-                    if (f.getName().endsWith(suffix)) {
-                        return new File(f.getAbsolutePath());
-                    }
+    public static File getFileWithSuffix(String resourceFolderPath, String suffix) throws FileNotFoundException {
+        File folder = getResourceFile(resourceFolderPath);
+        if (folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            for (File f : files) {
+                if (f.getName().endsWith(suffix)) {
+                    return new File(f.getAbsolutePath());
                 }
             }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
         }
         return null;
     }
