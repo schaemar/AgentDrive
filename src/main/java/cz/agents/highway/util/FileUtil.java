@@ -329,7 +329,7 @@ public class FileUtil {
           /*  out.write("Avarage speed is: "+ (distance/timeOfsimulation)*3.6 + " km/h");
             out.newLine();*/
             final XMLReader reader = XMLReader.getInstance();
-            File flowsFile = new File(reader.getFile(Utils.getResourceUrl(Configurator.getParamString("highway.net.folder", "nets/junction-big/")), ".flows.xml"));
+            File flowsFile = Utils.getFileWithSuffix(Configurator.getParamString("highway.net.folder", "nets/junction-big/"), ".flows.xml");
             Scanner sc = new Scanner(flowsFile);
             while (sc.hasNextLine()) {
                 String s = sc.nextLine();

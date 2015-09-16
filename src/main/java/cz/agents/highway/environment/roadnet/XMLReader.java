@@ -11,42 +11,38 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.*;
 import java.util.*;
 
 /**
  * XMLReader reads a .net.xml, .rou.xml file and creates a street network.
  * Note: connections are not parsed
- * Created by pavel on 19.6.14.
- * Modified by martin on 11.7.14
  */
 public class XMLReader {
     private static XMLReader instance = null;
     private static HashMap<String, Edge> edgeMap = new HashMap<String, Edge>();
     private static HashMap<String, Junction> junctionMap = new HashMap<String, Junction>();
     private static HashMap<String, Lane> laneMap = new HashMap<String, Lane>();
+    private File netfile;
     private ArrayList<Connection> connectionList = new ArrayList<Connection>();
     private ArrayList<String> tunnels = new ArrayList<String>();
     private ArrayList<String> bridges = new ArrayList<String>();
 
-    private final static Logger log = Logger.getLogger(XMLReader.class);
+    private final static Logger logger = Logger.getLogger(XMLReader.class);
     private HashMap<Integer, List<String>> routes;
-    private final Map<Integer, Point2f> initalPositions = new HashMap<Integer, Point2f>();
+    private final Map<Integer, Point2f> initialPositions = new HashMap<Integer, Point2f>();
     private final Map<Integer, Float> departures = new HashMap<Integer, Float>();
-
 
 
     private XMLReader() {
 
+    }
+
+    public XMLReader(File netFile) {
+        this.netfile = netFile;
     }
 
     public static synchronized XMLReader getInstance() {
@@ -62,13 +58,13 @@ public class XMLReader {
      * @param networkFolder where *.net.xml, *.rou.xml (optionally bridges and tunnels) files are stored
      */
     public void read(String networkFolder) {
-        log.info("PARSING NETWORK");
+        logger.info("PARSING NETWORK");
         try {
-            File fXmlFile = new File(getFile(Utils.getResourceUrl(networkFolder), ".net.xml"));
+            File networkFile = Utils.getFileWithSuffix(networkFolder, ".net.xml");
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-            Document doc = dBuilder.parse(fXmlFile);
+            Document doc = dBuilder.parse(networkFile);
 
             NodeList edgeNodeList = doc.getElementsByTagName("edge");
 
@@ -152,10 +148,10 @@ public class XMLReader {
             }
 
             parseMultilevelJunctions();
-            routes = parseRoutes(getFile(Utils.getResourceUrl(networkFolder), ".rou.xml"));
+            routes = parseRoutes(Utils.getFileWithSuffix(networkFolder, ".rou.xml"));
 
             Network.getInstance().init(edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
-            log.info("NETWORK PARSED");
+            logger.info("NETWORK PARSED");
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
@@ -197,18 +193,17 @@ public class XMLReader {
     /**
      * Parses routes (vehicles and routes)
      *
-     * @param routesFileName .rou.xml file
+     * @param routesFile .rou.xml file
      * @return map vehicleID -> it's route (list of edge IDs)
      */
-    private HashMap<Integer, List<String>> parseRoutes(String routesFileName) {
+    private HashMap<Integer, List<String>> parseRoutes(File routesFile) {
         HashMap<Integer, List<String>> plans = new HashMap<Integer, List<String>>();
-        log.info("PARSING ROUTES");
+        logger.info("PARSING ROUTES");
         try {
-            File fXmlFile = new File(routesFileName);
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-            Document doc = dBuilder.parse(fXmlFile);
+            Document doc = dBuilder.parse(routesFile);
 
             NodeList edgeNodeList = doc.getElementsByTagName("vehicle");
             for (int temp = 0; temp < edgeNodeList.getLength(); temp++) {
@@ -220,11 +215,11 @@ public class XMLReader {
                     Element l = (Element) lNode;
                     int id = Integer.parseInt(l.getAttribute("id"));
                     float depart = Float.valueOf(l.getAttribute("depart"));
-                    departures.put(id,depart);
+                    departures.put(id, depart);
                     String initPosition = l.getAttribute("initialPosition");
                     if (initPosition != null && !initPosition.isEmpty()) {
                         Point2f initialPosition = getShape(initPosition).get(0);
-                        initalPositions.put(id, initialPosition);
+                        initialPositions.put(id, initialPosition);
                     }
                     Element route = (Element) l.getElementsByTagName("route").item(0);
                     ArrayList<String> plan = separateStrings(route.getAttribute("edges"));
@@ -276,77 +271,90 @@ public class XMLReader {
 
 
     private void parseMultilevelJunctions() {
+        String folderPath = Configurator.getParamString("highway.net.folder", "nets/junction-big");
         try {
-            String folderPath = Configurator.getParamString("highway.net.folder", "nets/junction-big");
-            String tunnelsFilePath = getFile(Utils.getResourceUrl(folderPath), "." + MultilevelJunctionEdge.tunnels.toString());
-            String bridgesFilePath = getFile(Utils.getResourceUrl(folderPath), "." + MultilevelJunctionEdge.bridges.toString());
-            if (tunnelsFilePath != null && bridgesFilePath != null) {
-                File tunnelsFile = new File(tunnelsFilePath);
-                BufferedReader br = new BufferedReader(new FileReader(tunnelsFile));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    tunnels.add(line);
-                }
+            File tunnelsFile = Utils.getFileWithSuffix(folderPath, "." + MultilevelJunctionEdge.tunnels.toString());
+            File bridgesFile = Utils.getFileWithSuffix(folderPath, "." + MultilevelJunctionEdge.bridges.toString());
+            parseJunctionAndBridgesFiles(tunnelsFile, bridgesFile);
+        } catch (FileNotFoundException e) {
+            logger.warn(e.getMessage());
+            logger.warn("tunnels/bridges file not found, parsing osm file");
+            parseOSMForTunnelsAndBridges(folderPath);
+        }
+    }
 
-                File bridgesFile = new File(bridgesFilePath);
-                BufferedReader br2 = new BufferedReader(new FileReader(bridgesFile));
-                String line2;
-                while ((line2 = br2.readLine()) != null) {
-                    bridges.add(line2);
-                }
-            } else {
-                if (tunnelsFilePath == null) {
-                    log.error("tunnels file not found, parsing osm file");
-                }
-                if (bridgesFilePath == null) {
-                    log.error("bridges file not found, parsing osm file");
-                }
-                String osmFilePath = getFile(Utils.getResourceUrl(folderPath), ".osm");
-                if (osmFilePath != null) {
-                    File fXmlFile = new File(osmFilePath);
-                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+    private void parseJunctionAndBridgesFiles(File tunnelsFile, File bridgesFile) {
+        if (!parseFileToList(tunnelsFile, tunnels) || !parseFileToList(bridgesFile, bridges)) {
+            logger.warn("Parsing tunnels,bridges unsuccessful, parsing osm file");
+            parseOSMForTunnelsAndBridges(tunnelsFile.getParent());
+        }
+    }
 
-                    Document doc = dBuilder.parse(fXmlFile);
+    private boolean parseFileToList(File file, ArrayList list) {
+        BufferedReader br;
+        try {
+            br = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = br.readLine()) != null) {
+                list.add(line);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
 
-                    NodeList wayList = doc.getElementsByTagName("way");
+    private void parseOSMForTunnelsAndBridges(String folderPath) {
+        File osmFile;
+        try {
+            osmFile = Utils.getFileWithSuffix(folderPath, ".osm");
 
-                    for (int temp = 0; temp < wayList.getLength(); temp++) {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-                        Node wNode = wayList.item(temp);
+            Document doc = dBuilder.parse(osmFile);
 
-                        if (wNode.getNodeType() == Node.ELEMENT_NODE) {
+            NodeList wayList = doc.getElementsByTagName("way");
 
-                            Element w = (Element) wNode;
-                            String id = w.getAttribute("id");
+            for (int temp = 0; temp < wayList.getLength(); temp++) {
 
-                            NodeList tagNodeList = w.getElementsByTagName("tag");
+                Node wNode = wayList.item(temp);
 
-                            for (int t = 0; t < tagNodeList.getLength(); t++) {
+                if (wNode.getNodeType() == Node.ELEMENT_NODE) {
 
-                                Node tNode = tagNodeList.item(t);
+                    Element w = (Element) wNode;
+                    String id = w.getAttribute("id");
 
-                                if (tNode.getNodeType() == Node.ELEMENT_NODE) {
+                    NodeList tagNodeList = w.getElementsByTagName("tag");
 
-                                    Element tag = (Element) tNode;
-                                    String key = tag.getAttribute("k");
-                                    if (key.equals(MultilevelJunctionEdge.tunnels.toString())) {
-                                        tunnels.add(id);
-                                        break;
-                                    }
-                                    if (key.equals(MultilevelJunctionEdge.bridges.toString())) {
-                                        bridges.add(id);
-                                        break;
-                                    }
-                                }
+                    for (int t = 0; t < tagNodeList.getLength(); t++) {
+
+                        Node tNode = tagNodeList.item(t);
+
+                        if (tNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                            Element tag = (Element) tNode;
+                            String key = tag.getAttribute("k");
+                            if (key.equals(MultilevelJunctionEdge.tunnels.toString())) {
+                                tunnels.add(id);
+                                break;
                             }
-
+                            if (key.equals(MultilevelJunctionEdge.bridges.toString())) {
+                                bridges.add(id);
+                                break;
+                            }
                         }
                     }
-                } else {
-                    log.error("osm file not found, tunnels and bridges detection failed");
+
                 }
             }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (SAXException e) {
@@ -356,6 +364,7 @@ public class XMLReader {
         }
     }
 
+
     /**
      * @return map from vehicleID to its route
      */
@@ -364,26 +373,9 @@ public class XMLReader {
     }
 
     public Map<Integer, Point2f> getInitialPositions() {
-        return initalPositions;
+        return initialPositions;
     }
 
-    public String getFile(URL folderPath, String suffix) {
-        try {
-            log.debug("GetFile URL: "+folderPath);
-            File folder = new File(folderPath.toURI());
-            if (folder.isDirectory()) {
-                File[] files = folder.listFiles();
-                for (File f : files) {
-                    if (f.getName().endsWith(suffix)) {
-                        return f.getAbsolutePath();
-                    }
-                }
-            }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     /**
      * Transformation of SUMO to ALite coordinates
@@ -394,6 +386,11 @@ public class XMLReader {
      */
     private Point2f transSUMO2Alite(float x, float y) {
         return new Point2f(x, -y);
+    }
+
+    public Network parseNetwork() {
+        //TODO implement
+        return null;
     }
 
 

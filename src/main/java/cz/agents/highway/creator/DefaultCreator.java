@@ -1,6 +1,7 @@
 package cz.agents.highway.creator;
 
 import java.awt.Color;
+import java.io.FileNotFoundException;
 
 import javax.vecmath.Point2d;
 
@@ -111,7 +112,11 @@ public class DefaultCreator implements Creator {
         VisManager.registerLayer(ColorLayer.create(Color.LIGHT_GRAY));
         VisManager.registerLayer(VisInfoLayer.create());
         VisManager.registerLayer(FpsLayer.create());
-        VisManager.registerLayer(LogoLayer.create(Utils.getResourceUrl("img/atg_blue.png")));
+        try {
+            VisManager.registerLayer(LogoLayer.create(Utils.getResourceUrl("img/atg_blue.png")));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         VisManager.registerLayer(HelpLayer.create());
         logger.info(">>> VISUALIZATION CREATED");
 
