@@ -283,11 +283,12 @@ public class HighwayStorage extends EventBasedStorage {
             if(distanceToSecondCar < CHECKING_DISTANCE)
             {
                 if (distanceToSecondCar < SAFETY_RESERVE){
-                    if(stateNavigator.getLane().getEdge() == agents.get(entry.getId()).getNavigator().getLane().getEdge() &&
+                   /* if(stateNavigator.getLane().getEdge() == agents.get(entry.getId()).getNavigator().getLane().getEdge() &&
                             stateNavigator.getLane() != agents.get(entry.getId()).getNavigator().getLane()
                             || stateNavigator.getLane().getEdge() != agents.get(entry.getId()).getNavigator().getLane().getEdge()) continue;
-                    else return false;
-            }
+                    else */return false;
+                }
+               // else if(distanceToSecondCar < 3) return false;
                 List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();
                 for (Edge e : followingEdgesInPlan) {
                     if (stateNavigator.getLane().equals(e)) {
