@@ -2,6 +2,7 @@ package cz.agents.highway.environment.roadnet;
 
 
 import cz.agents.alite.configurator.Configurator;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 import cz.agents.highway.util.Utils;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -25,7 +26,7 @@ public class XMLReader {
     private static XMLReader instance = null;
     private static HashMap<String, Edge> edgeMap = new HashMap<String, Edge>();
     private static HashMap<String, Junction> junctionMap = new HashMap<String, Junction>();
-    private static HashMap<String, Lane> laneMap = new HashMap<String, Lane>();
+    private static HashMap<String, LaneImpl> laneMap = new HashMap<String, LaneImpl>();
     private File netfile;
     private ArrayList<Connection> connectionList = new ArrayList<Connection>();
     private ArrayList<String> tunnels = new ArrayList<String>();
@@ -85,7 +86,7 @@ public class XMLReader {
 
                     Edge edge = new Edge(id, from, to, priority, type, getShape(shapeStr1));
                     NodeList laneNodeList = e.getElementsByTagName("lane");
-                    HashMap<String, Lane> lanes = parseLanes(laneNodeList);
+                    HashMap<String, LaneImpl> lanes = parseLanes(laneNodeList);
                     edge.putLanes(lanes);
                     laneMap.putAll(lanes);
 
@@ -166,8 +167,8 @@ public class XMLReader {
      * @param lanesNodeList nodeList of lanes
      * @return map LaneID (String) -> Lane
      */
-    private HashMap<String, Lane> parseLanes(NodeList lanesNodeList) {
-        HashMap<String, Lane> ret = new HashMap<String, Lane>();
+    private HashMap<String, LaneImpl> parseLanes(NodeList lanesNodeList) {
+        HashMap<String, LaneImpl> ret = new HashMap<String, LaneImpl>();
         for (int temp = 0; temp < lanesNodeList.getLength(); temp++) {
 
             Node lNode = lanesNodeList.item(temp);
@@ -182,7 +183,7 @@ public class XMLReader {
                 String shapeStr = l.getAttribute("shape");
 
 
-                Lane lane = new Lane(laneId, index, speed, length, getShape(shapeStr));
+                LaneImpl lane = new LaneImpl(laneId, index, speed, length, getShape(shapeStr));
                 ret.put(laneId, lane);
             }
         }
@@ -349,7 +350,6 @@ public class XMLReader {
                             }
                         }
                     }
-
                 }
             }
 
@@ -388,7 +388,7 @@ public class XMLReader {
         return new Point2f(x, -y);
     }
 
-    public Network parseNetwork() {
+    public RoadNetwork parseNetwork() {
         //TODO implement
         return null;
     }

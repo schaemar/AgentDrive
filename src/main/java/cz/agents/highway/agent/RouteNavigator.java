@@ -1,10 +1,7 @@
 package cz.agents.highway.agent;
 
 import cz.agents.alite.configurator.Configurator;
-import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.environment.roadnet.Lane;
-import cz.agents.highway.environment.roadnet.Network;
-import cz.agents.highway.environment.roadnet.XMLReader;
+import cz.agents.highway.environment.roadnet.*;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Vector3f;

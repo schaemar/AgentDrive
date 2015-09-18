@@ -4,10 +4,7 @@ import java.util.*;
 
 import javax.vecmath.*;
 
-import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.environment.roadnet.Junction;
-import cz.agents.highway.environment.roadnet.Lane;
-import cz.agents.highway.environment.roadnet.Network;
+import cz.agents.highway.environment.roadnet.*;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.configurator.Configurator;
@@ -338,7 +335,7 @@ public class GSDAgent extends RouteAgent {
         // logger.debug("GenerateSS:");
         Collection<RoadObject> nearCars = new Vector<RoadObject>();
         myLane = navigator.getLane();
-        myEdge = myLane.getEdge();
+        myEdge = myLane.getParentEdge();
         num_of_lines = myEdge.getLanes().size();
         int myIndexOnRoute=getNearestWaipointIndex(state,myLane);
 
@@ -367,7 +364,7 @@ public class GSDAgent extends RouteAgent {
             Point2f intersectionWaypoint = junctionwaypoint;
             ArrayList<CarManeuver> predictedManeuvers;
             entryLane =Network.getInstance().getLane(entry.getPosition());
-            if(myNearestJunction.equals(Network.getInstance().getJunctions().get(entryLane.getEdge().getTo()))) {
+            if(myNearestJunction.equals(Network.getInstance().getJunctions().get(entryLane.getParentEdge().getTo()))) {
             // if operating vehicle and other vehicle is heading to the same junction
                 if (nearTheJunction)
                 {
@@ -434,7 +431,7 @@ public class GSDAgent extends RouteAgent {
                     // other vehicle is heading to the same junction but the junction is not close.
                     //this is the classical Safe-distance method, all five states can be set.
                     junctionMode = false;
-                    if (entryLane.getEdge().equals(myEdge)) {
+                    if (entryLane.getParentEdge().equals(myEdge)) {
                         predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, null);
                         situationPrediction.addAll(predictedManeuvers);
 
@@ -464,10 +461,10 @@ public class GSDAgent extends RouteAgent {
                     }
                 }
             }
-            if (!entryLane.getEdge().equals(myEdge)) { // This is for checking vehicles behind the junction.
+            if (!entryLane.getParentEdge().equals(myEdge)) { // This is for checking vehicles behind the junction.
                 List<Edge> remE = navigator.getFollowingEdgesInPlan();
                 for (Edge planned : remE) {
-                    if (planned.equals(entryLane.getEdge())) {
+                    if (planned.equals(entryLane.getParentEdge())) {
                         predictedManeuvers = getPlannedManeuvers(state, myLane, entry, entryLane, from, to, remE);
                         situationPrediction.addAll(predictedManeuvers);
                         CarManeuver man = predictedManeuvers.get(0);
@@ -554,11 +551,11 @@ public class GSDAgent extends RouteAgent {
      * @return distance
      */
     private double getDistanceBetweenTwoRoadObjects(RoadObject me,Lane myLane,RoadObject other,Lane otherLane,List<Edge> rem) {
-        int nearestA = getNearestWaipointCloseEnough(me, myLane);
-        int nearestB = getNearestWaipointCloseEnough(other, otherLane);
+        int nearestA = getNearestWaypointCloseEnough(me, myLane);
+        int nearestB = getNearestWaypointCloseEnough(other, otherLane);
 
-        Edge myEdg = myLane.getEdge();
-        Edge his = otherLane.getEdge();
+        Edge myEdg = myLane.getParentEdge();
+        Edge his = otherLane.getParentEdge();
         double distance = 0;
         int maxSize = 0;
         if (myEdg.equals(his)) {
@@ -599,7 +596,7 @@ public class GSDAgent extends RouteAgent {
                     break;
                 }
                 //TODO FIX MORE LANES LENGHT
-                Lane tem = rem.get(i).getLaneByIndex(0);
+                LaneImpl tem = rem.get(i).getLaneByIndex(0);
                 for (int d = 1; d < tem.getInnerPoints().size();d++) {
                     distC += tem.getInnerPoints().get(d - 1).distance(tem.getInnerPoints().get(d));
                 }
@@ -615,7 +612,7 @@ public class GSDAgent extends RouteAgent {
      * @param myLane vehicle's lane
      * @return index on the lane.
      */
-    public int getNearestWaipointCloseEnough(RoadObject me,Lane myLane)
+    public int getNearestWaypointCloseEnough(RoadObject me, Lane myLane)
     {
         Point2f myPosition = convertPoint3ftoPoint2f(me.getPosition());
         Point2f innerPoint = myLane.getInnerPoints().get(0);

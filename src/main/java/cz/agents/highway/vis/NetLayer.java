@@ -1,21 +1,17 @@
 package cz.agents.highway.vis;
 
-import cz.agents.alite.configreader.ConfigReader;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.vis.Vis;
 import cz.agents.alite.vis.layer.GroupLayer;
 import cz.agents.alite.vis.layer.VisLayer;
-import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.environment.roadnet.Junction;
-import cz.agents.highway.environment.roadnet.Lane;
-import cz.agents.highway.environment.roadnet.Network;
+import cz.agents.highway.environment.roadnet.*;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import javax.vecmath.Point2f;
 import javax.vecmath.Vector2f;
-import java.util.Random;
 
 
 /**

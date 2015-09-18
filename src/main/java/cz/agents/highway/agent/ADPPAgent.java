@@ -11,7 +11,6 @@ import cz.agents.highway.environment.planning.Timer;
 import cz.agents.highway.environment.planning.dynamics.AccelerationDynamicConstraint;
 import cz.agents.highway.environment.planning.dynamics.DynamicConstraint;
 import cz.agents.highway.environment.planning.euclid2d.BasicSegmentedTrajectory;
-import cz.agents.highway.environment.planning.euclid2d.DiscreteTrajectoryWrapper;
 import cz.agents.highway.environment.planning.euclid2d.StraightSegmentTrajectory;
 import cz.agents.highway.environment.planning.euclid2d.Trajectory;
 import cz.agents.highway.environment.planning.euclid3d.SpeedPoint;
@@ -21,7 +20,7 @@ import cz.agents.highway.environment.planning.euclid4d.Straight;
 import cz.agents.highway.environment.planning.euclid4d.region.MovingCircle;
 import cz.agents.highway.environment.planning.graph.*;
 import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.environment.roadnet.Lane;
+import cz.agents.highway.environment.roadnet.LaneImpl;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
@@ -235,7 +234,7 @@ public class ADPPAgent extends Agent {
     }
 
     private boolean isGoal(Point2d current) {
-        return goal != null && current.distance(goal) < Lane.INNER_POINTS_STEP_SIZE;
+        return goal != null && current.distance(goal) < LaneImpl.INNER_POINTS_STEP_SIZE;
     }
 
     private void replan() {
@@ -378,8 +377,8 @@ public class ADPPAgent extends Agent {
         RoadObject currentState = sensor.senseCurrentState();
         if (goal == null) {
             Edge lastEdge = navigator.getRoute().get(navigator.getRoute().size() - 1);
-            Iterator<Lane> laneIterator = lastEdge.getLanes().values().iterator();
-            Lane l = laneIterator.next();
+            Iterator<LaneImpl> laneIterator = lastEdge.getLanes().values().iterator();
+            LaneImpl l = laneIterator.next();
             List<Point2f> innerPs = l.getInnerPoints();
             Point2f lastPoint = innerPs.get(innerPs.size() - 1);
             goal = new Point(lastPoint.x, lastPoint.y);
@@ -424,7 +423,7 @@ public class ADPPAgent extends Agent {
 //                    print("Trying: "+point);
 //                    return (point.getTime() >= MAX_TIME+time || goal.distance(point.getPosition()) < 1);
                     return (point.getSpeed() < AccelerationDynamicConstraint.SPEED_TOLERANCE && ((point.getTime() >= maxTime
-                    && !spatialGraph.isInJunction(point.getPosition())) || goal.distance(point.getPosition()) < Lane.INNER_POINTS_STEP_SIZE));
+                    && !spatialGraph.isInJunction(point.getPosition())) || goal.distance(point.getPosition()) < LaneImpl.INNER_POINTS_STEP_SIZE));
 //                    return (point.getTime() >= maxTime && point.getActualSpeed() < AccelerationDynamicConstraint.SPEED_TOLERANCE);
 //                    return (goal.distance(point.getPosition()) < 1);
                 }
@@ -443,7 +442,7 @@ public class ADPPAgent extends Agent {
 //            return;
         } else {
             // Did we reach the global goal state?
-            if (path.getEndVertex().getPosition().distance(goal) < Lane.INNER_POINTS_STEP_SIZE) {
+            if (path.getEndVertex().getPosition().distance(goal) < LaneImpl.INNER_POINTS_STEP_SIZE) {
                 path.getEdgeList().add(new Straight(path.getEndVertex(), new Point4d(goal, -1, path.getEndVertex().getTime()+1)));
                 inActive = true;
             }

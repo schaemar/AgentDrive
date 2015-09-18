@@ -16,7 +16,7 @@ public class Edge extends Sector {
     private final String from;
     private final String to;
     private final int priority;
-    private final HashMap<String, Lane> lanes;
+    private final HashMap<String, LaneImpl> lanes;
 
 
     public Edge(String id, String from, String to, String priority, String type, ArrayList<Point2f> shape) {
@@ -24,11 +24,11 @@ public class Edge extends Sector {
         this.from = from;
         this.to = to;
         this.priority = Integer.parseInt(priority);
-        this.lanes = new HashMap<String, Lane>();
+        this.lanes = new HashMap<String, LaneImpl>();
     }
 
-    public void putLanes(HashMap<String, Lane> laneMap) {
-        for (Map.Entry<String, Lane> entry : laneMap.entrySet()) {
+    public void putLanes(HashMap<String, LaneImpl> laneMap) {
+        for (Map.Entry<String, LaneImpl> entry : laneMap.entrySet()) {
             entry.getValue().setEdge(this);
             lanes.put(entry.getKey(), entry.getValue());
         }
@@ -46,7 +46,7 @@ public class Edge extends Sector {
         return priority;
     }
 
-    public HashMap<String, Lane> getLanes() {
+    public HashMap<String, LaneImpl> getLanes() {
         return lanes;
     }
 
@@ -54,7 +54,7 @@ public class Edge extends Sector {
      * Returns lane by given index
      * @return null if the index is invalid
      */
-    public Lane getLaneByIndex(int laneIdx) {
+    public LaneImpl getLaneByIndex(int laneIdx) {
         return getLanes().get(String.format("%s_%d", getId(), laneIdx));
     }
 

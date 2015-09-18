@@ -7,8 +7,6 @@ import ags.utils.dataStructures.utils.MaxHeap;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
-import javax.vecmath.Vector2f;
-import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +22,8 @@ public class Network {
     private static Network instance = null;
     private HashMap<String, Edge> edges;
     private HashMap<String, Junction> junctions;
-    private HashMap<String, Lane> lanes;
-    private KdTree<Lane> kdTree;
+    private HashMap<String, LaneImpl> lanes;
+    private KdTree<LaneImpl> kdTree;
     private SquareEuclideanDistanceFunction distanceFunction;
     private ArrayList<Connection> connections;
     private ArrayList<String> tunnels;
@@ -53,7 +51,7 @@ public class Network {
      * @param bridgesRaw
      */
     public void init(HashMap<String, Edge> edges,
-                     HashMap<String, Junction> junctions, HashMap<String, Lane> laneMap,
+                     HashMap<String, Junction> junctions, HashMap<String, LaneImpl> laneMap,
                      ArrayList<Connection> connectionList, ArrayList<String> tunnelsRaw, ArrayList<String> bridgesRaw) {
         this.edges = edges;
         this.junctions = junctions;
@@ -110,7 +108,7 @@ public class Network {
         kdTree = new KdTree(2);
         this.distanceFunction = new SquareEuclideanDistanceFunction();
 
-        for (Map.Entry<String, Lane> entry : lanes.entrySet()) {
+        for (Map.Entry<String, LaneImpl> entry : lanes.entrySet()) {
             for (Point2f p : entry.getValue().getInnerPoints()) {
                 double[] point = new double[2];
                 point[0] = p.x;
@@ -131,7 +129,7 @@ public class Network {
         double[] point = new double[2];
         point[0] = position.x;
         point[1] = position.y;
-        MaxHeap<Lane> nearestNeighbour = kdTree.findNearestNeighbors(point, 1, distanceFunction);
+        MaxHeap<LaneImpl> nearestNeighbour = kdTree.findNearestNeighbors(point, 1, distanceFunction);
         return nearestNeighbour.getMax();
     }
 
@@ -162,7 +160,7 @@ public class Network {
         return bridges;
     }
 
-    public HashMap<String, Lane> getLanes() {
+    public HashMap<String, LaneImpl> getLanes() {
         return lanes;
     }
 
