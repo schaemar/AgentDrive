@@ -104,7 +104,7 @@ public class LocalSimulatorHandler extends SimulatorHandler {
                     vel.normalize();
                     vel.scale(0.001f);
                 }
-                int lane = highwayEnvironment.getRoadNetwork().getLaneNum(myPosition);
+                int lane = highwayEnvironment.getRoadNetwork().getClosestLane(myPosition).getIndex();
                 state = new RoadObject(carID, highwayEnvironment.getEventProcessor().getCurrentTime(), lane, myPosition, vel);
                 radarData.add(state);
                 duration = 0;

@@ -3,6 +3,8 @@ package cz.agents.highway.environment.roadnet;
 import ags.utils.dataStructures.KdTree;
 import ags.utils.dataStructures.SquareEuclideanDistanceFunction;
 import ags.utils.dataStructures.utils.MaxHeap;
+import cz.agents.highway.environment.roadnet.network.NetworkLocation;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 
 
 import javax.vecmath.Point2f;
@@ -16,10 +18,8 @@ import java.util.Map;
  * It provides the following data: edges, junctions, lanes, connections, tunnels, bridges
  * It also provides a converter from x,y coordinates to a specific lane
  * <p/>
- * Created by pavel on 19.6.14.
  */
-public class Network {
-    private static Network instance = null;
+public class Network implements RoadNetwork{
     private HashMap<String, Edge> edges;
     private HashMap<String, Junction> junctions;
     private HashMap<String, LaneImpl> lanes;
@@ -29,15 +29,13 @@ public class Network {
     private ArrayList<String> tunnels;
     private ArrayList<String> bridges;
 
-    private Network() {
-    }
 
-    public static synchronized Network getInstance() {
-        if (instance == null) {
-            instance = new Network();
-        }
-        return instance;
-    }
+//    public static synchronized Network getInstance() {
+//        if (instance == null) {
+//            instance = new Network();
+//        }
+//        return instance;
+//    }
 
 
     /**
@@ -50,7 +48,7 @@ public class Network {
      * @param tunnelsRaw
      * @param bridgesRaw
      */
-    public void init(HashMap<String, Edge> edges,
+    public Network(HashMap<String, Edge> edges,
                      HashMap<String, Junction> junctions, HashMap<String, LaneImpl> laneMap,
                      ArrayList<Connection> connectionList, ArrayList<String> tunnelsRaw, ArrayList<String> bridgesRaw) {
         this.edges = edges;
@@ -140,12 +138,17 @@ public class Network {
      * @param position
      * @return
      */
-    public Lane getLane(Point3f position) {
+    public Lane getClosestLane(Point3f position) {
         Point2f pos2d = new Point2f(position.x, position.y);
         return getLane(pos2d);
     }
     public int getLaneNum(Point3f position) {
-       return getLane(position).getIndex();
+       return getClosestLane(position).getIndex();
+    }
+
+    @Override
+    public NetworkLocation getNetworkLocation() {
+        return null;
     }
 
     public HashMap<String, Edge> getEdges() {
@@ -167,5 +170,7 @@ public class Network {
     public ArrayList<String> getTunnels() {
         return tunnels;
     }
+
+
 
 }

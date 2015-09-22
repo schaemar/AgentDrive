@@ -2,6 +2,7 @@ package cz.agents.highway.environment.roadnet.network;
 
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Junction;
+import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.LaneImpl;
 
 import javax.vecmath.Point3f;
@@ -18,6 +19,8 @@ public interface RoadNetwork {
     HashMap<String, LaneImpl> getLanes();
     ArrayList<String> getTunnels() ;
 
-    LaneImpl getClosestLane(Point3f position);
+    Lane getClosestLane(Point3f position);
+
+
 
 }

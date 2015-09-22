@@ -142,7 +142,8 @@ public class FileUtil {
     public void writeGraphOfArrivals(Map<Integer, Pair<Float,Float>>  graphOfArrivals,Map<List<String>,Pair<Integer,Float>> journeys)
     {
         String file_name = "graphOfArrivals.m";
-        final XMLReader reader = XMLReader.getInstance();
+        final XMLReader reader = new XMLReader();
+        reader.read(Configurator.getParamString("highway.net.folder","notDefined"));
         //reader.getRoutes().get(obj.getKey()
         HashMap<Integer,List<String>> vehRoutes = new LinkedHashMap<Integer, List<String>>();
         char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
@@ -328,7 +329,7 @@ public class FileUtil {
             out.newLine();
           /*  out.write("Avarage speed is: "+ (distance/timeOfsimulation)*3.6 + " km/h");
             out.newLine();*/
-            final XMLReader reader = XMLReader.getInstance();
+            final XMLReader reader = new XMLReader();
             File flowsFile = Utils.getFileWithSuffix(Configurator.getParamString("highway.net.folder", "nets/junction-big/"), ".flows.xml");
             Scanner sc = new Scanner(flowsFile);
             while (sc.hasNextLine()) {

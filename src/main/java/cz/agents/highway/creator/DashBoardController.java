@@ -81,7 +81,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
      * This method is responsible for even distribution of vehicles between all configured simulators
      */
     private void initTraffic() {
-        final XMLReader reader = XMLReader.getInstance();
+        final XMLReader reader = new XMLReader(Configurator.getParamString("highway.net.folder", "notDefined"));
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();
         final Map<Integer, Float> departures = reader.getDepartures();

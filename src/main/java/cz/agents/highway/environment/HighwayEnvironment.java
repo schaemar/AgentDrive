@@ -5,7 +5,9 @@ import java.util.List;
 
 import cz.agents.highway.environment.SimulatorHandlers.SimulatorHandler;
 import cz.agents.highway.environment.roadnet.Network;
+import cz.agents.highway.environment.roadnet.RoadNetworkRouter;
 import cz.agents.highway.environment.roadnet.XMLReader;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.common.event.Event;
@@ -32,7 +34,7 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
  //   private final HighwayEnvironmentHandler handler;
 
     private HighwayStorage storage;
-    private Network roadNetwork;
+    private RoadNetwork roadNetwork;
     int numberOfPlanCalculations = 0;
 
     private List<SimulatorHandler> simulatorHandlers = new LinkedList<SimulatorHandler>();
@@ -55,9 +57,9 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
      //   handler = new HighwayEnvironmentHandler();
 
         // Initialize Network from given xml
-        XMLReader.getInstance().read(Configurator.getParamString("highway.net.folder","nets/junction-big/"));
-        roadNetwork = Network.getInstance();
-
+        XMLReader xmlReader = new XMLReader();
+        roadNetwork = xmlReader.parseNetwork(Configurator.getParamString("highway.net.folder","nets/junction-big/"));
+        RoadNetworkRouter.setRoadNet(roadNetwork);
         storage = new HighwayStorage(this);
         logger.info("Initialized handler and storages");
 
@@ -65,7 +67,7 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
         eventProcessor.addEventHandler(this);
     }
 
-    public Network getRoadNetwork() {
+    public RoadNetwork getRoadNetwork() {
         return roadNetwork;
     }
 

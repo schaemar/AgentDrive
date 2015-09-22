@@ -27,31 +27,25 @@ public class XMLReader {
     private static HashMap<String, Edge> edgeMap = new HashMap<String, Edge>();
     private static HashMap<String, Junction> junctionMap = new HashMap<String, Junction>();
     private static HashMap<String, LaneImpl> laneMap = new HashMap<String, LaneImpl>();
-    private File netfile;
     private ArrayList<Connection> connectionList = new ArrayList<Connection>();
     private ArrayList<String> tunnels = new ArrayList<String>();
     private ArrayList<String> bridges = new ArrayList<String>();
 
     private final static Logger logger = Logger.getLogger(XMLReader.class);
+
+    private Network network;
+
     private HashMap<Integer, List<String>> routes;
     private final Map<Integer, Point2f> initialPositions = new HashMap<Integer, Point2f>();
     private final Map<Integer, Float> departures = new HashMap<Integer, Float>();
 
 
-    private XMLReader() {
-
+    public XMLReader() {
+    }
+    public XMLReader(String networkFolder){
+        read(networkFolder);
     }
 
-    public XMLReader(File netFile) {
-        this.netfile = netFile;
-    }
-
-    public static synchronized XMLReader getInstance() {
-        if (instance == null) {
-            instance = new XMLReader();
-        }
-        return instance;
-    }
 
     /**
      * Parse all the network ( Lanes, Edges, Junctions, Routes
@@ -60,98 +54,16 @@ public class XMLReader {
      */
     public void read(String networkFolder) {
         logger.info("PARSING NETWORK");
+
         try {
             File networkFile = Utils.getFileWithSuffix(networkFolder, ".net.xml");
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-            Document doc = dBuilder.parse(networkFile);
-
-            NodeList edgeNodeList = doc.getElementsByTagName("edge");
-
-            for (int temp = 0; temp < edgeNodeList.getLength(); temp++) {
-
-                Node nNode = edgeNodeList.item(temp);
-
-                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                    Element e = (Element) nNode;
-
-                    String id = e.getAttribute("id");
-                    String from = e.getAttribute("from");
-                    String to = e.getAttribute("to");
-                    String priority = e.getAttribute("priority");
-                    String type = e.getAttribute("type");
-                    String shapeStr1 = e.getAttribute("shape");
-
-                    Edge edge = new Edge(id, from, to, priority, type, getShape(shapeStr1));
-                    NodeList laneNodeList = e.getElementsByTagName("lane");
-                    HashMap<String, LaneImpl> lanes = parseLanes(laneNodeList);
-                    edge.putLanes(lanes);
-                    laneMap.putAll(lanes);
-
-                    edgeMap.put(edge.getId(), edge);
-                }
-            }
-
-            NodeList junctionNodeList = doc.getElementsByTagName("junction");
-            for (int temp = 0; temp < junctionNodeList.getLength(); temp++) {
-
-                Node jNode = junctionNodeList.item(temp);
-
-                if (jNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                    Element j = (Element) jNode;
-
-                    String id = j.getAttribute("id");
-                    String type = j.getAttribute("type");
-                    float x = Float.valueOf(j.getAttribute("x"));
-                    float y = Float.valueOf(j.getAttribute("y"));
-                    Point2f center = transSUMO2Alite(x, y);
-                    String incLanesStr = j.getAttribute("incLanes");
-
-                    String intLanesStr = j.getAttribute("incLanes");
-                    String shapeStr = j.getAttribute("shape");
-
-                    NodeList requestNodeList = j.getElementsByTagName("request");
-                    ArrayList<Request> requestList = new ArrayList<Request>();
-                    for (int requestIndex = 0; requestIndex < requestNodeList.getLength(); requestIndex++) {
-
-                        String index = j.getAttribute("index");
-                        String response = j.getAttribute("response");
-                        String foes = j.getAttribute("foes");
-                        Request request = new Request(index, response, foes);
-                        requestList.add(request);
-                    }
-
-                    Junction junction = new Junction(id, type, center, separateStrings(incLanesStr), separateStrings(intLanesStr), getShape(shapeStr), requestList);
-                    junctionMap.put(junction.getId(), junction);
-                }
-            }
-
-            NodeList connectionNodeList = doc.getElementsByTagName("connection");
-            for (int temp = 0; temp < connectionNodeList.getLength(); temp++) {
-
-                Node cNode = connectionNodeList.item(temp);
-
-                if (cNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                    Element c = (Element) cNode;
-
-                    String from = c.getAttribute("from");
-                    String to = c.getAttribute("to");
-                    String fromLane = c.getAttribute("fromLane");
-                    String toLane = c.getAttribute("toLane");
-
-                    Connection connection = new Connection(from, to, fromLane, toLane);
-                    connectionList.add(connection);
-                }
-            }
+            parseNetworkFromFile(networkFile);
 
             parseMultilevelJunctions();
             routes = parseRoutes(Utils.getFileWithSuffix(networkFolder, ".rou.xml"));
 
-            Network.getInstance().init(edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
+            network = new Network(edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
             logger.info("NETWORK PARSED");
 
         } catch (ParserConfigurationException e) {
@@ -160,6 +72,96 @@ public class XMLReader {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void parseNetworkFromFile(File networkFile) throws ParserConfigurationException, IOException, SAXException {
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+        Document doc = dBuilder.parse(networkFile);
+
+        NodeList edgeNodeList = doc.getElementsByTagName("edge");
+
+        for (int temp = 0; temp < edgeNodeList.getLength(); temp++) {
+
+            Node nNode = edgeNodeList.item(temp);
+
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                Element e = (Element) nNode;
+
+                String id = e.getAttribute("id");
+                String from = e.getAttribute("from");
+                String to = e.getAttribute("to");
+                String priority = e.getAttribute("priority");
+                String type = e.getAttribute("type");
+                String shapeStr1 = e.getAttribute("shape");
+
+                Edge edge = new Edge(id, from, to, priority, type, getShape(shapeStr1));
+                NodeList laneNodeList = e.getElementsByTagName("lane");
+                HashMap<String, LaneImpl> lanes = parseLanes(laneNodeList);
+                edge.putLanes(lanes);
+                laneMap.putAll(lanes);
+
+                edgeMap.put(edge.getId(), edge);
+            }
+        }
+
+        NodeList junctionNodeList = doc.getElementsByTagName("junction");
+        for (int temp = 0; temp < junctionNodeList.getLength(); temp++) {
+
+            Node jNode = junctionNodeList.item(temp);
+
+            if (jNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                Element j = (Element) jNode;
+
+                String id = j.getAttribute("id");
+                String type = j.getAttribute("type");
+                float x = Float.valueOf(j.getAttribute("x"));
+                float y = Float.valueOf(j.getAttribute("y"));
+                Point2f center = transSUMO2Alite(x, y);
+                String incLanesStr = j.getAttribute("incLanes");
+
+                String intLanesStr = j.getAttribute("incLanes");
+                String shapeStr = j.getAttribute("shape");
+
+                NodeList requestNodeList = j.getElementsByTagName("request");
+                ArrayList<Request> requestList = new ArrayList<Request>();
+                for (int requestIndex = 0; requestIndex < requestNodeList.getLength(); requestIndex++) {
+
+                    String index = j.getAttribute("index");
+                    String response = j.getAttribute("response");
+                    String foes = j.getAttribute("foes");
+                    Request request = new Request(index, response, foes);
+                    requestList.add(request);
+                }
+
+                Junction junction = new Junction(id, type, center, separateStrings(incLanesStr), separateStrings(intLanesStr), getShape(shapeStr), requestList);
+                junctionMap.put(junction.getId(), junction);
+            }
+        }
+
+        NodeList connectionNodeList = doc.getElementsByTagName("connection");
+        for (int temp = 0; temp < connectionNodeList.getLength(); temp++) {
+
+            Node cNode = connectionNodeList.item(temp);
+
+            if (cNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                Element c = (Element) cNode;
+
+                String from = c.getAttribute("from");
+                String to = c.getAttribute("to");
+                String fromLane = c.getAttribute("fromLane");
+                String toLane = c.getAttribute("toLane");
+
+                Connection connection = new Connection(from, to, fromLane, toLane);
+                connectionList.add(connection);
+            }
+
         }
     }
 
@@ -197,7 +199,7 @@ public class XMLReader {
      * @param routesFile .rou.xml file
      * @return map vehicleID -> it's route (list of edge IDs)
      */
-    private HashMap<Integer, List<String>> parseRoutes(File routesFile) {
+    public HashMap<Integer, List<String>> parseRoutes(File routesFile) {
         HashMap<Integer, List<String>> plans = new HashMap<Integer, List<String>>();
         logger.info("PARSING ROUTES");
         try {
@@ -369,7 +371,17 @@ public class XMLReader {
      * @return map from vehicleID to its route
      */
     public HashMap<Integer, List<String>> getRoutes() {
+        if(routes == null){
+            logger.warn("Calling getRoutes() while no routes are loaded!");
+        }
         return routes;
+    }
+
+    public Network getNetwork() {
+        if(network == null){
+            logger.warn("Calling getNetwork while network is not loaded!");
+        }
+        return network;
     }
 
     public Map<Integer, Point2f> getInitialPositions() {
@@ -388,11 +400,10 @@ public class XMLReader {
         return new Point2f(x, -y);
     }
 
-    public RoadNetwork parseNetwork() {
-        //TODO implement
-        return null;
+    public RoadNetwork parseNetwork(String netFile) {
+        read(netFile);
+        return network;
     }
-
 
     private enum MultilevelJunctionEdge {
         tunnels, bridges

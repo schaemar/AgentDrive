@@ -5,6 +5,8 @@ import java.util.*;
 import javax.vecmath.*;
 
 import cz.agents.highway.environment.roadnet.*;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import cz.agents.alite.configurator.Configurator;
@@ -45,14 +47,20 @@ public class GSDAgent extends RouteAgent {
     private double maximalSpeed = initialMaximalSpeed;
     private Edge myEdge;
     private Lane myLane;
+
+    RoadNetwork roadNetwork;
+
+    public GSDAgent(int id, RoadNetwork roadNetwork) {
+        super(id);
+        this.roadNetwork = roadNetwork;
+        num_of_lines = 1;
+    }
+
     @Override
     public List<Action> agentReact() {
         return super.agentReact(plan());
     }
-    public GSDAgent(int id) {
-        super(id);
-        num_of_lines = 1;
-    }
+
     public CarManeuver plan() {
         CarManeuver maneuver = null;
         RoadObject currState = sensor.senseCurrentState();
@@ -99,6 +107,8 @@ public class GSDAgent extends RouteAgent {
         isSafeMan(currState, acc, situationPrediction);
         isSafeMan(currState, str, situationPrediction);
         currentManeuver = maneuver;
+        logger.setLevel(Level.DEBUG);
+        logger.debug(maneuver);
         return maneuver;
     }
     private boolean isSafeMan(RoadObject state, CarManeuver man, HighwaySituation situation) {
@@ -332,10 +342,11 @@ public class GSDAgent extends RouteAgent {
 
         HighwaySituation situationPrediction = new HighwaySituation();
 
-        // logger.debug("GenerateSS:");
+        logger.debug("GenerateSS for "+state.getId());
         Collection<RoadObject> nearCars = new Vector<RoadObject>();
         myLane = navigator.getLane();
         myEdge = myLane.getParentEdge();
+        logger.debug("myLane = "+myLane.getIndex());
         num_of_lines = myEdge.getLanes().size();
         int myIndexOnRoute=getNearestWaipointIndex(state,myLane);
 
@@ -356,15 +367,15 @@ public class GSDAgent extends RouteAgent {
         // Main logic, first there is a check if there is a junction nearby. If so the junction mode is enabled. If not,
         //vehicle is driven by standart Safe-distance agent
         Lane entryLane;
-        Junction myNearestJunction = Network.getInstance().getJunctions().get(myEdge.getTo());
+        Junction myNearestJunction = roadNetwork.getJunctions().get(myEdge.getTo());
         Point2f junctionwaypoint = myNearestJunction.getCenter();
         boolean nearTheJunction = (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
         //distance from the junction, should be determined by max allowed speed on the lane.
         for(RoadObject entry : nearCars) {
             Point2f intersectionWaypoint = junctionwaypoint;
             ArrayList<CarManeuver> predictedManeuvers;
-            entryLane =Network.getInstance().getLane(entry.getPosition());
-            if(myNearestJunction.equals(Network.getInstance().getJunctions().get(entryLane.getParentEdge().getTo()))) {
+            entryLane = roadNetwork.getClosestLane(entry.getPosition());
+            if(myNearestJunction.equals(roadNetwork.getJunctions().get(entryLane.getParentEdge().getTo()))) {
             // if operating vehicle and other vehicle is heading to the same junction
                 if (nearTheJunction)
                 {

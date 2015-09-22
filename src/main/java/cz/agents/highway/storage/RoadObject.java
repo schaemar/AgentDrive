@@ -57,4 +57,8 @@ public class RoadObject {
     public void setVelocity(Vector3f velocity) {
         this.velocity = velocity;
     }
+
+    public void setLane(int lane) {
+        this.lane = lane;
+    }
 }

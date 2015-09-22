@@ -5,6 +5,7 @@ import cz.agents.alite.vis.Vis;
 import cz.agents.alite.vis.layer.GroupLayer;
 import cz.agents.alite.vis.layer.VisLayer;
 import cz.agents.highway.environment.roadnet.*;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -12,6 +13,8 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import javax.vecmath.Point2f;
 import javax.vecmath.Vector2f;
+
+import static cz.agents.alite.vis.Vis.getDrawingDimension;
 
 
 /**
@@ -27,11 +30,11 @@ public class NetLayer extends GroupLayer implements VisLayer {
     final Vector2f VECT_X_NORM = new Vector2f(1, 0);
     final Vector2f VECT_Y_NORM = new Vector2f(0, 1);
 
-    private Network net;
-    private Dimension dim = Vis.getDrawingDimension();
+    private RoadNetwork net;
+    private Dimension dim = getDrawingDimension();
     private Rectangle2D drawingRectangle = new Rectangle(dim);
 
-    public NetLayer(Network roadNetwork) {
+    public NetLayer(RoadNetwork roadNetwork) {
         net = roadNetwork;
     }
 

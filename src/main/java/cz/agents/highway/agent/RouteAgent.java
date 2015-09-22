@@ -9,6 +9,7 @@ import cz.agents.highway.storage.VehicleSensor;
 import cz.agents.highway.storage.plan.Action;
 import cz.agents.highway.storage.plan.ManeuverAction;
 import cz.agents.highway.storage.plan.WPAction;
+import org.apache.log4j.Logger;
 import org.codehaus.groovy.runtime.powerassert.SourceText;
 
 import javax.vecmath.Point2f;
@@ -23,6 +24,8 @@ import java.util.List;
  * Created by martin on 9.7.14.
  */
 public class RouteAgent extends Agent {
+
+    private final static Logger logger = Logger.getLogger(RouteAgent.class);
     ///
     private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly correspond to the actual wayPoint distance, used to make circle around the car
     private final static double MAX_SPEED   = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0);
@@ -125,6 +128,7 @@ public class RouteAgent extends Agent {
      * @return List of waypoint actions.
      */
     private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
+
         RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
 

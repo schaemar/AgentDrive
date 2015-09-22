@@ -21,6 +21,7 @@ import cz.agents.highway.environment.planning.euclid4d.region.MovingCircle;
 import cz.agents.highway.environment.planning.graph.*;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.LaneImpl;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 import cz.agents.highway.storage.HighwayEventType;
 import cz.agents.highway.storage.RoadObject;
 import cz.agents.highway.storage.VehicleSensor;
@@ -70,6 +71,7 @@ public class ADPPAgent extends Agent {
     private static final Timer globalTimer = new Timer(true);
     private static TimeParameter timeParameter = null;
     private static int nOfReplans = 0;
+    private final RoadNetwork roadnet;
 
     public static class GroupTimer {
         private Timer expansion, obstacles, loop, waiting, trajectory;
@@ -140,13 +142,14 @@ public class ADPPAgent extends Agent {
     // Should we print additional information?
     boolean verbose = false;
 
-    public ADPPAgent(int id) {
-        this(id, SPEEDS, WAIT_PENALTY, MOVE_PENALTY, "perfect", WAIT_DURATION, false, true, false);
+    public ADPPAgent(int id, RoadNetwork roadNetwork) {
+        this(id, roadNetwork, SPEEDS, WAIT_PENALTY, MOVE_PENALTY, "perfect", WAIT_DURATION, false, true, false);
     }
 
-    public ADPPAgent(int id, float[] speeds, double waitPenalty, double movePenalty,
+    public ADPPAgent(int id, RoadNetwork roadNet, float[] speeds, double waitPenalty, double movePenalty,
                      String heuristic, double waitDuration, boolean vis, boolean verbose, boolean emptyTrajectories) {
         super(id);
+        this.roadnet = roadNet;
         this.verbose = verbose;
         this.heuristic = heuristic;
         this.speeds = speeds;
@@ -155,7 +158,7 @@ public class ADPPAgent extends Agent {
         this.waitDuration = waitDuration;
 
         timer.reset();
-        spatialGraph = RoadNetWrapper.create(navigator.getUniqueLaneIndex());
+        spatialGraph = RoadNetWrapper.create(roadNet, navigator.getLane());
         VisLayer graphLayer;
 
 //        if (id == 1 && vis) {

@@ -4,6 +4,7 @@ import cz.agents.highway.environment.roadnet.Junction;
 import cz.agents.highway.environment.roadnet.Lane;
 import cz.agents.highway.environment.roadnet.LaneImpl;
 import cz.agents.highway.environment.roadnet.Network;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
@@ -25,6 +26,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
     private static final double JUNCTION_RADIUS = 7;
     private static long numVertex, numEdge = 0;
     private static Set<Point> junctionPoints = new HashSet<Point>();
+    private static RoadNetwork network;
 
     private static class BFSPoint {
         public Point point;
@@ -46,8 +48,8 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
     /**
      * Build the planning graph based on the road network
      */
-    public static RoadNetWrapper create(String startingLaneIdx) {
-        Network network = Network.getInstance();
+    public static RoadNetWrapper create(RoadNetwork network, Lane startingLaneIdx) {
+        RoadNetWrapper.network = network;
         HashSet<String> closedList = new HashSet<String>();
         DirectedGraph<Point, Line> graph = new DefaultDirectedWeightedGraph<Point, Line>(Line.class);
 
@@ -108,8 +110,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
 
     private static void addGraphVertex(Point vertex, DirectedGraph<Point, Line> graph) {
         graph.addVertex(vertex);
-        Network net = Network.getInstance();
-        for (Junction junction: net.getJunctions().values()) {
+        for (Junction junction: network.getJunctions().values()) {
             double radius = junctionRadius(junction);
             Point2d junctionCenter = new Point2d(junction.getCenter().x, junction.getCenter().y);
             if (vertex.distance(junctionCenter) < radius) {
