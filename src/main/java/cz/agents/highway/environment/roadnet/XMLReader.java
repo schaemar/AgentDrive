@@ -25,29 +25,30 @@ import java.util.*;
 public class XMLReader {
     private final static Logger logger = Logger.getLogger(XMLReader.class);
 
-    private static HashMap<String, Edge> edgeMap = new HashMap<String, Edge>();
-    private static HashMap<String, Junction> junctionMap = new HashMap<String, Junction>();
-    private static HashMap<String, LaneImpl> laneMap = new HashMap<String, LaneImpl>();
-    private ArrayList<Connection> connectionList = new ArrayList<Connection>();
-    private ArrayList<String> tunnels = new ArrayList<String>();
-    private ArrayList<String> bridges = new ArrayList<String>();
+    private HashMap<String, Edge> edgeMap;
+    private HashMap<String, Junction> junctionMap;
+    private HashMap<String, LaneImpl> laneMap;
+    private ArrayList<Connection> connectionList;
+    private ArrayList<String> tunnels;
+    private ArrayList<String> bridges;
 
     private Network network;
 
     private HashMap<Integer, List<String>> routes;
-    private final Map<Integer, Point2f> initialPositions = new HashMap<Integer, Point2f>();
-    private final Map<Integer, Float> departures = new HashMap<Integer, Float>();
+    private Map<Integer, Point2f> initialPositions;
+    private Map<Integer, Float> departures;
     private boolean isNetworkLoaded = false;
 
 
     public XMLReader() {
     }
-    public XMLReader(String networkFolder){
+
+    public XMLReader(String networkFolder) {
         read(networkFolder);
         isNetworkLoaded = true;
     }
 
-    public boolean isNetworkLoaded(){
+    public boolean isNetworkLoaded() {
         return isNetworkLoaded;
     }
 
@@ -75,8 +76,8 @@ public class XMLReader {
     }
 
     private void checkIfLoaded() {
-        if(!isNetworkLoaded){
-            logger.warn("Calling "+this.getClass().getName()+" methods, while Network is not loaded!");
+        if (!isNetworkLoaded) {
+            logger.warn("Calling " + this.getClass().getName() + " methods, while Network is not loaded!");
         }
     }
 
@@ -118,6 +119,9 @@ public class XMLReader {
      */
     public HashMap<Integer, List<String>> parseRoutes(File routesFile) {
         HashMap<Integer, List<String>> plans = new HashMap<Integer, List<String>>();
+        initialPositions = new HashMap<Integer, Point2f>();
+        departures = new HashMap<Integer, Float>();
+
         logger.info("PARSING ROUTES");
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -169,8 +173,12 @@ public class XMLReader {
     }
 
 
-
     private void parseNetworkFromFile(File networkFile) throws ParserConfigurationException, IOException, SAXException {
+
+        laneMap = new HashMap<String, LaneImpl>();
+        edgeMap = new HashMap<String, Edge>();
+        junctionMap = new HashMap<String, Junction>();
+        connectionList = new ArrayList<Connection>();
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -289,7 +297,6 @@ public class XMLReader {
     }
 
 
-
     /**
      * Parse shape String to a list of Points
      *
@@ -314,6 +321,8 @@ public class XMLReader {
 
     private void parseMultilevelJunctions() {
         String folderPath = Configurator.getParamString("highway.net.folder", "nets/junction-big");
+        tunnels = new ArrayList<String>();
+        bridges = new ArrayList<String>();
         try {
             File tunnelsFile = Utils.getFileWithSuffix(folderPath, "." + MultilevelJunctionEdge.tunnels.toString());
             File bridgesFile = Utils.getFileWithSuffix(folderPath, "." + MultilevelJunctionEdge.bridges.toString());
@@ -326,6 +335,7 @@ public class XMLReader {
     }
 
     private void parseJunctionAndBridgesFiles(File tunnelsFile, File bridgesFile) {
+
         if (!parseFileToList(tunnelsFile, tunnels) || !parseFileToList(bridgesFile, bridges)) {
             logger.warn("Parsing tunnels,bridges unsuccessful, parsing osm file");
             parseOSMForTunnelsAndBridges(tunnelsFile.getParent());
