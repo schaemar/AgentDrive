@@ -2,6 +2,7 @@ package cz.agents.highway.util;
 
 import org.apache.log4j.Logger;
 
+import javax.vecmath.Point2f;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URL;
@@ -51,6 +52,17 @@ public class Utils {
         } else {
             throw new FileNotFoundException("File: "+url.getPath());
         }
+    }
+
+    /**
+     * Transformation of SUMO to ALite coordinates
+     *
+     * @param x x in SUMO coordinates
+     * @param y y in SUMO coordinates
+     * @return coordinates in Alite coordinates (x,-y)
+     */
+    public static Point2f transSUMO2Alite(float x, float y) {
+        return new Point2f(x, -y);
     }
 
 
