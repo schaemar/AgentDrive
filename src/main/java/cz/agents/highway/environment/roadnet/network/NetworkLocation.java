@@ -2,12 +2,12 @@ package cz.agents.highway.environment.roadnet.network;
 
 import tt.euclid2d.region.Rectangle;
 
-import javax.vecmath.Point2d;
+import javax.vecmath.Point2f;
 
 public interface NetworkLocation {
-    Point2d getOffset();
+    Point2f getOffset();
 
-    Rectangle getConvBoundary();
+    Rectangle getConvertedBoundary();
 
     Rectangle getOrigBoundary();
 

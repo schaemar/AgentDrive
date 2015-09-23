@@ -20,6 +20,7 @@ import java.util.Map;
  * <p/>
  */
 public class Network implements RoadNetwork{
+    private NetworkLocation networkLocation;
     private HashMap<String, Edge> edges;
     private HashMap<String, Junction> junctions;
     private HashMap<String, LaneImpl> lanes;
@@ -48,9 +49,10 @@ public class Network implements RoadNetwork{
      * @param tunnelsRaw
      * @param bridgesRaw
      */
-    public Network(HashMap<String, Edge> edges,
+    public Network(NetworkLocation networkLocation, HashMap<String, Edge> edges,
                      HashMap<String, Junction> junctions, HashMap<String, LaneImpl> laneMap,
                      ArrayList<Connection> connectionList, ArrayList<String> tunnelsRaw, ArrayList<String> bridgesRaw) {
+        this.networkLocation = networkLocation;
         this.edges = edges;
         this.junctions = junctions;
         this.lanes = laneMap;
@@ -165,7 +167,7 @@ public class Network implements RoadNetwork{
 
     @Override
     public NetworkLocation getNetworkLocation() {
-        return null;
+        return networkLocation;
     }
 
     public HashMap<String, Edge> getEdges() {

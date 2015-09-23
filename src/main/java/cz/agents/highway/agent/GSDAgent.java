@@ -107,7 +107,6 @@ public class GSDAgent extends RouteAgent {
         isSafeMan(currState, acc, situationPrediction);
         isSafeMan(currState, str, situationPrediction);
         currentManeuver = maneuver;
-        logger.setLevel(Level.DEBUG);
         logger.debug(maneuver);
         return maneuver;
     }

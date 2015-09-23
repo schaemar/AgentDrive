@@ -2,6 +2,7 @@ package cz.agents.highway.environment.roadnet;
 
 
 import cz.agents.alite.configurator.Configurator;
+import cz.agents.highway.environment.roadnet.network.NetworkLocation;
 import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 import cz.agents.highway.util.Utils;
 import org.apache.log4j.Logger;
@@ -10,6 +11,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import tt.euclid2d.Point;
+import tt.euclid2d.region.Rectangle;
 
 import javax.vecmath.Point2f;
 import javax.xml.parsers.DocumentBuilder;
@@ -20,11 +23,11 @@ import java.util.*;
 
 /**
  * XMLReader reads a .net.xml, .rou.xml file and creates a street network.
- * Note: connections are not parsed
  */
 public class XMLReader {
     private final static Logger logger = Logger.getLogger(XMLReader.class);
 
+    private NetworkLocation networkLocation;
     private HashMap<String, Edge> edgeMap;
     private HashMap<String, Junction> junctionMap;
     private HashMap<String, LaneImpl> laneMap;
@@ -98,7 +101,7 @@ public class XMLReader {
             parseMultilevelJunctions();
             routes = parseRoutes(Utils.getFileWithSuffix(networkFolder, ".rou.xml"));
 
-            network = new Network(edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
+            network = new Network(networkLocation, edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
             isNetworkLoaded = true;
             logger.info("NETWORK PARSED");
 
@@ -174,47 +177,47 @@ public class XMLReader {
 
 
     private void parseNetworkFromFile(File networkFile) throws ParserConfigurationException, IOException, SAXException {
-
-        laneMap = new HashMap<String, LaneImpl>();
-        edgeMap = new HashMap<String, Edge>();
-        junctionMap = new HashMap<String, Junction>();
-        connectionList = new ArrayList<Connection>();
-
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-
         Document doc = dBuilder.parse(networkFile);
 
-        NodeList edgeNodeList = doc.getElementsByTagName("edge");
+        networkLocation = parseLocation(doc);
+        laneMap = new HashMap<String, LaneImpl>();
+        edgeMap = new HashMap<String, Edge>();
+        parseEdgesAndLanes(doc);
+        junctionMap = parseJunctions(doc);
+        connectionList = parseConnections(doc);
+    }
 
-        for (int temp = 0; temp < edgeNodeList.getLength(); temp++) {
+    private ArrayList<Connection> parseConnections(Document doc) {
+        NodeList connectionNodeList = doc.getElementsByTagName("connection");
+        ArrayList<Connection> connections = new ArrayList<Connection>();
+        for (int temp = 0; temp < connectionNodeList.getLength(); temp++) {
 
-            Node nNode = edgeNodeList.item(temp);
+            Node cNode = connectionNodeList.item(temp);
 
-            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+            if (cNode.getNodeType() == Node.ELEMENT_NODE) {
 
-                Element e = (Element) nNode;
+                Element c = (Element) cNode;
 
-                String id = e.getAttribute("id");
-                String from = e.getAttribute("from");
-                String to = e.getAttribute("to");
-                String priority = e.getAttribute("priority");
-                String type = e.getAttribute("type");
-                String shapeStr1 = e.getAttribute("shape");
+                String from = c.getAttribute("from");
+                String to = c.getAttribute("to");
+                String fromLane = c.getAttribute("fromLane");
+                String toLane = c.getAttribute("toLane");
 
-                Edge edge = new Edge(id, from, to, priority, type, getShape(shapeStr1));
-                NodeList laneNodeList = e.getElementsByTagName("lane");
-                HashMap<String, LaneImpl> lanes = parseLanes(laneNodeList);
-                edge.putLanes(lanes);
-                laneMap.putAll(lanes);
-
-                edgeMap.put(edge.getId(), edge);
+                Connection connection = new Connection(from, to, fromLane, toLane);
+                connections.add(connection);
             }
+
         }
+        return connections;
+    }
 
+    private HashMap<String, Junction> parseJunctions(Document doc) {
         NodeList junctionNodeList = doc.getElementsByTagName("junction");
-        for (int temp = 0; temp < junctionNodeList.getLength(); temp++) {
+        HashMap<String, Junction> junctions = new HashMap<String, Junction>();
 
+        for (int temp = 0; temp < junctionNodeList.getLength(); temp++) {
             Node jNode = junctionNodeList.item(temp);
 
             if (jNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -243,30 +246,57 @@ public class XMLReader {
                 }
 
                 Junction junction = new Junction(id, type, center, separateStrings(incLanesStr), separateStrings(intLanesStr), getShape(shapeStr), requestList);
-                junctionMap.put(junction.getId(), junction);
+                junctions.put(junction.getId(), junction);
             }
         }
+        return junctions;
+    }
 
-        NodeList connectionNodeList = doc.getElementsByTagName("connection");
-        for (int temp = 0; temp < connectionNodeList.getLength(); temp++) {
+    private void parseEdgesAndLanes(Document doc) {
+        NodeList edgeNodeList = doc.getElementsByTagName("edge");
 
-            Node cNode = connectionNodeList.item(temp);
+        for (int temp = 0; temp < edgeNodeList.getLength(); temp++) {
 
-            if (cNode.getNodeType() == Node.ELEMENT_NODE) {
+            Node nNode = edgeNodeList.item(temp);
 
-                Element c = (Element) cNode;
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 
-                String from = c.getAttribute("from");
-                String to = c.getAttribute("to");
-                String fromLane = c.getAttribute("fromLane");
-                String toLane = c.getAttribute("toLane");
+                Element e = (Element) nNode;
 
-                Connection connection = new Connection(from, to, fromLane, toLane);
-                connectionList.add(connection);
+                String id = e.getAttribute("id");
+                String from = e.getAttribute("from");
+                String to = e.getAttribute("to");
+                String priority = e.getAttribute("priority");
+                String type = e.getAttribute("type");
+                String shapeStr1 = e.getAttribute("shape");
+
+                Edge edge = new Edge(id, from, to, priority, type, getShape(shapeStr1));
+                NodeList laneNodeList = e.getElementsByTagName("lane");
+                HashMap<String, LaneImpl> lanes = parseLanes(laneNodeList);
+                edge.putLanes(lanes);
+                laneMap.putAll(lanes);
+
+                edgeMap.put(edge.getId(), edge);
             }
-
         }
     }
+
+    private NetworkLocation parseLocation(Document document) throws ParserConfigurationException {
+        NodeList locationNodeList = document.getElementsByTagName("location");
+        if (locationNodeList.getLength() > 1) {
+            throw new ParserConfigurationException("File contains more than 1 location tag");
+        }
+        Element locationElement = (Element) locationNodeList.item(0);
+        String netOffset = locationElement.getAttribute("netOffset");
+        String convBoundary = locationElement.getAttribute("convBoundary");
+        String origBoundary = locationElement.getAttribute("origBoundary");
+        String projParameter = locationElement.getAttribute("projParameter");
+
+        NetworkLocation location = new NetworkLocationImpl(parsePoint(netOffset), parseBoundary(convBoundary), parseBoundary(origBoundary), projParameter);
+
+        return location;
+    }
+
 
     /**
      * @param lanesNodeList nodeList of lanes
@@ -418,6 +448,29 @@ public class XMLReader {
 
     private enum MultilevelJunctionEdge {
         tunnels, bridges
+    }
+
+    private Rectangle parseBoundary(String boundaryString) {
+        String[] strings = boundaryString.split(",");
+        float x1 = Float.parseFloat(strings[0]);
+        float y1 = Float.parseFloat(strings[1]);
+        float x2 = Float.parseFloat(strings[2]);
+        float y2 = Float.parseFloat(strings[3]);
+
+        Point corner1 = new Point(x1, y1);
+        Point corner2 = new Point(x2, y2);
+
+        Rectangle rectangle = new Rectangle(corner1, corner2);
+
+        return rectangle;
+    }
+
+    private Point2f parsePoint(String pointString) {
+        String[] strings = pointString.split(",");
+        float x = Float.parseFloat(strings[0]);
+        float y = Float.parseFloat(strings[1]);
+        Point2f point = Utils.transSUMO2Alite(x, y);
+        return point;
     }
 
 
