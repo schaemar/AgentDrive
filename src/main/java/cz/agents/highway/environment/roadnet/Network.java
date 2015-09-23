@@ -20,6 +20,7 @@ import java.util.Map;
  * <p/>
  */
 public class Network implements RoadNetwork{
+    private NetworkLocation networkLocation;
     private HashMap<String, Edge> edges;
     private HashMap<String, Junction> junctions;
     private HashMap<String, LaneImpl> lanes;
@@ -28,7 +29,16 @@ public class Network implements RoadNetwork{
     private ArrayList<Connection> connections;
     private ArrayList<String> tunnels;
     private ArrayList<String> bridges;
-    
+
+
+//    public static synchronized Network getInstance() {
+//        if (instance == null) {
+//            instance = new Network();
+//        }
+//        return instance;
+//    }
+
+
     /**
      * call this method to initialize the network structure
      *
@@ -39,9 +49,10 @@ public class Network implements RoadNetwork{
      * @param tunnelsRaw
      * @param bridgesRaw
      */
-    public Network(HashMap<String, Edge> edges,
-                     HashMap<String, Junction> junctions, HashMap<String, LaneImpl> laneMap,
-                     ArrayList<Connection> connectionList, ArrayList<String> tunnelsRaw, ArrayList<String> bridgesRaw) {
+    public Network(NetworkLocation networkLocation, HashMap<String, Edge> edges,
+                   HashMap<String, Junction> junctions, HashMap<String, LaneImpl> laneMap,
+                   ArrayList<Connection> connectionList, ArrayList<String> tunnelsRaw, ArrayList<String> bridgesRaw) {
+        this.networkLocation = networkLocation;
         this.edges = edges;
         this.junctions = junctions;
         this.lanes = laneMap;
@@ -151,12 +162,12 @@ public class Network implements RoadNetwork{
         return getLane(pos2d);
     }
     public int getLaneNum(Point3f position) {
-       return getClosestLane(position).getIndex();
+        return getClosestLane(position).getIndex();
     }
 
     @Override
     public NetworkLocation getNetworkLocation() {
-        return null;
+        return networkLocation;
     }
 
     public HashMap<String, Edge> getEdges() {
