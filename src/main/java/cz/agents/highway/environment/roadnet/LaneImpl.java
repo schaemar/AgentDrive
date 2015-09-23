@@ -124,12 +124,12 @@ public class LaneImpl implements Lane{
      * @return null if no lane is found
      */
     public Lane getNextLane(Edge edge) {
+        if(edge == null) return null;
         for (Lane lane: getOutgoingLanes()) {
             if (lane.getParentEdge().getId() == edge.getId()) {
                 return lane;
             }
         }
-
         return null;
     }
 
@@ -138,12 +138,12 @@ public class LaneImpl implements Lane{
      * @return null if no lane is found
      */
     public Lane getPreviousLane(Edge edge) {
+        if(edge == null) return null;
         for (Lane lane: getIncomingLanes()) {
             if (lane.getParentEdge().getId() == edge.getId()) {
                 return lane;
             }
         }
-
         return null;
     }
 

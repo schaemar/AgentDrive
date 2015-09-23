@@ -145,7 +145,7 @@ public class XMLReader {
                     departures.put(id, depart);
                     String initPosition = l.getAttribute("initialPosition");
                     if (initPosition != null && !initPosition.isEmpty()) {
-                        Point2f initialPosition = getShape(initPosition).get(0);
+                        Point2f initialPosition = parseShape(initPosition).get(0);
                         initialPositions.put(id, initialPosition);
                     }
                     Element route = (Element) l.getElementsByTagName("route").item(0);
@@ -245,7 +245,7 @@ public class XMLReader {
                     requestList.add(request);
                 }
 
-                Junction junction = new Junction(id, type, center, separateStrings(incLanesStr), separateStrings(intLanesStr), getShape(shapeStr), requestList);
+                Junction junction = new Junction(id, type, center, separateStrings(incLanesStr), separateStrings(intLanesStr), parseShape(shapeStr), requestList);
                 junctions.put(junction.getId(), junction);
             }
         }
@@ -270,7 +270,7 @@ public class XMLReader {
                 String type = e.getAttribute("type");
                 String shapeStr1 = e.getAttribute("shape");
 
-                Edge edge = new Edge(id, from, to, priority, type, getShape(shapeStr1));
+                Edge edge = new Edge(id, from, to, priority, type, parseShape(shapeStr1));
                 NodeList laneNodeList = e.getElementsByTagName("lane");
                 HashMap<String, LaneImpl> lanes = parseLanes(laneNodeList);
                 edge.putLanes(lanes);
@@ -318,7 +318,7 @@ public class XMLReader {
                 String shapeStr = l.getAttribute("shape");
 
 
-                LaneImpl lane = new LaneImpl(laneId, index, speed, length, getShape(shapeStr));
+                LaneImpl lane = new LaneImpl(laneId, index, speed, length, parseShape(shapeStr));
                 ret.put(laneId, lane);
             }
         }
@@ -327,26 +327,7 @@ public class XMLReader {
     }
 
 
-    /**
-     * Parse shape String to a list of Points
-     *
-     * @param shapeString shape points separated by spaces
-     * @return list of shape points
-     */
-    private ArrayList<Point2f> getShape(String shapeString) {
-        StringTokenizer st = new StringTokenizer(shapeString);
-        ArrayList<Point2f> shape = new ArrayList<Point2f>();
-        while (st.hasMoreTokens()) {
-            String p = st.nextToken();
-            StringTokenizer st2 = new StringTokenizer(p, ",");
-            float x = Float.valueOf(st2.nextToken());
-            float y = Float.valueOf(st2.nextToken());
 
-            Point2f point = Utils.transSUMO2Alite(x, y);
-            shape.add(point);
-        }
-        return shape;
-    }
 
 
     private void parseMultilevelJunctions() {
@@ -465,6 +446,24 @@ public class XMLReader {
         return rectangle;
     }
 
+
+    /**
+     * Parse shape String to a list of Points
+     *
+     * @param shapeString shape points separated by spaces
+     * @return list of shape points
+     */
+    private ArrayList<Point2f> parseShape(String shapeString) {
+        StringTokenizer st = new StringTokenizer(shapeString);
+        ArrayList<Point2f> shape = new ArrayList<Point2f>();
+        while (st.hasMoreTokens()) {
+            String p = st.nextToken();
+            Point2f point = parsePoint(p);
+            shape.add(point);
+        }
+        return shape;
+    }
+
     private Point2f parsePoint(String pointString) {
         String[] strings = pointString.split(",");
         float x = Float.parseFloat(strings[0]);
@@ -472,6 +471,7 @@ public class XMLReader {
         Point2f point = Utils.transSUMO2Alite(x, y);
         return point;
     }
+
 
 
 }
