@@ -110,7 +110,7 @@ public class HighwayStorage extends EventBasedStorage {
         Lane lane = roadNetwork.getClosestLane(carState.getPosition());
         int laneNum = lane.getIndex();
         carState.setLane(laneNum);
-        logger.trace("Lane changed to:"+laneNum);
+        logger.trace("Lane changed to:" + laneNum);
         //tool for get the removed cars.
         posCurr.put(carId, carState);
 
@@ -127,6 +127,13 @@ public class HighwayStorage extends EventBasedStorage {
             agent = new GSDAgent(id, highwayEnvironment.getRoadNetwork());
         } else if (agentClassName.equals("ADPPAgent")) {
             agent = new ADPPAgent(id, highwayEnvironment.getRoadNetwork());
+        }else{
+            try {
+                throw new Exception("Agent class: "+agentClassName+" not supported!");
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
         VehicleSensor sensor = new VehicleSensor(highwayEnvironment, agent, this);
         VehicleActuator actuator = new VehicleActuator(highwayEnvironment, agent, this);

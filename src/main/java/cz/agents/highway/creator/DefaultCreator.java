@@ -2,6 +2,7 @@ package cz.agents.highway.creator;
 
 import java.awt.Color;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 
 import javax.vecmath.Point2d;
 
@@ -51,6 +52,10 @@ public class DefaultCreator implements Creator {
 
         logger.setLevel(Level.INFO);
         logger.info("Configuration loaded from: " + CONFIG_FILE);
+        if(logger.isDebugEnabled()){
+            logger.debug("Printing complete configuration on the System.out >>");
+            configReader.writeTo(new PrintWriter(System.out));
+        }
         logger.info("log4j logger properties loaded from: " + logfile);
 
     }

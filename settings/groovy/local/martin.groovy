@@ -5,15 +5,11 @@ highway {
     timestep = 10; //ms               //not relevant
 
 //    agent = "SDAgent";
-    agent = "RouteAgent";
-//    agent = "ORCAAgent";
+//    agent = "RouteAgent";
+    agent = "GSDAgent";
 
     net {
-//        folder = "nets/kosik/";
-//        folder = "nets/x-junction/";
-//        folder = "nets/junction-big/";
-//        folder = "nets/highway-bidirectional/";
-        folder = "nets/highway-straight/";
+        folder = "nets/pisek-all/";
     }
     safeDistanceAgent {
         safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
@@ -87,10 +83,14 @@ highway {
 
         }
 
-        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-//        simulatorsToRun = ["SimulatorLite"];
+//        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+        simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
 //        simulatorsToRun = ["Empty"];
+
+        numberOfCarsInSimulation = 1000;
+        sumoSimulation = true;
+        systemTime = true;
     }
 
     netLayer {
@@ -106,5 +106,9 @@ highway {
             view = false;
             width = 1;
         }
+    }
+
+    SimulatorLocal{
+        timestep=1;
     }
 }

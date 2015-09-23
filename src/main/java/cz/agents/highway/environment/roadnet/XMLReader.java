@@ -99,7 +99,6 @@ public class XMLReader {
             parseNetworkFromFile(networkFile);
 
             parseMultilevelJunctions();
-            routes = parseRoutes(Utils.getFileWithSuffix(networkFolder, ".rou.xml"));
 
             network = new Network(networkLocation, edgeMap, junctionMap, laneMap, connectionList, tunnels, bridges);
             isNetworkLoaded = true;
@@ -112,6 +111,15 @@ public class XMLReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        try {
+            logger.info("Parsing routes...");
+            routes = parseRoutes(Utils.getFileWithSuffix(networkFolder, ".rou.xml"));
+            logger.info("Routes parsed!");
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
