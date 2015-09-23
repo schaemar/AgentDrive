@@ -289,6 +289,10 @@ public class RouteNavigator {
         return pointPtr;
     }
 
+    public void setActualPointer(int pointPtr) {
+        this.pointPtr = pointPtr;
+    }
+
     public List<Edge> getFollowingEdgesInPlan() {
         List<Edge> rem = new ArrayList<Edge>();
         int maxNumber = 5;

@@ -23,7 +23,7 @@ public class Network implements RoadNetwork{
     private HashMap<String, Edge> edges;
     private HashMap<String, Junction> junctions;
     private HashMap<String, LaneImpl> lanes;
-    private KdTree<LaneImpl> kdTree;
+    private KdTree<ActualLanePosition> kdTree;
     private SquareEuclideanDistanceFunction distanceFunction;
     private ArrayList<Connection> connections;
     private ArrayList<String> tunnels;
@@ -107,11 +107,12 @@ public class Network implements RoadNetwork{
         this.distanceFunction = new SquareEuclideanDistanceFunction();
 
         for (Map.Entry<String, LaneImpl> entry : lanes.entrySet()) {
-            for (Point2f p : entry.getValue().getInnerPoints()) {
+            for(int i =0;i<entry.getValue().getInnerPoints().size();i++){
+                Point2f p = entry.getValue().getInnerPoints().get(i);
                 double[] point = new double[2];
                 point[0] = p.x;
                 point[1] = p.y;
-                kdTree.addPoint(point, entry.getValue());
+                kdTree.addPoint(point, new ActualLanePosition(entry.getValue(),i,p));
             }
         }
     }
@@ -127,10 +128,26 @@ public class Network implements RoadNetwork{
         double[] point = new double[2];
         point[0] = position.x;
         point[1] = position.y;
-        MaxHeap<LaneImpl> nearestNeighbour = kdTree.findNearestNeighbors(point, 1, distanceFunction);
+        MaxHeap<ActualLanePosition> nearestNeighbour = kdTree.findNearestNeighbors(point, 1, distanceFunction);
+        return nearestNeighbour.getMax().getLane();
+    }
+    public ActualLanePosition getActualPosition(Point3f position) {
+        double[] point = new double[2];
+        point[0] = position.x;
+        point[1] = position.y;
+        MaxHeap<ActualLanePosition> nearestNeighbour = kdTree.findNearestNeighbors(point, 1, distanceFunction);
         return nearestNeighbour.getMax();
     }
-
+    public ArrayList<ActualLanePosition> getTwoActualLanePositions(Point3f position) {
+        ArrayList<ActualLanePosition> kdlanes = new ArrayList<ActualLanePosition>(2);
+        double[] point = new double[2];
+        point[0] = position.x;
+        point[1] = position.y;
+        for (ActualLanePosition actualLanePosition : kdTree.getNearestNeighborIterator(point, 2, distanceFunction)) {
+            kdlanes.add(actualLanePosition);
+        }
+        return kdlanes;
+    }
     /**
      * returns the cars current lane based on its x,y coordinates
      * uses kd-Tree to obtain nearest neighbours of the given point
