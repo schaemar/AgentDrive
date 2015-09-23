@@ -1,5 +1,6 @@
 package cz.agents.highway.agent;
 
+import cz.agents.highway.environment.roadnet.ActualLanePosition;
 import cz.agents.highway.environment.roadnet.Edge;
 import cz.agents.highway.environment.roadnet.Lane;
 import org.apache.log4j.Logger;
@@ -289,8 +290,19 @@ public class RouteNavigator {
         return pointPtr;
     }
 
-    public void setActualPointer(int pointPtr) {
-        this.pointPtr = pointPtr;
+    public void setActualPosition(ActualLanePosition myLanePosition) {
+        if(myLanePosition.getEdge().equals(agentLane.getParentEdge()))
+        {
+            agentLane = myLanePosition.getLane();
+            this.pointPtr = myLanePosition.getIndex();
+        }
+        else
+        {
+            agentLane = myLanePosition.getLane();
+            this.pointPtr = myLanePosition.getIndex();
+            routePtr++;
+        }
+
     }
 
     public List<Edge> getFollowingEdgesInPlan() {

@@ -112,7 +112,7 @@ public class Network implements RoadNetwork{
                 double[] point = new double[2];
                 point[0] = p.x;
                 point[1] = p.y;
-                kdTree.addPoint(point, new ActualLanePosition(entry.getValue(),i,p));
+                kdTree.addPoint(point, new ActualLanePosition(entry.getValue(),i));
             }
         }
     }

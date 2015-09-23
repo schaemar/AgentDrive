@@ -57,14 +57,14 @@ highway {
             //available maneuvers are Straight, Acceleration, Deacceleration, LaneLeft, LaneRight
             //parameters of maneuvers are following
 
-            laneChangeManeuverDuration = 1.0; // [s]
+            laneChangeManeuverDuration = 0.5; // [s]
             straightManeuverDuration = 0.5;     //[s]
             accelerationManeuverDuration = 0.3;   //[s]
             deaccelerationManueverDuration = 0.3;   //[s]
             acceleration = 4.0;                     //[m/s^2]
             deacceleration= -6.0;                  //[m/s^2]
             maximalSpeed = 20.0;                    //[m/s]
-            maxSpeedVariance = 0.30;                     //[%]
+            maxSpeedVariance = 0.60;                     //[%]
         }
 
     }
@@ -128,7 +128,7 @@ highway {
         simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
   //   simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 30;
+        numberOfCarsInSimulation = 12;
         sumoSimulation = true;
         systemTime = true;
     }

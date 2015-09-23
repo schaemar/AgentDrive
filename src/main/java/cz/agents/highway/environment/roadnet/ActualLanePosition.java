@@ -7,13 +7,13 @@ import javax.vecmath.Point2f;
  */
 public class ActualLanePosition {
     private Lane lane;
+    private Edge edge;
     private int index;
-    private Point2f innerPoint;
 
-    public ActualLanePosition(Lane lane, int index, Point2f innerPoint) {
+    public ActualLanePosition(Lane lane, int index) {
         this.lane = lane;
         this.index = index;
-        this.innerPoint = innerPoint;
+        edge = lane.getParentEdge();
     }
 
     public Lane getLane() {
@@ -24,8 +24,8 @@ public class ActualLanePosition {
         return index;
     }
 
-    public Point2f getInnerPoint() {
-        return innerPoint;
+    public Edge getEdge() {
+        return edge;
     }
 }
 

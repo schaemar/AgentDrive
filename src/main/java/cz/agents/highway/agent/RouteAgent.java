@@ -75,8 +75,13 @@ public class RouteAgent extends Agent {
     }
 
     private List<Action> prepare() {
-        if(sensor.senseCurrentState() == null) return translate(null);
-        else return generateWaypointInLane(STRAIGHT, null);
+        RoadObject me = sensor.senseCurrentState();
+        if(me == null) return translate(null);
+        else
+        {
+            findMyPosition(me);
+            return generateWaypointInLane(me,STRAIGHT, null);
+        }
     }
 
     protected List<Action> agentReact(CarManeuver maneuver) {
@@ -107,11 +112,11 @@ public class RouteAgent extends Agent {
         // Check the type of maneuver
         if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
                 || (maneuver instanceof DeaccelerationManeuver)) {
-            return generateWaypointInLane(STRAIGHT, maneuver);
+            return generateWaypointInLane(me,STRAIGHT, maneuver);
         } else if (maneuver instanceof LaneLeftManeuver) {
-            return generateWaypointInLane(LEFT, maneuver);
+            return generateWaypointInLane(me,LEFT, maneuver);
         } else if (maneuver instanceof LaneRightManeuver) {
-            return generateWaypointInLane(RIGHT, maneuver);
+            return generateWaypointInLane(me,RIGHT, maneuver);
         } else {
             LinkedList<Action> actions = new LinkedList<Action>();
             ManeuverAction res = new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
@@ -127,10 +132,10 @@ public class RouteAgent extends Agent {
      * @param maneuver translated manoeuvre.
      * @return List of waypoint actions.
      */
-    private List<Action> generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
+    private List<Action> generateWaypointInLane(RoadObject me,int relativeLane, CarManeuver maneuver) {
 
-        RoadObject me = sensor.senseCurrentState();
         LinkedList<Action> actions = new LinkedList<Action>();
+        List<Point2f> wps = new LinkedList<Point2f>();
 
         Point2f initial = navigator.getInitialPosition();
         Point2f current = new Point2f(me.getPosition().getX(),me.getPosition().getY());
@@ -141,61 +146,12 @@ public class RouteAgent extends Agent {
 
         int wpCount = (int) me.getVelocity().length() * 2 + 1; // how many waypoints before me will be calculated.
         points = new ArrayList<Point3f>();
+        if(navigator.isMyLifeEnds()) {
+            actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+            return actions;
+        }
         navigator.setCheckpoint();
 
-        Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
-
-        List<Point2f> wps = new LinkedList<Point2f>();
-        Point2f waypoint = null;
-
-        //try to advance navigator closer to the actual position
-        int maxMove = 10;  // how many points will be tried.
-        //how many waiponts ahead will be chcecked depending on the update time
-        maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
-        if (maxMove < 10) maxMove = 10;
-        if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) { //Simulator dependent code.
-            //The difference is in switching between lanes or edges.
-            String uniqueIndex = navigator.getUniqueLaneIndex();
-            while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-                navigator.advanceInRoute();
-            }
-            if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-                float initialPos = position2D.distance(navigator.getRoutePoint());
-                do {
-                    navigator.advanceInRoute();
-                } while (position2D.distance(navigator.getRoutePoint()) < initialPos);
-                while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
-                    navigator.advanceInRoute();
-                }
-                navigator.setCheckpoint();
-            }
-            if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
-                navigator.resetToCheckpoint();
-            } else {
-                while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
-                    navigator.advanceInRoute();
-                }
-                //    navigator.setCheckpoint();
-            }
-        }
-        else
-        {
-            while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
-                navigator.advanceInRoute();
-            }
-            if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
-                navigator.resetToCheckpoint();
-            } else {
-                while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
-                    navigator.advanceInRoute();
-                }
-                //    navigator.setCheckpoint();
-            }
-        }
-        if(navigator.isMyLifeEnds()) {
-               actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
-               return actions;
-        }
         if (relativeLane == RIGHT) {
             navigator.changeLaneRight();
             navigator.setCheckpoint();
@@ -203,17 +159,13 @@ public class RouteAgent extends Agent {
             navigator.changeLaneLeft();
             navigator.setCheckpoint();
         }
-        else
-        {
-            navigator.setCheckpoint();
-        }
-        waypoint = navigator.getRoutePoint();
+        Point2f waypoint = navigator.getRoutePoint();
 
         double minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         for (int i = 0; (maneuver !=null && i <= (maneuver.getPositionOut()/INNER_POINTS_STEP_SIZE)+1) || i < wpCount; i++) {
             // move 3 waipoints ahead
             while (navigator.isMyLifeEnds() == false && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
-            navigator.advanceInRoute();
+                navigator.advanceInRoute();
             }
             if(navigator.isMyLifeEnds()) {
                 if(i==0) {
@@ -289,5 +241,54 @@ public class RouteAgent extends Agent {
     private float distance(Point2f innerPoint, Point2f position, Vector2f direction, Vector2f velocity) {
         float d = innerPoint.distance(position);
         return d * d * Math.abs((float) Math.sin(direction.angle(velocity)) + EPSILON);
+    }
+    private void findMyPosition(RoadObject me)
+    {
+        Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
+
+        //try to advance navigator closer to the actual position
+        int maxMove = 10;  // how many points will be tried.
+        //how many waiponts ahead will be chcecked depending on the update time
+        maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
+        if (maxMove < 10) maxMove = 10;
+        if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) { //Simulator dependent code.
+            //The difference is in switching between lanes or edges.
+            String uniqueIndex = navigator.getUniqueLaneIndex();
+            while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+                navigator.advanceInRoute();
+            }
+            if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+                float initialPos = position2D.distance(navigator.getRoutePoint());
+                do {
+                    navigator.advanceInRoute();
+                } while (position2D.distance(navigator.getRoutePoint()) < initialPos);
+                while (navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                    navigator.advanceInRoute();
+                }
+                navigator.setCheckpoint();
+            }
+            if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+                navigator.resetToCheckpoint();
+            } else {
+                while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                    navigator.advanceInRoute();
+                }
+                //    navigator.setCheckpoint();
+            }
+        }
+        else
+        {
+            while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+                navigator.advanceInRoute();
+            }
+            if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+                navigator.resetToCheckpoint();
+            } else {
+                while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                    navigator.advanceInRoute();
+                }
+                //    navigator.setCheckpoint();
+            }
+        }
     }
 }
