@@ -3,7 +3,6 @@ package cz.agents.highway.util;
 
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.environment.roadnet.XMLReader;
-import cz.agents.highway.storage.Pair;
 
 import javax.vecmath.Point3f;
 import java.util.*;

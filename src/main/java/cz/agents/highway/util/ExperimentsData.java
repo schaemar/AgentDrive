@@ -4,7 +4,6 @@ import cz.agents.alite.configurator.Configurator;
 import cz.agents.highway.agent.Agent;
 import cz.agents.highway.agent.GSDAgent;
 import cz.agents.highway.storage.HighwayStorage;
-import cz.agents.highway.storage.Pair;
 import cz.agents.highway.storage.RadarData;
 import cz.agents.highway.storage.RoadObject;
 import org.apache.log4j.Logger;

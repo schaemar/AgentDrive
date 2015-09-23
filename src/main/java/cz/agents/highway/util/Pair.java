@@ -1,4 +1,4 @@
-package cz.agents.highway.storage;
+package cz.agents.highway.util;
 
 /**
  * Created by david on 7.4.15.
