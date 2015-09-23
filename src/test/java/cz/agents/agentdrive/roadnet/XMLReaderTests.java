@@ -16,7 +16,7 @@ import static org.junit.Assert.assertNull;
 
 public class XMLReaderTests {
     private static final String testRoadNetFolder = "roadnets/simple/";
-    private static final String testRoadNetPath = "roadnets/simple/simple.net.xml";
+    private static final String testNetFilePath = "roadnets/simple/simple.net.xml";
     private final String testRoutesPath = "roadnets/simple/simple.rou.xml";
 
     @Test
