@@ -28,16 +28,7 @@ public class Network implements RoadNetwork{
     private ArrayList<Connection> connections;
     private ArrayList<String> tunnels;
     private ArrayList<String> bridges;
-
-
-//    public static synchronized Network getInstance() {
-//        if (instance == null) {
-//            instance = new Network();
-//        }
-//        return instance;
-//    }
-
-
+    
     /**
      * call this method to initialize the network structure
      *
