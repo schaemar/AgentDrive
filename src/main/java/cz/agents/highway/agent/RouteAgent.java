@@ -159,13 +159,16 @@ public class RouteAgent extends Agent {
             navigator.changeLaneLeft();
             navigator.setCheckpoint();
         }
+
         Point2f waypoint = navigator.getRoutePoint();
 
         double minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
         for (int i = 0; (maneuver !=null && i <= (maneuver.getPositionOut()/INNER_POINTS_STEP_SIZE)+1) || i < wpCount; i++) {
             // move 3 waipoints ahead
-            while (navigator.isMyLifeEnds() == false && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
+            int hotfix = 0;
+            while (navigator.isMyLifeEnds() == false && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND && hotfix < 20000) {
                 navigator.advanceInRoute();
+                //hotfix++;
             }
             if(navigator.isMyLifeEnds()) {
                 if(i==0) {

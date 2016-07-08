@@ -14,7 +14,7 @@ highway {
         //      folder = "nets/x-junction/";
 //     folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
-               folder = "nets/highway-straight/";
+ //              folder = "nets/highway-straight/";
 //       folder = "nets/test90/";
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
@@ -26,6 +26,7 @@ highway {
         //       folder = "nets/jedkriz";
         //     folder = "nets/map";
         //      folder = "nets/pisek";
+              folder = "nets/pisek-all";
         //   folder = "nets/CharlesSquare";
         //    folder = "nets/artificialX-junction";
         //    folder = "nets/artificialHighway-funnel";
@@ -124,11 +125,11 @@ highway {
 
         }
 
-  //      simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-        simulatorsToRun = ["SimulatorLite"];
+    //    simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+    //    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
   //   simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 12;
+        numberOfCarsInSimulation = 120;
         sumoSimulation = true;
         systemTime = true;
     }
@@ -143,7 +144,7 @@ highway {
             width = 1;
         }
         crossRoad {
-            view = true;
+            view = false;
             width = 1;
         }
     }

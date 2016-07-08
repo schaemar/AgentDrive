@@ -81,8 +81,7 @@ public class LocalSimulatorHandler extends SimulatorHandler {
                         Vector3f vec = new Vector3f(x, y, z);
                         vec.scale(ration);
 
-                        Point3f myPos = new Point3f(vec.x + lastPosition.x, vec.y + lastPosition.y, vec.z + lastPosition.z);
-                        myPosition = myPos;
+                        myPosition = new Point3f(vec.x + lastPosition.x, vec.y + lastPosition.y, vec.z + lastPosition.z);
                         break;
                     }
                     lastPosition = wpAction.getPosition();
@@ -111,6 +110,7 @@ public class LocalSimulatorHandler extends SimulatorHandler {
             }
         }
         //send radar-data to storage with duration delay
+        System.out.println(highwayEnvironment.getEventProcessor().getCurrentTime());
         highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
     }
 }

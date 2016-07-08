@@ -22,9 +22,9 @@ import static cz.agents.alite.vis.Vis.getDrawingDimension;
  */
 public class NetLayer extends GroupLayer implements VisLayer {
 
-    final int LANE_WIGTH = 10;
-    final int EDGE_WIGTH = 1;
-    final int CROSSROAD_WIGTH = 1;
+    private final int LANE_WIGTH = 10;
+    private final int EDGE_WIGTH = 1;
+    private final int CROSSROAD_WIGTH = 1;
 
 
     final Vector2f VECT_X_NORM = new Vector2f(1, 0);
@@ -51,7 +51,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
         canvas.fillOval((int) (-offset), (int) (-offset), size, size);
         canvas.setTransform(t);
     }
-    void paintCircle2(Graphics2D canvas, Point2f p, int size){
+   private void paintCircle2(Graphics2D canvas, Point2f p, int size){
         AffineTransform t = canvas.getTransform();
         int x = Vis.transX(p.x);
         int y = Vis.transY(p.y);
@@ -63,7 +63,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
         canvas.setTransform(t);
     }
 
-    void paintLine(Graphics2D canvas, Point2f p1, Point2f p2){
+    private void paintLine(Graphics2D canvas, Point2f p1, Point2f p2){
         AffineTransform t = canvas.getTransform();
         int x = Vis.transX(p1.x);
         int y = Vis.transY(p1.y);
@@ -111,7 +111,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
                 }
             }
         }
-        if(Configurator.getParamBool("highway.netLayer.crossRoad.view", true)){
+        if(Configurator.getParamBool("highway.netLayer.crossRoad.view", false)){
             canvas.setColor(Color.green);
             int size = Configurator.getParamInt("highway.netLayer.crossRoad.width", CROSSROAD_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));

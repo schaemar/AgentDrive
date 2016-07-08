@@ -150,9 +150,11 @@ public class RouteNavigator {
                         agentLane = nextLane;
                         //TODO fix when this happens too soon
                     } else {
+                        myLifeEnds = true;
                         // TODO: This or neigbour lanes don't continue to the route edge
                     }
-                } else {
+                }
+                else {
                     pointPtr = desiredPoint;
                     agentLane = nextLane;
                 }
@@ -222,6 +224,7 @@ public class RouteNavigator {
 
     public Point2f getRoutePoint() {
         if(isInitialized){
+            if(pointPtr >= agentLane.getInnerPoints().size()) pointPtr = agentLane.getInnerPoints().size() - 1;
             return agentLane.getInnerPoints().get(pointPtr);
         }else{
             logger.warn("not initialized!");
