@@ -180,7 +180,7 @@ routes() {
 
       random)
         local tripsFile="${file%%.net.xml}.trips.xml"
-        sumo_exec $SUMO_HOME$RANDOM_TRIPS -n $file -e 50 -p 0.1 -L -l -o $tripsFile
+        sumo_exec $SUMO_HOME$RANDOM_TRIPS -n $file -e 150 -p 0.1 -L -l -o $tripsFile
         sumo_exec $DUAROUTER --trip-files=$tripsFile --net=$file  --output-file=$output --ignore-errors --routing-algorithm=astar -W
         ;;
       flows)

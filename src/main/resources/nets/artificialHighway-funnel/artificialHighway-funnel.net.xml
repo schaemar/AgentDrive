@@ -2,16 +2,16 @@
 
 <net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
     <location netOffset="0.0,0.0" convBoundary="0.00,0.00,665.37,811.53" origBoundary="14.388600,50.068250,14.516399,50.128835" projParameter="+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
-    <edge id="0" from="start" to="center" priority="7" type="highway.secondary">
+   <!-- <edge id="0" from="start" to="center" priority="7" type="highway.secondary">
         <lane id="0_0" index="0" speed="42" length="16.72" shape="0.0,0.0 0.0,595.0"/>
     </edge>
     <edge id="1" from="start2" to="center" priority="7" type="highway.secondary">
         <lane id="1_0" index="0" speed="42" length="16.72" shape="-3.5,0.0 -3.5,595.0"/>
-    </edge>
-   <!-- <edge id="2" from="preparation" to="center" priority="7" type="highway.secondary">
-        <lane id="2_0" index="0" speed="42" length="16.72" shape="0.0,200.0 0.0,595.0"/>
-        <lane id="2_1" index="1" speed="42" length="16.72" shape="-3.5,200.0 -3.5,595.0"/>
     </edge>-->
+    <edge id="2" from="preparation" to="center" priority="7" type="highway.secondary">
+        <lane id="2_0" index="0" speed="42" length="16.72" shape="0.0,0.0 0.0,595.0"/>
+        <lane id="2_1" index="1" speed="42" length="16.72" shape="-3.5,0.0 -3.5,595.0"/>
+    </edge>-
     <edge id="3" from="center" to="end" priority="7" type="highway.secondary">
         <lane id="3_0" index="0" speed="42" length="16.72" shape="0.0,605.0 0.0,1200.0"/>
     </edge>
@@ -21,10 +21,10 @@
     <junction id="center" type="unregulated" x="-1.75" y="600.00" incLanes="0_0 1_0" intLanes="" shape="-3.5,595.0 0.0,595.0 0.0,605.0"/>
     <junction id="end" type="dead_end" x="0.00" y="1200.00" incLanes="1_0" intLanes="" shape=""/>
 
-    <connection from="0" to="3" fromLane="0" toLane="0" dir="s" state="M"/>
+   <!-- <connection from="0" to="3" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="1" to="3" fromLane="0" toLane="0" dir="s" state="M"/>-->
-   <!-- <connection from="2" to="3" fromLane="0" toLane="0" dir="s" state="M"/>-->
-   <!-- <connection from="2" to="3" fromLane="1" toLane="0" dir="s" state="M"/>-->
+    <connection from="2" to="3" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="2" to="3" fromLane="1" toLane="0" dir="s" state="M"/>
 </net>
 
 <!--

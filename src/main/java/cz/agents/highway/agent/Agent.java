@@ -1,12 +1,17 @@
 package cz.agents.highway.agent;
 
 import cz.agents.alite.common.entity.Entity;
+import cz.agents.alite.configurator.Configurator;
+import cz.agents.highway.environment.roadnet.Edge;
+import cz.agents.highway.environment.roadnet.RoadNetworkRouter;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 import cz.agents.highway.storage.VehicleActuator;
 import cz.agents.highway.storage.VehicleSensor;
 import org.apache.log4j.Logger;
 
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
+import java.util.List;
 
 public class Agent extends Entity {
 
@@ -21,7 +26,8 @@ public class Agent extends Entity {
     public Agent(int id) {
         super("" + id);
         this.id = id;
-        navigator = new RouteNavigator(id);
+        List<Edge> route = RoadNetworkRouter.generateRoute(id);
+        navigator = new RouteNavigator(route);
         logger.info("Agent " + id + " created");
     }
 

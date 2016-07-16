@@ -20,10 +20,6 @@ public class RoadObject {
 
     }
 
-    public RoadObject(int id) {
-       this.id = id;
-    }
-
     public int getId() {
         return id;
     }
@@ -44,17 +40,21 @@ public class RoadObject {
         return velocity;
     }
 
-    @Override
-    public String toString() {
-        return "RoadObject [id = " + id + ", updateTime=" + updateTime + ", lane=" + lane
-                + ", pos=" + position + ", v=" + velocity + "]";
-    }
-
     public void setPosition(Point3f position) {
         this.position = position;
     }
 
     public void setVelocity(Vector3f velocity) {
         this.velocity = velocity;
+    }
+
+    public void setLane(int lane) {
+        this.lane = lane;
+    }
+
+    @Override
+    public String toString() {
+        return "RoadObject [id = " + id + ", updateTime=" + updateTime + ", lane=" + lane
+                + ", pos=" + position + ", v=" + velocity + "]";
     }
 }

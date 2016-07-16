@@ -5,16 +5,16 @@ highway {
     timestep = 10; //ms               //not relevant
 
 //    agent = "SDAgent";
-   agent = "RouteAgent";
+//   agent = "RouteAgent";
 //   agent = "ORCAAgent";
-//    agent = "GSDAgent";
+    agent = "GSDAgent";
 
     net {
 //        folder = "nets/kosik/";
         //      folder = "nets/x-junction/";
 //     folder = "nets/junction-big/";
 //        folder = "nets/highway-bidirectional/";
-        //       folder = "nets/highway-straight/";
+ //              folder = "nets/highway-straight/";
 //       folder = "nets/test90/";
 //        folder = "nets/circle/";
 //       folder = "nets/testCross";
@@ -26,9 +26,10 @@ highway {
         //       folder = "nets/jedkriz";
         //     folder = "nets/map";
         //      folder = "nets/pisek";
+              folder = "nets/pisek-all";
         //   folder = "nets/CharlesSquare";
         //    folder = "nets/artificialX-junction";
-            folder = "nets/artificialHighway-funnel";
+        //    folder = "nets/artificialHighway-funnel";
         //    folder = "nets/hostinne";
         //     folder = "nets/artificialXS-junction";
         //folder = "nets/artificialT-junction";
@@ -57,16 +58,21 @@ highway {
             //available maneuvers are Straight, Acceleration, Deacceleration, LaneLeft, LaneRight
             //parameters of maneuvers are following
 
-            laneChangeManeuverDuration = 1.0; // [s]
+            laneChangeManeuverDuration = 0.5; // [s]
             straightManeuverDuration = 0.5;     //[s]
             accelerationManeuverDuration = 0.3;   //[s]
             deaccelerationManueverDuration = 0.3;   //[s]
             acceleration = 4.0;                     //[m/s^2]
             deacceleration= -6.0;                  //[m/s^2]
-            maximalSpeed = 50.0;                    //[m/s]
-            maxSpeedVariance = 0;//0.30;                     //[%]
+            maximalSpeed = 20.0;                    //[m/s]
+            maxSpeedVariance = 0.60;                     //[%]
         }
 
+    }
+    storage{
+        insertSpeed = 2.0;  //[m/s]
+        checkingDistance = 500;
+        safetyReserve = 4;
     }
     protobuf {
         isOn = true;
@@ -119,11 +125,11 @@ highway {
 
         }
 
-   //            simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-        simulatorsToRun = ["SimulatorLite"];
+    //    simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
+    //    simulatorsToRun = ["SimulatorLite"];
 //        simulatorsToRun = ["OpenDS"];
-//     simulatorsToRun = ["Empty"];
-        numberOfCarsInSimulation = 30;
+  //   simulatorsToRun = ["Empty"];
+        numberOfCarsInSimulation = 120;
         sumoSimulation = true;
         systemTime = true;
     }
@@ -138,7 +144,7 @@ highway {
             width = 1;
         }
         crossRoad {
-            view = true;
+            view = false;
             width = 1;
         }
     }

@@ -2,22 +2,26 @@ package cz.agents.highway.storage;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import cz.agents.alite.common.entity.Entity;
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
 import cz.agents.alite.environment.eventbased.EventBasedSensor;
+import cz.agents.highway.agent.Agent;
 import cz.agents.highway.agent.Reaction;
+import cz.agents.highway.environment.HighwayEnvironment;
 import cz.agents.highway.environment.planning.euclid4d.Region;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 import cz.agents.highway.util.Utils;
+import org.apache.log4j.Logger;
 
 public class VehicleSensor extends EventBasedSensor {
 
+    private static final Logger logger = Logger.getLogger(VehicleSensor.class);
     private HighwayStorage storage;
 
-    public VehicleSensor(EventBasedEnvironment environment, Entity relatedEntity,
+    public VehicleSensor(HighwayEnvironment environment, Entity relatedEntity,
             HighwayStorage storage) {
         super(environment, relatedEntity);
         this.storage = storage;
@@ -60,12 +64,6 @@ public class VehicleSensor extends EventBasedSensor {
         return ret;
     }
 
-    public int senseMaxLane() {
-//        RoadObject state = senseCurrentState();
-//        Point2d currPoint = new Point2d(state.getPosition().x,state.getPosition().y);
-        return 2;//(int) storage.getRoadDescription().getNearestHighwayPoint(currPoint).z - 1;
-    }
-
     public void registerReaction(Reaction reaction) {
         this.reaction = reaction;
     }
@@ -78,7 +76,18 @@ public class VehicleSensor extends EventBasedSensor {
         return storage.getTrajectories();
     }
 
-    public HighwayStorage getStorage() {
-        return storage;
+    public Map<Integer, Agent> getAgents() {
+        return storage.getAgents();
+    }
+
+    public RoadNetwork getRoadNetwork(){
+        HighwayEnvironment highwayEnvironment = null;
+        if(this.getEnvironment() instanceof HighwayEnvironment) {
+            highwayEnvironment = (HighwayEnvironment) getEnvironment();
+        }else{
+            logger.error("Environment is not an instance of HighwayEnvironment)");
+        }
+        return highwayEnvironment.getRoadNetwork();
+
     }
 }

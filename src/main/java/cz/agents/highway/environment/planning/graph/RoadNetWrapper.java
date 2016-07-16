@@ -2,11 +2,11 @@ package cz.agents.highway.environment.planning.graph;
 
 import cz.agents.highway.environment.roadnet.Junction;
 import cz.agents.highway.environment.roadnet.Lane;
+import cz.agents.highway.environment.roadnet.LaneImpl;
 import cz.agents.highway.environment.roadnet.Network;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
-import org.jgrapht.WeightedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.GraphDelegator;
 import tt.euclid2d.Line;
@@ -26,6 +26,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
     private static final double JUNCTION_RADIUS = 7;
     private static long numVertex, numEdge = 0;
     private static Set<Point> junctionPoints = new HashSet<Point>();
+    private static RoadNetwork network;
 
     private static class BFSPoint {
         public Point point;
@@ -47,12 +48,12 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
     /**
      * Build the planning graph based on the road network
      */
-    public static RoadNetWrapper create(String startingLaneIdx) {
-        Network network = Network.getInstance();
+    public static RoadNetWrapper create(RoadNetwork network, Lane startingLaneIdx) {
+        RoadNetWrapper.network = network;
         HashSet<String> closedList = new HashSet<String>();
         DirectedGraph<Point, Line> graph = new DefaultDirectedWeightedGraph<Point, Line>(Line.class);
 
-        Lane startingLane = network.getLanes().get(startingLaneIdx);
+        LaneImpl startingLane = network.getLanes().get(startingLaneIdx);
         // Traverse the lanes using BFS
         numEdge = numVertex = 0;
         RoadNetWrapper.traverse(startingLane, graph, closedList);
@@ -92,12 +93,12 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
         p.sub(start);
         Vector2d direction = new Vector2d(p);
         direction.normalize();
-        direction.scale(Lane.INNER_POINTS_STEP_SIZE);
+        direction.scale(LaneImpl.INNER_POINTS_STEP_SIZE);
         p = new Point(start);
         Point lastPoint = new Point(p);
         p.add(direction);
         addGraphVertex(new Point(start), graph);
-        while (p.distance(end) > Lane.INNER_POINTS_STEP_SIZE) {
+        while (p.distance(end) > LaneImpl.INNER_POINTS_STEP_SIZE) {
             addGraphVertex(new Point(p), graph);
             graph.addEdge(new Point(lastPoint), new Point(p), new Line(new Point(lastPoint), new Point(p)));
             lastPoint = new Point(p);
@@ -109,8 +110,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
 
     private static void addGraphVertex(Point vertex, DirectedGraph<Point, Line> graph) {
         graph.addVertex(vertex);
-        Network net = Network.getInstance();
-        for (Junction junction: net.getJunctions().values()) {
+        for (Junction junction: network.getJunctions().values()) {
             double radius = junctionRadius(junction);
             Point2d junctionCenter = new Point2d(junction.getCenter().x, junction.getCenter().y);
             if (vertex.distance(junctionCenter) < radius) {
@@ -129,7 +129,7 @@ public class RoadNetWrapper extends GraphDelegator<Point, Line> implements Direc
 //        return max;
     }
 
-    private static void traverse(Lane lane, DirectedGraph<Point, Line> graph, Set<String> visited) {
+    private static void traverse(LaneImpl lane, DirectedGraph<Point, Line> graph, Set<String> visited) {
         visited.add(lane.getLaneId());
         Set<Point> closedVertexList = new HashSet<Point>();
         Queue<BFSPoint> openVertexList = new LinkedList<BFSPoint>();

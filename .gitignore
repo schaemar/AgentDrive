@@ -1,28 +1,14 @@
-syntax: glob
-
-.classpath
-.project
-.idea
-.cache
+# Intellij
+.idea/
 target
-bin
-output
-out
-log
-.settings
 *.iml
+*.iws
 *.log
-*.so
+
+# Maven
+log/
+target/
+
+#AgentDrive
 launchers/*.sh
-.*.sw?
 
-experiments/data/*
-
-
-syntax: regexp
-
-\.orig\..*$
-\.orig$
-\.chg\..*$
-\.rej$
-\.conflict\~$

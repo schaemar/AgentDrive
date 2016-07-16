@@ -28,7 +28,7 @@ public class AgentScalingExperiment extends ADPPExperiment {
         }
         double exp = 0;
         for (int i = 0; i < quality; ++i) {
-            ADPPAgent agent = new  ADPPAgent(i, speedArray, waitPenalty, movePenalty, heuristic, waitDuration, false, verbose, (i==0));
+            ADPPAgent agent = new  ADPPAgent(i, roadnet, speedArray, waitPenalty, movePenalty, heuristic, waitDuration, false, verbose, (i==0));
             exp = Math.max(exp, agent.getExpandedNodes());
         }
         return exp;

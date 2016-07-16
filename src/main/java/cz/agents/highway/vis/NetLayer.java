@@ -1,21 +1,20 @@
 package cz.agents.highway.vis;
 
-import cz.agents.alite.configreader.ConfigReader;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.vis.Vis;
 import cz.agents.alite.vis.layer.GroupLayer;
 import cz.agents.alite.vis.layer.VisLayer;
-import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.environment.roadnet.Junction;
-import cz.agents.highway.environment.roadnet.Lane;
-import cz.agents.highway.environment.roadnet.Network;
+import cz.agents.highway.environment.roadnet.*;
+import cz.agents.highway.environment.roadnet.network.RoadNetwork;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import javax.vecmath.Point2f;
 import javax.vecmath.Vector2f;
-import java.util.Random;
+
+import static cz.agents.alite.vis.Vis.getDrawingDimension;
 
 
 /**
@@ -23,19 +22,19 @@ import java.util.Random;
  */
 public class NetLayer extends GroupLayer implements VisLayer {
 
-    final int LANE_WIGTH = 10;
-    final int EDGE_WIGTH = 1;
-    final int CROSSROAD_WIGTH = 1;
+    private final int LANE_WIGTH = 10;
+    private final int EDGE_WIGTH = 1;
+    private final int CROSSROAD_WIGTH = 1;
 
 
     final Vector2f VECT_X_NORM = new Vector2f(1, 0);
     final Vector2f VECT_Y_NORM = new Vector2f(0, 1);
 
-    private Network net;
-    private Dimension dim = Vis.getDrawingDimension();
+    private RoadNetwork net;
+    private Dimension dim = getDrawingDimension();
     private Rectangle2D drawingRectangle = new Rectangle(dim);
 
-    public NetLayer(Network roadNetwork) {
+    public NetLayer(RoadNetwork roadNetwork) {
         net = roadNetwork;
     }
 
@@ -52,7 +51,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
         canvas.fillOval((int) (-offset), (int) (-offset), size, size);
         canvas.setTransform(t);
     }
-    void paintCircle2(Graphics2D canvas, Point2f p, int size){
+   private void paintCircle2(Graphics2D canvas, Point2f p, int size){
         AffineTransform t = canvas.getTransform();
         int x = Vis.transX(p.x);
         int y = Vis.transY(p.y);
@@ -64,7 +63,7 @@ public class NetLayer extends GroupLayer implements VisLayer {
         canvas.setTransform(t);
     }
 
-    void paintLine(Graphics2D canvas, Point2f p1, Point2f p2){
+    private void paintLine(Graphics2D canvas, Point2f p1, Point2f p2){
         AffineTransform t = canvas.getTransform();
         int x = Vis.transX(p1.x);
         int y = Vis.transY(p1.y);
