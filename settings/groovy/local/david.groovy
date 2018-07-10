@@ -26,8 +26,8 @@ highway {
         //       folder = "nets/jedkriz";
         //     folder = "nets/map";
         //      folder = "nets/pisek";
-              folder = "nets/pisek-all";
-        //   folder = "nets/CharlesSquare";
+         //     folder = "nets/pisek-all";
+           folder = "nets/CharlesSquare";
         //    folder = "nets/artificialX-junction";
         //    folder = "nets/artificialHighway-funnel";
         //    folder = "nets/hostinne";

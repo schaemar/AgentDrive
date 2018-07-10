@@ -140,6 +140,4 @@ public class RoadNetUsage {
         assertTrue(shape.size() >= 2);
     }
 
-
-
 }

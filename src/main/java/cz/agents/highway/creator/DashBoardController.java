@@ -42,7 +42,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
     private Communicator communicator;
     private final Logger logger = Logger.getLogger(DashBoardController.class);
     boolean meas = false;  //debug
-    long time   = 0;       //debug
+    long time = 0;       //debug
     protected long timestep;
     boolean isProtobufOn;
 
@@ -59,10 +59,9 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
         isProtobufOn = Configurator.getParamBool("highway.protobuf.isOn", false);
         timestep = Configurator.getParamInt("highway.timestep", 100);
         super.create();
-        if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) {
+        if (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) {
             isProtobufOn = false;
-        }
-        else {
+        } else {
             for (String s : (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class))) {
                 if (s.equals("SimulatorLite")) {
                     isProtobufOn = true;
@@ -70,7 +69,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
                 }
             }
         }
-        if(isProtobufOn)initProtoCommunicator();
+        if (isProtobufOn) initProtoCommunicator();
         simulation.addEventHandler(this);
         // Finally start the simulation
         runSimulation();
@@ -119,6 +118,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
 
         ConnectCallback col = new ConnectCallback() {
             private int section = 1;
+
             @Override
             public void invoke(ProtobufFactory factory) {
                 // Create new simulator handler
@@ -133,11 +133,10 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
                 section++;
             }
         };
-        if (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty())
-        { //Simulator dependent code.
+        if (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) { //Simulator dependent code.
             highwayEnvironment.addSimulatorHandler(new LocalSimulatorHandler(highwayEnvironment, new HashSet<Integer>(plannedVehicles)));
         }
-        if(isProtobufOn) communicator.registerConnectCallback(col);
+        if (isProtobufOn) communicator.registerConnectCallback(col);
     }
 
     @Override
@@ -176,11 +175,10 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
     public void handleEvent(Event event) {
         if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
             System.out.println("Caught SIMULATION_STARTED from DashBoard");
-          //  highwayEnvironment.getStorage().updateCars(new RadarData());
+            //  highwayEnvironment.getStorage().updateCars(new RadarData());
             getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
-        }
-        else if (event.isType(HighwayEventType.TIMESTEP)) {
-            if(isProtobufOn) communicator.run();
+        } else if (event.isType(HighwayEventType.TIMESTEP)) {
+            if (isProtobufOn) communicator.run();
             getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
         }
     }
@@ -196,9 +194,12 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
         String[] parts = launchScript.split(" ");
         logger.info("Starting simulator: " + name + ", script: " + launchScript);
         if (!launchScript.isEmpty()) {
-            simulators.put(name, new ProcessBuilder().inheritIO().command(parts).start());
+            //simulators.put(name, new ProcessBuilder().inheritIO().command(parts).start());
+            simulators.put(name, new ProcessBuilder("cmd.exe", parts[0]).start());
+            //simulators.put(name, new ProcessBuilder("cmd.exe", "/C", System.getProperty("user.dir") + "\\" + parts[0]));
         }
     }
+
     private void initProtoCommunicator() {
         FactoryInterface factoryUpdate = null;
         FactoryInterface factoryPlans = null;

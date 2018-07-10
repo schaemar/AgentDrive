@@ -3,14 +3,15 @@ package cz.agents.highway.util;
 import org.apache.log4j.Logger;
 
 import javax.vecmath.Point2f;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 
 public class Utils {
 
     private final static Logger logger = Logger.getLogger(Utils.class);
+
 
 
     public static URL getResourceUrl(String resourcePath) throws FileNotFoundException {
@@ -45,12 +46,12 @@ public class Utils {
     }
 
     public static File getResourceFile(String path) throws FileNotFoundException {
-        URL url = getResourceUrl(path);
-        File file = new File(url.getPath());
+        String url = "data/" + path;//getResourceUrl(path);
+        File file = new File(url);
         if (file.exists()) {
             return file;
         } else {
-            throw new FileNotFoundException("File: "+url.getPath());
+            throw new FileNotFoundException("File: "+url);
         }
     }
 

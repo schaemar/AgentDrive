@@ -1,29 +1,65 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>cz.agents.agentdrive</groupId>
-	<artifactId>agentdrive</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<name>AgentDrive</name>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cz.agents.agentdrive</groupId>
+    <artifactId>agentdrive</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <name>AgentDrive</name>
     <parent>
         <groupId>cz.agents</groupId>
         <artifactId>atgparent</artifactId>
         <version>1.0.1</version>
     </parent>
+
+    <!-- Use this if javadoc does not meet standards of doclint-->
+    <profiles>
+        <profile>
+            <id>disable-java8-doclint</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <additionalparam>-Xdoclint:none</additionalparam>
+            </properties>
+        </profile>
+    </profiles>
+
     <repositories>
+        <repository>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+            <releases/>
+            <id>atg-repo</id>
+            <name>atg-repo</name>
+            <url>http://jones.felk.cvut.cz/artifactory/repo</url>
+        </repository>
+
         <repository>
             <id>ros</id>
             <name>ros</name>
-            <url> https://github.com/rosjava/rosjava_mvn_repo/raw/master/</url>
+            <url>https://github.com/rosjava/rosjava_mvn_repo/raw/master/</url>
         </repository>
     </repositories>
-	<dependencies>
+    <dependencies>
 
-		<dependency>
-			<groupId>cz.agents.alite</groupId>
-			<artifactId>alite</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
+        <dependency>
+            <groupId>cz.agents.alite</groupId>
+            <artifactId>alite</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
         <!-- road network-->
         <dependency>
@@ -38,11 +74,11 @@
         </dependency>
 
         <!-- communication/protobuf-->
-		<dependency>
-			<groupId>cz.agents.agentdrive</groupId>
-			<artifactId>protobufCommunicator</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
+        <dependency>
+            <groupId>cz.agents.agentdrive</groupId>
+            <artifactId>protobufCommunicator</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>cz.agents.agentdrive</groupId>
             <artifactId>protobuf</artifactId>
@@ -54,6 +90,11 @@
             <version>2.4.1</version>
         </dependency>
         <!-- configuration, tests and logging-->
+        <dependency>
+            <groupId>cz.agents.alite</groupId>
+            <artifactId>alite</artifactId>
+            <version>1.1.2</version>
+        </dependency>
         <dependency>
             <groupId>cz.agents.alite</groupId>
             <artifactId>configreader</artifactId>
@@ -84,35 +125,31 @@
             <version>4.11</version>
             <scope>cz.agents.highway.test</scope>
         </dependency>
-        <dependency>
-            <groupId>commons-cli</groupId>
-            <artifactId>commons-cli</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ros.rosjava_core</groupId>
-            <artifactId>rosjava</artifactId>
-            <version>0.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ros.rosjava_messages</groupId>
-            <artifactId>geometry_msgs</artifactId>
-            <version>1.11.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ros.rosjava_messages</groupId>
-            <artifactId>nav_msgs</artifactId>
-            <version>1.11.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ros.rosjava_messages</groupId>
-            <artifactId>std_msgs</artifactId>
-            <version>0.5.9</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ros.rosjava_bootstrap</groupId>
-            <artifactId>message_generation</artifactId>
-            <version>0.2.1</version>
-        </dependency>
+
+        <!--<dependency>-->
+        <!--<groupId>org.ros.rosjava_core</groupId>-->
+        <!--<artifactId>rosjava</artifactId>-->
+        <!--<version>0.2.1</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--<groupId>org.ros.rosjava_messages</groupId>-->
+        <!--<artifactId>geometry_msgs</artifactId>-->
+        <!--<version>1.11.7</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--<groupId>org.ros.rosjava_messages</groupId>-->
+        <!--<artifactId>nav_msgs</artifactId>-->
+        <!--<version>1.11.7</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--<groupId>org.ros.rosjava_messages</groupId>-->
+        <!--<artifactId>std_msgs</artifactId>-->
+        <!--<version>0.5.9</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--<groupId>org.ros.rosjava_bootstrap</groupId>-->
+        <!--<artifactId>message_generation</artifactId>-->
+        <!--<version>0.2.1</version>-->
+        <!--</dependency>-->
     </dependencies>
 </project>

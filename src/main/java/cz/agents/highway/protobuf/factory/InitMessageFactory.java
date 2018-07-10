@@ -2,7 +2,6 @@ package cz.agents.highway.protobuf.factory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
 import javax.vecmath.Point3d;
 
 import com.google.protobuf.InvalidProtocolBufferException;

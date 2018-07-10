@@ -17,7 +17,7 @@ public class UtilsTest {
 
     @Test
     public void testTestingFileExists() {
-        File file = new File("src/test/resources/" + testFilePath);
+        File file = new File("data/" + testFilePath);
         assertTrue("Testing file \"" + testFilePath + " should be in the test resources for proper " + getClass().getName() + " functionality", file.exists());
     }
 
