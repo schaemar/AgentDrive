@@ -17,11 +17,6 @@
         </plugins>
     </build>
     <name>AgentDrive</name>
-    <parent>
-        <groupId>cz.agents</groupId>
-        <artifactId>atgparent</artifactId>
-        <version>1.0.1</version>
-    </parent>
 
     <!-- Use this if javadoc does not meet standards of doclint-->
     <profiles>
@@ -46,26 +41,24 @@
             <name>atg-repo</name>
             <url>http://jones.felk.cvut.cz/artifactory/repo</url>
         </repository>
-
-        <repository>
-            <id>ros</id>
-            <name>ros</name>
-            <url>https://github.com/rosjava/rosjava_mvn_repo/raw/master/</url>
-        </repository>
     </repositories>
+    <!--<parent>-->
+    <!--<groupId>cz.agents</groupId>-->
+    <!--<artifactId>atgparent</artifactId>-->
+    <!--<version>1.0-SNAPSHOT</version>-->
+    <!--</parent>-->
     <dependencies>
-
         <dependency>
             <groupId>cz.agents.alite</groupId>
             <artifactId>alite</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.1.2</version>
         </dependency>
 
         <!-- road network-->
         <dependency>
             <groupId>ags.utils.dataStructures</groupId>
             <artifactId>kdtreerednaxela</artifactId>
-            <version>3.0-SNAPSHOT</version>
+            <version>3.0</version>
         </dependency>
         <dependency>
             <groupId>cz.agents.alite</groupId>
@@ -73,17 +66,26 @@
             <version>2.0.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>javax.vecmath</groupId>
+            <artifactId>vecmath</artifactId>
+            <version>1.5.2</version>
+        </dependency>
         <!-- communication/protobuf-->
+
+        <!--login required-->
         <dependency>
             <groupId>cz.agents.agentdrive</groupId>
             <artifactId>protobufCommunicator</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <!--login required-->
         <dependency>
             <groupId>cz.agents.agentdrive</groupId>
             <artifactId>protobuf</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
@@ -92,20 +94,9 @@
         <!-- configuration, tests and logging-->
         <dependency>
             <groupId>cz.agents.alite</groupId>
-            <artifactId>alite</artifactId>
-            <version>1.1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>cz.agents.alite</groupId>
             <artifactId>configreader</artifactId>
             <version>3.0.4</version>
             <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.2</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
@@ -123,7 +114,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
-            <scope>cz.agents.highway.test</scope>
         </dependency>
 
         <!--<dependency>-->
