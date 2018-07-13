@@ -149,7 +149,7 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
             for (String sim : simulatorsToRun) {
                 runSimulator(sim);
             }
-            if (simulatorsToRun.size() >= 1) {
+            if (simulatorsToRun.size() >= 1 && isProtobufOn) {
                 synchronized (simulation) {
                     try {
                         simulation.wait();
@@ -195,7 +195,10 @@ public class DashBoardController extends DefaultCreator implements EventHandler 
         logger.info("Starting simulator: " + name + ", script: " + launchScript);
         if (!launchScript.isEmpty()) {
             //simulators.put(name, new ProcessBuilder().inheritIO().command(parts).start());
-            simulators.put(name, new ProcessBuilder("cmd.exe", parts[0]).start());
+            if (!isProtobufOn){
+            }else {
+                simulators.put(name, new ProcessBuilder("cmd.exe", parts[0]).start());
+            }
             //simulators.put(name, new ProcessBuilder("cmd.exe", "/C", System.getProperty("user.dir") + "\\" + parts[0]));
         }
     }

@@ -75,7 +75,6 @@ public class DefaultCreator implements Creator {
             simulation = new Simulation(simulationDuration);
         }
         logger.info(">>> ENVIRONMENT CREATION");
-        //FIXME - fix what?.. identify or delete "fixme"
         highwayEnvironment = new HighwayEnvironment(simulation);
 
         if (Configurator.getParamBool("highway.vis.isOn", false)) {

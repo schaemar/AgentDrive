@@ -5,11 +5,13 @@ highway {
     timestep = 10; //ms               //not relevant
 
 //    agent = "SDAgent";
- //   agent = "RouteAgent";
+    //   agent = "RouteAgent";
     agent = "GSDAgent";
 
     net {
-        folder = "nets/dresden/";
+        folder = "nets/skoda-parking"
+       // folder = "nets/mlada-boleslav/"
+        //  folder = "nets/dresden/";
 //        folder = "nets/highway-straight/";
     }
     safeDistanceAgent {
@@ -81,7 +83,6 @@ highway {
             Empty {
                 launch = "launchers/empty.bat"
             }
-
 
 
         }
