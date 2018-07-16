@@ -76,26 +76,6 @@
             <artifactId>vecmath</artifactId>
             <version>1.5.2</version>
         </dependency>
-        <!-- communication/protobuf-->
-
-        <!--login required-->
-        <dependency>
-            <groupId>cz.agents.agentdrive</groupId>
-            <artifactId>protobufCommunicator</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <!--login required-->
-        <dependency>
-            <groupId>cz.agents.agentdrive</groupId>
-            <artifactId>protobuf</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>2.4.1</version>
-        </dependency>
         <!-- configuration, tests and logging-->
         <dependency>
             <groupId>cz.agents.alite</groupId>

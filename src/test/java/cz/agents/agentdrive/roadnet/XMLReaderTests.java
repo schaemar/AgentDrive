@@ -1,8 +1,8 @@
 package cz.agents.agentdrive.roadnet;
 
-import cz.agents.highway.environment.roadnet.XMLReader;
-import cz.agents.highway.environment.roadnet.network.RoadNetwork;
-import cz.agents.highway.util.Utils;
+import cz.agents.agentdrive.highway.environment.roadnet.XMLReader;
+import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
+import cz.agents.agentdrive.highway.util.Utils;
 import org.junit.Test;
 
 import java.io.FileNotFoundException;

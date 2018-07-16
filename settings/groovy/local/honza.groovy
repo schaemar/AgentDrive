@@ -1,22 +1,18 @@
 highway {
     seed = 0;                          // random number generator seed
     simulationDuration = -1;      // - 1 = infinity
-    simulationSpeed = 1.0;             //not relevant
+    simulationSpeed = 1;             //not relevant
     timestep = 10; //ms               //not relevant
 
-//    agent = "SDAgent";
-    //   agent = "RouteAgent";
-    agent = "GSDAgent";
-
+    // agent = "SDAgent";
+    agent = "RouteAgent";
+    // agent = "GSDAgent";
     net {
         folder = "nets/skoda-parking"
-       // folder = "nets/mlada-boleslav/"
-        //  folder = "nets/dresden/";
-//        folder = "nets/highway-straight/";
     }
     safeDistanceAgent {
         safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
-        narrowingModeActive = false;
+        narrowingModeActive = true;
         distanceToActivateNM = 100.0;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
@@ -114,5 +110,58 @@ highway {
 
     SimulatorLocal {
         timestep = 1;
+    }
+}
+/**
+ * Created by wmatex on 4.7.14.
+ */
+simulator {
+    lite {
+        name = "Simulator-Lite";
+        simulationSpeed = 1;
+
+        vis {
+            SimulationControlLayer = true;
+            NetVisLayer = true;
+            TrafficVisLayer = true;
+            ZoomVehicleLayer = true;
+            AgentDriveVisLayer = true;
+            RoadObjectLayer = true;
+        }
+    }
+    net {
+        // folder = "nets/mlada-boleslav/"
+        folder = "nets/skoda-parking/"
+        // folder = "nets/CharlesSquare";
+        // folder = "nets/dresden/";
+        // folder = "super-collision";
+        // folder = "nets/x-junction/";
+        // folder = "nets/pisek-all/"
+        // folder = "nets/junction-big/";
+        // folder = "nets/highway-straight/";
+        // folder = "nets/artificialX-junction";
+        // folder = "nets/ulesika";
+        // folder = "nets/nartest";
+        // folder = "nets/artificialHighway-funnel";
+        // folder = "nets/hostinne";
+        // folder = "nets/artificialXS-junction";
+        // folder = "nets/artificialT-junction";
+        // folder = "nets/pisek";
+
+
+    }
+    netLayer {
+        lane {
+            view = true;
+            width = 10;
+        }
+        edge {
+            view = true;
+            width = 1;
+        }
+        crossRoad {
+            view = false;
+            width = 1;
+        }
     }
 }

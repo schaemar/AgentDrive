@@ -2,7 +2,7 @@ package simplan;
 
 import "simplan/vector.proto";
 
-option java_package = "cz.agents.highway.protobuf.generated.simplan";
+option java_package = "cz.agents.agentdrive.highway.protobuf.generated.simplan";
 option java_outer_classname = "InitMessage";
 
 message Init {

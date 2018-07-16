@@ -1,6 +1,6 @@
 package aebctu;
 
-option java_package = "cz.agents.highway.protobuf.generated";
+option java_package = "cz.agents.highway.agentdrive.protobuf.generated";
 option java_outer_classname = "InitMessage";
 
 message Init {

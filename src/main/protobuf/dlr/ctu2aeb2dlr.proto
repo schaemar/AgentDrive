@@ -1,6 +1,6 @@
 package aebctudlr;
 
-option java_package = "cz.agents.highway.protobuf.generated.dlr";
+option java_package = "cz.agents.agentdrive.highway.protobuf.generated.dlr";
 option java_outer_classname = "DLR_PlanMessage";
 
 message Plans {

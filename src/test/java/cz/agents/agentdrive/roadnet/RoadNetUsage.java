@@ -1,15 +1,14 @@
 package cz.agents.agentdrive.roadnet;
 
-import cz.agents.highway.environment.roadnet.Edge;
-import cz.agents.highway.environment.roadnet.Lane;
-import cz.agents.highway.environment.roadnet.LaneImpl;
-import cz.agents.highway.environment.roadnet.network.NetworkLocation;
-import cz.agents.highway.environment.roadnet.network.RoadNetwork;
+import cz.agents.agentdrive.highway.environment.roadnet.Edge;
+import cz.agents.agentdrive.highway.environment.roadnet.Lane;
+import cz.agents.agentdrive.highway.environment.roadnet.LaneImpl;
+import cz.agents.agentdrive.highway.environment.roadnet.network.NetworkLocation;
+import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
 import org.junit.Before;
 import org.junit.Test;
 import tt.euclid2d.region.Rectangle;
 
-import javax.vecmath.Point2d;
 import javax.vecmath.Point2f;
 import javax.vecmath.Vector2f;
 import java.net.URISyntaxException;

@@ -4,7 +4,7 @@ import "simplan/sim2planner.proto";
 import "simplan/planner2sim.proto";
 import "simplan/highway_init.proto";
 
-option java_package = "cz.agents.highway.protobuf.generated.simplan";
+option java_package = "cz.agents.agentdrive.highway.protobuf.generated.simplan";
 option java_outer_classname = "MessageContainer";
 
 message Header{
