@@ -19,7 +19,7 @@ If the second argument is not used the default config file is used i.e. settings
 Dashboard controller allows to run only AgentDrive(highway) that will start also all configured simulators in config file. This can work under condition that there are proper scripts for running each simulator.
 See config file you use (settings/groovy/highway.groovy or settings/groovy/local/????.groovy) for checking where thr scripts should be located. The script are not under version control in mercurial because these are specific for each user's environment.
 
-There is an in-build local simulator avaible. It can be enabled from the config by uncommenting the line simulatorsToRun = [];
+There is an in-build local simulator available. It can be enabled from the config by uncommenting the line simulatorsToRun = [];
 
 There is a possibility to use another simulators.
 We provide example of running simulator-lite, we suppose the simulator-lite is opened in IDE as a module, than you can run the simulator from IDE and copy the run command from console. You might need to change directory first to make it work. In our case the simulator-lite is located in ../simulator-lite folder.
