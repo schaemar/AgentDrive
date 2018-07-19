@@ -13,7 +13,7 @@ import java.util.ArrayList;
  * Created by pavel on 19.6.14.
  */
 public class LaneImpl implements Lane{
-    public static final float INNER_POINTS_STEP_SIZE = Configurator.getParamDouble("highway.net.lane.stepSize", 1d).floatValue();
+    public static final float INNER_POINTS_STEP_SIZE = Configurator.getParamDouble("simulator.net.lane.stepSize", 1d).floatValue();
     private final String laneId;
     private final int index;
     private final float speed;

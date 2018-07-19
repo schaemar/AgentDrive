@@ -19,7 +19,7 @@ public final class RandomProvider {
 	public static void init(Environment environmentToUse) {
 		environment = environmentToUse;
 		// Setting seed of random generator
-		long seed = Configurator.getParamInt("highway.seed", -1);
+		long seed = Configurator.getParamInt("simulator.lite.seed", -1);
 		if (seed != -1) {
 			environment.getRandom().setSeed(seed);
 		}

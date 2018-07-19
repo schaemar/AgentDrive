@@ -47,7 +47,7 @@ public class HighwayStorage extends EventBasedStorage {
     private static final double CHECKING_DISTANCE = Configurator.getParamDouble("highway.storage.checkingDistance", 500d);
     ;
     private static final double SAFETY_RESERVE = Configurator.getParamDouble("highway.storage.safetyReserve", 10d);
-    private static final double INSERT_SPEED = Configurator.getParamDouble("highway.storage.insertSpeed", 0d);
+    private static final double INSERT_SPEED = Configurator.getParamDouble("highway.storage.insertSpeed", 1d);
 
 
     public HighwayStorage(HighwayEnvironment environment) {

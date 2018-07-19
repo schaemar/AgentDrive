@@ -10,6 +10,7 @@ import cz.agents.agentdrive.highway.storage.VehicleSensor;
 import cz.agents.agentdrive.highway.storage.plan.Action;
 import cz.agents.agentdrive.highway.storage.plan.ManeuverAction;
 import cz.agents.agentdrive.highway.storage.plan.WPAction;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import javax.vecmath.Point2d;
@@ -54,6 +55,8 @@ public class SDAgent extends Agent {
         super(id);
         maneuverTranslator = new ManeuverTranslator(id, navigator);
         num_of_lines = 1;
+
+        logger.setLevel(Level.DEBUG);
     }
 
     public void addSensor(final VehicleSensor sensor) {

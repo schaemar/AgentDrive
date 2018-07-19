@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 07/19/18 20:28:08 by SUMO duarouter Version 0.32.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="test_sda1\test_sda1.net.xml"/>
+        <route-files value="test_sda1\test_sda1.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="test_sda1\test_sda1.rou.xml"/>
+        <alternatives-output value="test_sda1\test_sda1.rou.alt.xml"/>
+    </output>
+
+    <processing>
+        <ignore-errors value="true"/>
+        <randomize-flows value="true"/>
+        <routing-algorithm value="astar"/>
+    </processing>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vehicle id="0" depart="0.00">
+        <route edges="gneE1 gneE0"/>
+    </vehicle>
+    <vehicle id="1" depart="10.00">
+        <route edges="-gneE0 -gneE1"/>
+    </vehicle>
+    <vehicle id="2" depart="20.00">
+        <route edges="gneE1 gneE0"/>
+    </vehicle>
+    <vehicle id="3" depart="20.00">
+        <route edges="-gneE0 -gneE1"/>
+    </vehicle>
+    <vehicle id="4" depart="30.00">
+        <route edges="gneE1 gneE0"/>
+    </vehicle>
+    <vehicle id="5" depart="30.00">
+        <route edges="-gneE0 -gneE1"/>
+    </vehicle>
+    <vehicle id="6" depart="30.00">
+        <route edges="gneE3 gneE2"/>
+    </vehicle>
+    <vehicle id="7" depart="30.00">
+        <route edges="-gneE2 -gneE3"/>
+    </vehicle>
+</routes>

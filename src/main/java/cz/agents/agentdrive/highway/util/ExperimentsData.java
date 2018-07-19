@@ -57,7 +57,7 @@ public class ExperimentsData {
         }
         logger.info("Number of collisions is " + numberOfCollisons + "\n");
         FileUtil.getInstance().writeToFile(distances, 0);
-        System.out.println(timesOfArrival);
+        logger.info("Times of arrival: " + timesOfArrival);
     }
     private int calculateNumberOfCollisions() {
         int num = 0;

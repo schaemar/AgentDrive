@@ -142,7 +142,7 @@ public class FileUtil {
     {
         String file_name = "graphOfArrivals.m";
         final XMLReader reader = new XMLReader();
-        reader.read(Configurator.getParamString("highway.net.folder","notDefined"));
+        reader.read(Configurator.getParamString("simulator.net.folder","notDefined"));
         //reader.getRoutes().get(obj.getKey()
         HashMap<Integer,List<String>> vehRoutes = new LinkedHashMap<Integer, List<String>>();
         char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
@@ -296,7 +296,7 @@ public class FileUtil {
         try {
             FileWriter fstream = new FileWriter(file_name);
             BufferedWriter out = new BufferedWriter(fstream);
-            out.write("Name of the scenario is: " + Configurator.getParamString("highway.net.folder", "nets/junction-big/"));
+            out.write("Name of the scenario is: " + Configurator.getParamString("simulator.net.folder", "nets/junction-big/"));
             out.newLine();
             out.write("Number of collisions is :" + numberOfCollisions);
             out.newLine();
@@ -329,7 +329,7 @@ public class FileUtil {
           /*  out.write("Avarage speed is: "+ (distance/timeOfsimulation)*3.6 + " km/h");
             out.newLine();*/
             final XMLReader reader = new XMLReader();
-            File flowsFile = Utils.getFileWithSuffix(Configurator.getParamString("highway.net.folder", "nets/junction-big/"), ".flows.xml");
+            File flowsFile = Utils.getFileWithSuffix(Configurator.getParamString("simulator.net.folder", "nets/junction-big/"), ".flows.xml");
             Scanner sc = new Scanner(flowsFile);
             while (sc.hasNextLine()) {
                 String s = sc.nextLine();

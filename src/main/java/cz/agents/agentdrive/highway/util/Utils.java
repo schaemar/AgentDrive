@@ -12,7 +12,6 @@ public class Utils {
     private final static Logger logger = Logger.getLogger(Utils.class);
 
 
-
     public static URL getResourceUrl(String resourcePath) throws FileNotFoundException {
 
         logger.trace("input path: " + resourcePath);
@@ -28,15 +27,19 @@ public class Utils {
 
     public static File getFileWithSuffix(String resourceFolderPath, String suffix) throws FileNotFoundException {
         File folder = getResourceFile(resourceFolderPath);
+        File file = null;
         if (folder.isDirectory()) {
             File[] files = folder.listFiles();
             for (File f : files) {
                 if (f.getName().endsWith(suffix)) {
-                    return f;
+                    if (file != null)
+                        throw new FileNotFoundException("Found two or more files with the same suffix.");
+                    file = f;
                 }
             }
         }
-        throw new FileNotFoundException("File with \""+suffix+"\" suffix in "+resourceFolderPath+" not found");
+        if(file == null) throw new FileNotFoundException("File with \"" + suffix + "\" suffix in " + resourceFolderPath + " not found");
+        return file;
     }
 
     // this might get more complex regarding OpenDS config
@@ -50,7 +53,7 @@ public class Utils {
         if (file.exists()) {
             return file;
         } else {
-            throw new FileNotFoundException("File: "+url);
+            throw new FileNotFoundException("File: " + url);
         }
     }
 

@@ -21,7 +21,7 @@ public class NetVisLayer extends AbstractLayer{
     private final NetLayer netLayer;
     
     public NetVisLayer(){
-        XMLReader reader = new XMLReader(Configurator.getParamString("highway.net.folder",
+        XMLReader reader = new XMLReader(Configurator.getParamString("simulator.net.folder",
         Configurator.getParamString("simulator.net.folder","nets/junction-big/")));
         netLayer = new NetLayer(reader.getNetwork());
     }

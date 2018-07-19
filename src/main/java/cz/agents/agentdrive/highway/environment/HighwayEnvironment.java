@@ -38,7 +38,20 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
 
         // Initialize Network from given xml
         XMLReader xmlReader = new XMLReader();
-        roadNetwork = xmlReader.parseNetwork(Configurator.getParamString("highway.net.folder", "nets/junction-big/"));
+        roadNetwork = xmlReader.parseNetwork(Configurator.getParamString("simulator.net.folder", "nets/junction-big/"));
+        RoadNetworkRouter.setRoadNet(roadNetwork);
+        storage = new HighwayStorage(this);
+        logger.info("Initialized storage and RoadNetwork");
+
+        eventProcessor.addEventHandler(this);
+    }
+    public HighwayEnvironment(final EventProcessor eventProcessor, RoadNetwork roadNetwork) {
+        super(eventProcessor);
+        RandomProvider.init(this);
+
+        // Initialize Network from given xml
+        XMLReader xmlReader = new XMLReader();
+        this.roadNetwork = roadNetwork;//xmlReader.parseNetwork(Configurator.getParamString("simulator.net.folder", "nets/junction-big/"));
         RoadNetworkRouter.setRoadNet(roadNetwork);
         storage = new HighwayStorage(this);
         logger.info("Initialized storage and RoadNetwork");
@@ -78,5 +91,9 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
 
     public void addSimulatorHandler(SimulatorHandler sim) {
         simulatorHandlers.add(sim);
+    }
+
+    public List<SimulatorHandler> getSimulatorHandlers() {
+        return simulatorHandlers;
     }
 }

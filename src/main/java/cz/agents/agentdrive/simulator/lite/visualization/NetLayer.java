@@ -84,9 +84,9 @@ public class NetLayer extends GroupLayer implements VisLayer {
     @Override
     public void paint(Graphics2D canvas) {
         super.paint(canvas);
-        if(Configurator.getParamBool("highway.netLayer.lane.view", true)){
+        if(Configurator.getParamBool("simulator.netLayer.lane.view", true)){
             canvas.setColor(Color.DARK_GRAY);
-            int size = Configurator.getParamInt("highway.netLayer.lane.width", LANE_WIGTH);
+            int size = Configurator.getParamInt("simulator.netLayer.lane.width", LANE_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             for (Lane lane : net.getLanes().values()) {
                 Point2f prev = lane.getShape().get(0);
@@ -100,9 +100,9 @@ public class NetLayer extends GroupLayer implements VisLayer {
                 }
             }
         }
-        if(Configurator.getParamBool("highway.netLayer.edge.view", false)){
+        if(Configurator.getParamBool("simulator.netLayer.edge.view", false)){
             canvas.setColor(Color.red);
-            int size = Configurator.getParamInt("highway.netLayer.edge.width", EDGE_WIGTH);
+            int size = Configurator.getParamInt("simulator.netLayer.edge.width", EDGE_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             for (Edge edge : net.getEdges().values()) {
                 if(edge.getShape().isEmpty())continue;
@@ -113,9 +113,9 @@ public class NetLayer extends GroupLayer implements VisLayer {
                 }
             }
         }
-        if(Configurator.getParamBool("highway.netLayer.crossRoad.view", false)){
+        if(Configurator.getParamBool("simulator.netLayer.crossRoad.view", false)){
             canvas.setColor(Color.green);
-            int size = Configurator.getParamInt("highway.netLayer.crossRoad.width", CROSSROAD_WIGTH);
+            int size = Configurator.getParamInt("simulator.netLayer.crossRoad.width", CROSSROAD_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             for (Junction junction : net.getJunctions().values()) {
                 if(junction.getShape().isEmpty())continue;

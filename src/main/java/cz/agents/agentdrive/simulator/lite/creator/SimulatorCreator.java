@@ -1,6 +1,7 @@
 package cz.agents.agentdrive.simulator.lite.creator;
 
 import cz.agents.agentdrive.highway.agent.Agent;
+import cz.agents.agentdrive.highway.environment.SimulatorHandlers.LocalSimulatorHandler;
 import cz.agents.agentdrive.highway.environment.SimulatorHandlers.ModuleSimulatorHandler;
 import cz.agents.agentdrive.highway.environment.roadnet.XMLReader;
 import cz.agents.agentdrive.highway.storage.HighwayStorage;
@@ -70,7 +71,7 @@ public class SimulatorCreator implements Creator {
 
     @Override
     public void create() {
-        timestep = Configurator.getParamInt("highway.timestep", 100);
+        timestep = Configurator.getParamInt("simulator.lite.timestep", 100);
         simulation = new Simulation();
         double simulationSpeed = Configurator.getParamDouble("simulator.lite.simulationSpeed", 1.0);
         simulation.setSimulationSpeed(simulationSpeed);
@@ -146,7 +147,7 @@ public class SimulatorCreator implements Creator {
 
 
     private void initTraffic(){
-        final XMLReader reader = new XMLReader(Configurator.getParamString("highway.net.folder", "notDefined"));
+        final XMLReader reader = new XMLReader(Configurator.getParamString("simulator.net.folder", "notDefined"));
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();
         final Map<Integer, Float> departures = reader.getDepartures();
@@ -178,7 +179,7 @@ public class SimulatorCreator implements Creator {
             plannedVehiclesLocal.add(vehicleID);
         }
         final Set<Integer> plannedVehicles = plannedVehiclesLocal;
-        //environment.getHighwayEnvironment().addSimulatorHandler(new LocalSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles)));
+      //  environment.getHighwayEnvironment().addSimulatorHandler(new LocalSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles)));
         environment.getHighwayEnvironment().addSimulatorHandler(new ModuleSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles), environment.getPlanCallback()));
     }
 

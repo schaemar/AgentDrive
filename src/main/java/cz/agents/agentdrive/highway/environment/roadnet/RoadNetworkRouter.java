@@ -43,7 +43,7 @@ public class RoadNetworkRouter {
     }
 
     private static HashMap<Integer, List<String>> readRoutesFromFile() {
-        String netFolderPath = Configurator.getParamString("highway.net.folder", "notDefined");
+        String netFolderPath = Configurator.getParamString("simulator.net.folder", "notDefined");
         XMLReader reader = new XMLReader(netFolderPath);
         HashMap<Integer, List<String>> routes = reader.getRoutes();
         return routes;

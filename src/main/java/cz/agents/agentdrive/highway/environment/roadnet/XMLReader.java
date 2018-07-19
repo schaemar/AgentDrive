@@ -339,7 +339,7 @@ public class XMLReader {
 
 
     private void parseMultilevelJunctions() {
-        String folderPath = Configurator.getParamString("highway.net.folder", "nets/junction-big");
+        String folderPath = Configurator.getParamString("simulator.net.folder", "nets/junction-big");
         tunnels = new ArrayList<String>();
         bridges = new ArrayList<String>();
         try {

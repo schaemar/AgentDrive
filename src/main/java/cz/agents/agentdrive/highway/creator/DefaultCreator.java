@@ -27,6 +27,7 @@ import cz.agents.alite.vis.layer.common.VisInfoLayer;
 import cz.agents.agentdrive.highway.environment.HighwayEnvironment;
 import cz.agents.agentdrive.highway.util.Utils;
 
+@Deprecated
 public class DefaultCreator implements Creator {
     protected String DEFAULT_CONFIG_FILE = "settings/groovy/highway.groovy";
     protected String CONFIG_FILE = DEFAULT_CONFIG_FILE;
@@ -63,11 +64,11 @@ public class DefaultCreator implements Creator {
     }
 
     public void create() {
-        int seed = Configurator.getParamInt("highway.seed", 0);
+        int seed = Configurator.getParamInt("simulator.lite.seed", 0);
         logger.info("Seed set to " + seed);
-        double simulationSpeed = Configurator.getParamDouble("highway.simulationSpeed", 1.0);
+        double simulationSpeed = Configurator.getParamDouble("simulator.lite.simulationSpeed", 1.0);
         logger.info("Simulation speed: " + simulationSpeed);
-        long simulationDuration = Configurator.getParamInt("highway.simulationDuration", -1);
+        long simulationDuration = Configurator.getParamInt("simulator.lite.simulationDuration", -1);
         logger.info("Simulation duration: " + simulationDuration);
 
         logger.info(">>> SIMULATION CREATION");
@@ -79,7 +80,7 @@ public class DefaultCreator implements Creator {
         logger.info(">>> ENVIRONMENT CREATION");
         highwayEnvironment = new HighwayEnvironment(simulation);
 
-        if (Configurator.getParamBool("highway.vis.isOn", false)) {
+        if (Configurator.getParamBool("simulator.lite.vis.isOn", false)) {
             logger.info(">>> VISUALISATION CREATION");
             createVisualization();
             VisManager.registerLayer(new NetLayer(highwayEnvironment.getRoadNetwork()));
