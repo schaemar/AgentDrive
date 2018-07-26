@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 07/24/18 09:14:36 by SUMO duarouter Version 0.32.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="test_bottleneck\test_bottleneck.net.xml"/>
+        <route-files value="test_bottleneck\test_bottleneck.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="test_bottleneck\test_bottleneck.rou.xml"/>
+        <alternatives-output value="test_bottleneck\test_bottleneck.rou.alt.xml"/>
+    </output>
+
+    <processing>
+        <ignore-errors value="true"/>
+        <routing-algorithm value="astar"/>
+    </processing>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vehicle id="0" depart="0.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="1" depart="1.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="2" depart="2.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="3" depart="3.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="4" depart="4.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="5" depart="5.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="6" depart="6.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="7" depart="7.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="8" depart="8.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="9" depart="9.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="10" depart="10.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="11" depart="11.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="12" depart="12.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="13" depart="13.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="14" depart="14.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="15" depart="15.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="16" depart="16.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+    <vehicle id="17" depart="17.00">
+        <route edges="1 2 3"/>
+    </vehicle>
+ 
+</routes>

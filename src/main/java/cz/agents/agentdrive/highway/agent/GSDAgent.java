@@ -53,7 +53,7 @@ public class GSDAgent extends RouteAgent {
     public GSDAgent(int id, RoadNetwork roadNetwork) {
         super(id);
         this.roadNetwork = roadNetwork;
-        num_of_lines = 1;
+        num_of_lines = navigator.getLane().getParentEdge().getLanes().keySet().size();
     }
 
     @Override
@@ -295,7 +295,7 @@ public class GSDAgent extends RouteAgent {
         if (laneOut < 0) {
             return false;
         }
-        if (laneOut >= num_of_lines) {
+        if (laneOut >= navigator.getLane().getParentEdge().getLanes().keySet().size()) {
             return false;
         }
 

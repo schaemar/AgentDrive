@@ -26,7 +26,7 @@ public class ManeuverTranslator {
     private static final float EPSILON = 0.01f;
 
     private VehicleSensor sensor;
-    private final RouteNavigator navigator;
+    private RouteNavigator navigator;
     private final int id;
 
     public ManeuverTranslator(int id, RouteNavigator navigator) {
@@ -38,31 +38,57 @@ public class ManeuverTranslator {
         this.sensor = sensor;
     }
 
-    public Action translate(CarManeuver maneuver) {
+    public Action translate(CarManeuver maneuver, RouteNavigator navigator) {
+        this.navigator = navigator;
         if (maneuver == null) {
             Point2f initial = navigator.getInitialPosition();
             return new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0);
         }
+
         RoadObject me = sensor.senseCurrentState();
         // Check the type of maneuver
         if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
                 || (maneuver instanceof DeaccelerationManeuver)) {
-            Point2f innerPoint = generateWaypointInLane(me.getLaneIndex(), maneuver);
+            Point2f innerPoint = generateWaypointInLane(0, maneuver, me);
+            System.out.println("IP: " + me.getId() + " " + innerPoint);
             return point2Waypoint(innerPoint, maneuver);
         } else if (maneuver instanceof LaneLeftManeuver) {
-            Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() + 1*/ 1, maneuver);
+            Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() + 1*/ 1, maneuver, me);
             return point2Waypoint(innerPoint, maneuver);
         } else if (maneuver instanceof LaneRightManeuver) {
-            Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() - 1*/ -1, maneuver);
+            Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() - 1*/ -1, maneuver, me);
             return point2Waypoint(innerPoint, maneuver);
         } else {
             return new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
                     maneuver.getVelocityOut(), maneuver.getLaneOut(), maneuver.getDuration());
         }
     }
-    private Point2f generateWaypointInLane(int relativeLane, CarManeuver maneuver) {
-        RoadObject me = sensor.senseCurrentState();
+    public Action translate(CarManeuver maneuver) {
+        if (maneuver == null) {
+            Point2f initial = navigator.getInitialPosition();
+            return new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0);
+        }
 
+        RoadObject me = sensor.senseCurrentState();
+        // Check the type of maneuver
+        if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
+                || (maneuver instanceof DeaccelerationManeuver)) {
+            Point2f innerPoint = generateWaypointInLane(0, maneuver, me);
+            System.out.println("IP: " + me.getId() + " " + innerPoint);
+            return point2Waypoint(innerPoint, maneuver);
+        } else if (maneuver instanceof LaneLeftManeuver) {
+            Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() + 1*/ 1, maneuver, me);
+            return point2Waypoint(innerPoint, maneuver);
+        } else if (maneuver instanceof LaneRightManeuver) {
+            Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() - 1*/ -1, maneuver, me);
+            return point2Waypoint(innerPoint, maneuver);
+        } else {
+            return new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
+                    maneuver.getVelocityOut(), maneuver.getLaneOut(), maneuver.getDuration());
+        }
+    }
+    private Point2f generateWaypointInLane(int relativeLane, CarManeuver maneuver, RoadObject me) {
+       // RoadObject me = sensor.senseCurrentState();
 
         Point3f p = me.getPosition();
         Point2f pos2D = new Point2f(p.x, p.y);
@@ -81,6 +107,8 @@ public class ManeuverTranslator {
             navigator.changeLaneRight();
         } else if (relativeLane > 0) {
             navigator.changeLaneLeft();
+        }else{
+
         }
         int i = 0;
         do {

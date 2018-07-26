@@ -52,7 +52,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
 
 
     /// Time between updates
-    static public final long UPDATE_STEP = 50;
+    static public final long UPDATE_STEP = 20;
 
     /// Time between communication updates
     static public final long COMM_STEP = 200;
@@ -81,7 +81,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                 // Start updating vehicles when the simulation starts
                 if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
                     logger.info("SIMULATION STARTED");
-                    // highwayEnvironment.getStorage().updateCars(currentState);
+                    //highwayEnvironment.getStorage().updateCars(currentState);
 
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null);
                     getEventProcessor().addEvent(SimulatorEvent.UPDATE, null, null, null);
@@ -90,10 +90,9 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                 } else if (event.isType(SimulatorEvent.COMMUNICATION_UPDATE)) {
                     //highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
                     //highwayEnvironment.getStorage().updateCars(currentState);
-
                     getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null, COMM_STEP);
                 } else if (event.isType(HighwayEventType.TIMESTEP)) {
-                    //getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
+                    getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
                 }
             }
         });
@@ -111,6 +110,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
             } else {
                 Vehicle vehicle = vehicleStorage.getVehicle(carID);
                 if (vehicle == null) {
+
                     // Get the first action containing car info
                     WPAction action = (WPAction) plans.getPlan(carID).iterator().next();
                     if (plans.getPlan(carID).size() > 1) {
@@ -119,9 +119,11 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                         Point3f second = ((WPAction) iter.next()).getPosition();
                         Vector3f heading = new Vector3f(second.x - first.x, second.y - first.y, second.z - first.z);
                         heading.normalize();
+
                         vehicleStorage.addVehicle(new Car(carID, 0, action.getPosition(), heading, (float) action.getSpeed() /*30.0f*/));
                     } else {
-                        vehicleStorage.addVehicle(new Car(carID, 0, action.getPosition(), new Vector3f(0, -1, 0), (float) action.getSpeed()));
+
+                        vehicleStorage.addVehicle(new Car(carID, 0, action.getPosition(), plans.getCurrStates().get(carID).getVelocity(), (float) action.getSpeed()));
                     }
                 } else {
                     vehicle.getVelocityController().updatePlan(plans.getPlan(carID));
@@ -182,7 +184,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                             //System.out.println("removed - speed = " + wpAction.getSpeed());
                         }
                         if (wpAction.getSpeed() < 0.001) {
-                            duration += 0.1f;
+                            duration += 0.10f;
                         } else {
                             myPosition = wpAction.getPosition();
                             lastDuration = (float) (wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed()));
@@ -199,7 +201,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                             Vector3f vec = new Vector3f(x, y, z);
                             vec.scale(ration);
 
-                            myPosition = new Point3f(vec.x + lastPosition.x, vec.y + lastPosition.y, vec.z + lastPosition.z);
+                            myPosition = new Point3f(vec.x + 0+lastPosition.x, vec.y + lastPosition.y, vec.z + lastPosition.z);
                             break;
                         }
                         lastPosition = wpAction.getPosition();
@@ -217,7 +219,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                     if (vel.length() < 0.0001) {
                         vel = state.getVelocity();
                         vel.normalize();
-                        vel.scale(0.001f);
+                        vel.scale(0.0010f);
                     }
                     int lane = highwayEnvironment.getRoadNetwork().getClosestLane(myPosition).getIndex();
                     state = new RoadObject(carID, highwayEnvironment.getEventProcessor().getCurrentTime(), lane, myPosition, vel);
@@ -230,7 +232,6 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
 
             currentState = radarData;
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
-
         }
     }
 

@@ -16,6 +16,7 @@ import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
 import cz.agents.agentdrive.highway.storage.plan.Action;
 import cz.agents.agentdrive.highway.util.ExperimentsData;
 import cz.agents.agentdrive.highway.util.Pair;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import javax.vecmath.Point2f;
@@ -59,6 +60,7 @@ public class HighwayStorage extends EventBasedStorage {
         roadDescription = new RoadDescription(roadNetwork);
         comparator = new QueueComparator();
         vehiclesForInsert = new PriorityQueue<Pair<Integer, Float>>(20, comparator);
+        logger.setLevel(Level.DEBUG);
         // number 20 is random, it is only needed to be java 1.7 compatible
     }
 

@@ -41,7 +41,7 @@ public class RoadDescription {
 
     public double distance(Point2d position) {
         //TODO only for y straight highway
-        return -position.y;
+        return Math.sqrt(Math.pow(position.y, 2) * Math.pow(position.x, 2));
     }
 
     public static class Line {

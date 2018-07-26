@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 7/23/2018 10:32:22 AM by Netedit Version 0.32.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="c:\Users\xdsp\ownCloud\fel\projects\summerjob\AgentDrive\data\nets\test_sda1\test_sda1.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="c:\Users\xdsp\ownCloud\fel\projects\summerjob\AgentDrive\data\nets\test_sda1\test_sda1.net.xml"/>
+    </output>
+
+    <processing>
+        <no-internal-links value="true"/>
+        <no-turnarounds value="true"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+        <junctions.corner-detail value="0"/>
+        <rectangular-lane-cut value="false"/>
+        <walkingareas value="false"/>
+    </processing>
+
+</configuration>
+-->
+
+<net version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="-200.00,200.00,100.00,200.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
+
+    <edge id="gneE0" from="gneJ0" to="gneJ1" priority="7" type="highway.secondary">
+        <lane id="gneE0_0" index="0" speed="42.00" length="300.00" shape="-200.00,198.35 100.00,198.35"/>
+    </edge>
+    
+
+    <junction id="gneJ0" type="dead_end" x="-200.00" y="200.00" incLanes="" intLanes="" shape="-200.00,199.95 -200.00,196.75"/>
+    <junction id="gneJ1" type="dead_end" x="100.00" y="200.00" incLanes="gneE0_0" intLanes="" shape="100.00,196.75 100.00,199.95"/>
+
+</net>

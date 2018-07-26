@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- generated on 2018-07-23 10:05:23.531424 by $Id$
+  options: -n test_sda2\test_sda2.net.xml -e 50 -l -o test_sda2\test_sda2.trips.xml
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+</routes>

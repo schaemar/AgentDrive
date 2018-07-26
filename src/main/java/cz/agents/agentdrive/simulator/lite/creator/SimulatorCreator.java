@@ -30,7 +30,7 @@ import java.util.*;
 
 /**
  * Creates and initializes the simulation environment and the Alite event processor
- *
+ * <p>
  * Created by wmatex on 3.7.14.
  */
 public class SimulatorCreator implements Creator {
@@ -45,7 +45,7 @@ public class SimulatorCreator implements Creator {
 
     @Override
     public void init(String[] args) {
-        if(args.length>1){
+        if (args.length > 1) {
             CONFIG_FILE = args[1];
         }
 
@@ -62,7 +62,7 @@ public class SimulatorCreator implements Creator {
 
         logger.setLevel(Level.INFO);
         logger.info("Configuration loaded from: " + CONFIG_FILE);
-        if(logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("Printing complete configuration on the System.out >>");
             configReader.writeTo(new PrintWriter(System.out));
         }
@@ -83,7 +83,7 @@ public class SimulatorCreator implements Creator {
     }
 
     private void createVisualization() {
-        VisManager.setInitParam(Configurator.getParamString("simulator.lite.name","Simulator-Lite"), 1024, 768);
+        VisManager.setInitParam(Configurator.getParamString("simulator.lite.name", "Simulator-Lite"), 1024, 768);
         VisManager.setSceneParam(new VisManager.SceneParams() {
 
             @Override
@@ -114,39 +114,38 @@ public class SimulatorCreator implements Creator {
         VisManager.registerLayer(HelpLayer.create());
 
         // Traffic visualization layer
-        if(Configurator.getParamBool("simulator.lite.vis.SimulationControlLayer", false))
+        if (Configurator.getParamBool("simulator.lite.vis.SimulationControlLayer", false))
             VisManager.registerLayer(SimulationControlLayer.create(simulation, environment.getHighwayEnvironment()));
-        if(Configurator.getParamBool("simulator.lite.vis.NetVisLayer", false))
+        if (Configurator.getParamBool("simulator.lite.vis.NetVisLayer", false))
             VisManager.registerLayer(NetVisLayer.create());
-        if(Configurator.getParamBool("simulator.lite.vis.TrafficVisLayer", false))
+        if (Configurator.getParamBool("simulator.lite.vis.TrafficVisLayer", false))
             VisManager.registerLayer(TrafficVisLayer.create(environment.getStorage()));
-        if(Configurator.getParamBool("simulator.lite.vis.ZoomVehicleLayer", false))
+        if (Configurator.getParamBool("simulator.lite.vis.ZoomVehicleLayer", false))
             VisManager.registerLayer(ZoomVehicleLayer.create(environment.getStorage()));
-        if(Configurator.getParamBool("simulator.lite.vis.AgentDriveVisLayer", false))
+        if (Configurator.getParamBool("simulator.lite.vis.AgentDriveVisLayer", false))
             VisManager.registerLayer(AgentDriveVisLayer.create(environment.getHighwayEnvironment().getStorage()));
-        if(Configurator.getParamBool("simulator.lite.vis.RoadObjectLayer", false))
-            VisManager.registerLayer(RoadObjectLayer.create(environment.getHighwayEnvironment().getStorage().getPosCurr(),environment.getHighwayEnvironment().getStorage().getActions()));
-
+        if (Configurator.getParamBool("simulator.lite.vis.RoadObjectLayer", false))
+            VisManager.registerLayer(RoadObjectLayer.create(environment.getHighwayEnvironment().getStorage().getPosCurr(), environment.getHighwayEnvironment().getStorage().getActions()));
+        if(Configurator.getParamBool("simulator.lite.vis.StateSpaceVehicleLayer", false) && Objects.equals(Configurator.getParamString("highway.agent", null), "SDAgent"))
+            VisManager.registerLayer(StateSpaceVehicleLayer.create(environment.getHighwayEnvironment().getStorage()));
     }
 
     public void runSimulation() {
         //System.out.println(simulation.getEventCount());
-
-         initTraffic();
+        initTraffic();
         logger.info("Simulation is ready to run.");
         simulation.run();
-
     }
 
     public static void main(String[] args) {
         SimulatorCreator creator = (SimulatorCreator) CreatorFactory.createCreator(args);
         creator.init(args);
         creator.create();
-     //   creator.runSimulation();
+        //   creator.runSimulation();
     }
 
 
-    private void initTraffic(){
+    private void initTraffic() {
         final XMLReader reader = new XMLReader(Configurator.getParamString("simulator.net.folder", "notDefined"));
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();

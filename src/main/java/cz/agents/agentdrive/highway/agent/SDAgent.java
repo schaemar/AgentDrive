@@ -1,5 +1,6 @@
 package cz.agents.agentdrive.highway.agent;
 
+import cz.agents.agentdrive.highway.environment.roadnet.LaneImpl;
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.agentdrive.highway.environment.RandomProvider;
@@ -14,6 +15,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import javax.vecmath.Point2d;
+import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +35,7 @@ public class SDAgent extends Agent {
     protected int num_of_lines;
 
     private CarManeuver currentManeuver = null;
+    private HighwaySituation currentHighwaySituation = null;
     protected final ManeuverTranslator maneuverTranslator;
 
     // maximal speed after variance application
@@ -41,11 +44,14 @@ public class SDAgent extends Agent {
 
     public Action agentReact() {
         //return man2Action(plan());
-        return maneuverTranslator.translate(plan());
+        System.out.println("nav react " + navigator.getLane().getIndex());
+
+        return maneuverTranslator.translate(plan(), navigator);
     }
 
     private Action man2Action(CarManeuver man) {
         if (man == null) {
+
             return new WPAction(id, 0d, getInitialPosition(), 0);
         }
         return new ManeuverAction(sensor.getId(), man.getStartTime() / 1000.0, man.getVelocityOut(), man.getLaneOut(), man.getDuration());
@@ -53,10 +59,17 @@ public class SDAgent extends Agent {
 
     public SDAgent(int id) {
         super(id);
-        maneuverTranslator = new ManeuverTranslator(id, navigator);
-        num_of_lines = 1;
-
         logger.setLevel(Level.DEBUG);
+        maneuverTranslator = new ManeuverTranslator(id, navigator);
+        num_of_lines = navigator.getLane().getParentEdge().getLanes().keySet().size();
+
+        for (LaneImpl l : navigator.getLane().getParentEdge().getLanes().values()) {
+            if (l.getInnerPoints().contains(this.getInitialPosition())){
+                System.out.println("found lane index " + l.getInnerPoints());
+            }
+         //   System.out.println(l.getIndex() + " " + l.getInnerPoints());
+        }
+
     }
 
     public void addSensor(final VehicleSensor sensor) {
@@ -78,15 +91,37 @@ public class SDAgent extends Agent {
         }
     }
 
+    public HighwaySituation getHighwaySituation() {
+        return currentHighwaySituation;
+    }
+
     public CarManeuver plan() {
+
         CarManeuver maneuver = null;
         RoadObject currState = sensor.senseCurrentState();
+        int myLaneIndex = navigator.getLane().getIndex();
+        for (LaneImpl l : navigator.getLane().getParentEdge().getLanes().values()) {
+            if (l.getInnerPoints().contains(new Point2f(currState.getPosition().x, currState.getPosition().y))){
+                System.out.println("found lane index " + l.getIndex());
+                myLaneIndex = l.getIndex();
+            }
+            //   System.out.println(l.getIndex() + " " + l.getInnerPoints());
+        }
+        while (myLaneIndex < navigator.getLane().getIndex()){
+            navigator.changeLaneRight();
+        }
+        while (myLaneIndex > navigator.getLane().getIndex()){
+            navigator.changeLaneLeft();
+        }
+        System.out.println("nav in plan " + navigator.getLane().getIndex());
+
         // Simulator did not send update yet
         if (currState == null) {
             return null;
         }
         logger.debug("Startnode: " + currState);
         HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
+        logger.debug("SS: " + getStatespace(currState));
         logger.debug("Situation: " + situationPrediction);
 
         int lane = currState.getLaneIndex();
@@ -101,8 +136,9 @@ public class SDAgent extends Agent {
         CarManeuver dec = new DeaccelerationManeuver(lane, velocity, distance, updateTime);
 
         int preferredLane = getPreferredLane(currState);
-        logger.debug("PreferredLane: " + preferredLane);
+
         if (isNarrowingMode(currState)) {
+            logger.debug("PreferredLane: " + preferredLane);
             logger.debug("Narrowing mode activated");
             CarManeuver preferredMan = null;
             if (preferredLane < currState.getLaneIndex()) {
@@ -147,6 +183,7 @@ public class SDAgent extends Agent {
         }
         logger.info("Planned maneuver for carID " + currState.getId() + " " + maneuver);
         currentManeuver = maneuver;
+        currentHighwaySituation = situationPrediction;
         return maneuver;
     }
 
@@ -222,11 +259,11 @@ public class SDAgent extends Agent {
         boolean narrowingMode = isNarrowingMode(state);
 
         if (isHighwayCollision(state, man)) {
-            if (id == 2) logger.info("Highway Collision detected!" + man);
+            logger.info(state + " Highway Collision detected!" + man);
             return false;
         }
         if (isRulesCollision(man)) {
-            if (id == 2) logger.info("Rules Collision detected! " + man);
+            logger.info("Rules Collision detected! " + man);
             return false;
 
         }
@@ -442,7 +479,7 @@ public class SDAgent extends Agent {
             logger.debug("LaneOut= " + laneOut);
             return false;
         }
-        if (laneOut >= num_of_lines) {
+        if (laneOut >= navigator.getLane().getParentEdge().getLanes().keySet().size()) {
             logger.debug("laneOut = " + laneOut);
             return false;
         }
@@ -521,6 +558,10 @@ public class SDAgent extends Agent {
         }
 
         return plan;
+    }
+
+    public CarManeuver getCurrentManeuver() {
+        return currentManeuver;
     }
 
 }

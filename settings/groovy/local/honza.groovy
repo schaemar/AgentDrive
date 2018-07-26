@@ -1,8 +1,8 @@
 highway {
     
-    // agent = "SDAgent";
-    //   agent = "RouteAgent";
-      agent = "GSDAgent";
+     agent = "SDAgent";
+   //    agent = "RouteAgent";
+   //  agent = "GSDAgent";
 
     // legacy
 //    net {
@@ -10,7 +10,7 @@ highway {
 //    }
     safeDistanceAgent {
         safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
-        //   narrowingModeActive = false;
+        //narrowingModeActive =true;
         distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
@@ -31,7 +31,7 @@ highway {
 
     }
     storage {
-        insertSpeed = 2.0;  //[m/s]
+        insertSpeed = 0.5;  //[m/s]
         checkingDistance = 500;
         safetyReserve = 4;
     }
@@ -90,9 +90,9 @@ highway {
 ////        simulatorsToRun = ["OpenDS"];
 // //       simulatorsToRun = ["Empty"];
 
-        numberOfCarsInSimulation = 10;
+        numberOfCarsInSimulation = 3;
         sumoSimulation = true;
-        systemTime = true;
+      //  systemTime = true;
     }
 //legacy
 //    netLayer {
@@ -130,16 +130,20 @@ simulator {
             SimulationControlLayer = true;
             NetVisLayer = true;
             TrafficVisLayer = true;
-            ZoomVehicleLayer = true;
+            ZoomVehicleLayer = false;
             AgentDriveVisLayer = true;
             RoadObjectLayer = true;
+            StateSpaceVehicleLayer = true;
         }
     }
     net {
-        folder = "nets/test_gsda0";
-        // folder = "nets/artificialHighway"
+      //  folder = "nets/skoda-parking"
+        // folder = "nets/test_gsda0"
+         folder = "nets/test_bottleneck"
+      //  folder = "nets/test_sda2"
+      //  folder = "nets/artificialHighway"
         // folder = "nets/mlada-boleslav/"
-        // folder = "nets/skoda-parking/"
+       //  folder = "nets/skoda-parking/"
         // folder = "nets/CharlesSquare";
         // folder = "nets/dresden/";
         // folder = "super-collision";
@@ -155,17 +159,15 @@ simulator {
         // folder = "nets/artificialXS-junction";
         // folder = "nets/artificialT-junction";
         // folder = "nets/pisek";
-
-
     }
     netLayer {
         lane {
             view = true;
-            width = 10;
+            width = 1;
         }
         edge {
             view = false;
-            width = 1;
+            width = 10;
         }
         crossRoad {
             view = false;

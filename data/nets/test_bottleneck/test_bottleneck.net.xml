@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 7/24/2018 11:53:18 AM by Netedit Version 0.32.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="C:\Users\xdsp\ownCloud\fel\projects\summerjob\AgentDrive\data\nets\test_bottleneck\test_bottleneck.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="C:\Users\xdsp\ownCloud\fel\projects\summerjob\AgentDrive\data\nets\test_bottleneck\test_bottleneck.net.xml"/>
+    </output>
+
+    <processing>
+        <no-internal-links value="true"/>
+        <no-turnarounds value="true"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+        <junctions.corner-detail value="0"/>
+        <rectangular-lane-cut value="false"/>
+        <walkingareas value="false"/>
+    </processing>
+
+</configuration>
+-->
+
+<net version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="-200.00,100.00,300.00,100.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
+
+    <edge id="1" from="gneJ0" to="gneJ1" priority="1">
+        <lane id="1_0" index="0" speed="13.89" length="200.00" shape="-200.00,91.75 -1.50,91.75"/>
+        <lane id="1_1" index="1" speed="13.89" length="200.00" shape="-200.00,95.05 -1.50,95.05"/>
+        <lane id="1_2" index="2" speed="13.89" length="200.00" shape="-200.00,98.35 -1.50,98.35"/>
+    </edge>
+    <edge id="2" from="gneJ1" to="gneJ2" priority="1">
+        <lane id="2_0" index="0" speed="13.89" length="100.00" shape="1.50,98.35 98.50,98.35"/>
+    </edge>
+    <edge id="3" from="gneJ2" to="gneJ3" priority="1">
+        <lane id="3_0" index="0" speed="13.89" length="200.00" shape="101.50,95.05 300.00,95.05"/>
+        <lane id="3_1" index="1" speed="13.89" length="200.00" shape="101.50,98.35 300.00,98.35"/>
+    </edge>
+
+    <junction id="gneJ0" type="dead_end" x="-200.00" y="100.00" incLanes="" intLanes="" shape="-200.00,99.95 -200.00,90.15"/>
+    <junction id="gneJ1" type="priority" x="0.00" y="100.00" incLanes="1_0 1_1 1_2" intLanes="" shape="1.50,99.95 1.50,96.75 -1.50,90.15 -1.50,99.95">
+        <request index="0" response="0" foes="0"/>
+    </junction>
+    <junction id="gneJ2" type="priority" x="100.00" y="100.00" incLanes="2_0" intLanes="" shape="101.50,99.95 101.50,93.45 98.50,96.75 98.50,99.95">
+        <request index="0" response="00" foes="00"/>
+        <request index="1" response="00" foes="00"/>
+    </junction>
+    <junction id="gneJ3" type="dead_end" x="300.00" y="100.00" incLanes="3_0 3_1" intLanes="" shape="300.00,93.45 300.00,99.95"/>
+
+    <connection from="1" to="2" fromLane="2" toLane="0" dir="s" state="M"/>
+    <connection from="1" to="2" fromLane="1" toLane="0" dir="s" state="M"/>
+    <connection from="1" to="2" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="2" to="3" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="2" to="3" fromLane="0" toLane="1" dir="s" state="M"/>
+
+</net>

@@ -26,27 +26,42 @@
 
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
     <vehicle id="0" depart="0.00">
-        <route edges="gneE1 gneE0"/>
+        <route edges="west east"/>
     </vehicle>
     <vehicle id="1" depart="10.00">
-        <route edges="-gneE0 -gneE1"/>
+        <route edges="-east -west"/>
     </vehicle>
     <vehicle id="2" depart="20.00">
-        <route edges="gneE1 gneE0"/>
+        <route edges="west east"/>
     </vehicle>
     <vehicle id="3" depart="20.00">
-        <route edges="-gneE0 -gneE1"/>
+        <route edges="-east -west"/>
     </vehicle>
     <vehicle id="4" depart="30.00">
-        <route edges="gneE1 gneE0"/>
+        <route edges="west east"/>
     </vehicle>
     <vehicle id="5" depart="30.00">
-        <route edges="-gneE0 -gneE1"/>
+        <route edges="-east -west"/>
     </vehicle>
     <vehicle id="6" depart="30.00">
-        <route edges="gneE3 gneE2"/>
+        <route edges="-south -north"/>
     </vehicle>
     <vehicle id="7" depart="30.00">
-        <route edges="-gneE2 -gneE3"/>
+        <route edges="north south"/>
     </vehicle>
+
+     <vehicle id="8" depart="40.00">
+        <route edges="west south"/>
+    </vehicle>
+    <vehicle id="9" depart="40.00">
+        <route edges="-east south"/>
+    </vehicle>
+
+     <vehicle id="10" depart="40.00">
+        <route edges="west south"/>
+    </vehicle>
+    <vehicle id="11" depart="40.00">
+        <route edges="-east south"/>
+    </vehicle>
+ 
 </routes>
