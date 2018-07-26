@@ -159,6 +159,7 @@ public class ManeuverTranslator {
      */
     private float distance(Point2f innerPoint, Point2f position, Vector2f direction, Vector2f velocity) {
         float d = innerPoint.distance(position);
-        return d * d * Math.abs((float) Math.sin(direction.angle(velocity)) + EPSILON);
+//        return d * d * Math.abs((float) Math.sin(direction.angle(velocity)) + EPSILON);
+        return d * Math.abs((float) Math.sin(direction.angle(velocity)) + EPSILON);
     }
 }

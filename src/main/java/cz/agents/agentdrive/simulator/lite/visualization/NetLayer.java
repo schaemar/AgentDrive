@@ -89,11 +89,14 @@ public class NetLayer extends GroupLayer implements VisLayer {
             int size = Configurator.getParamInt("simulator.netLayer.lane.width", LANE_WIGTH);
             canvas.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             for (Lane lane : net.getLanes().values()) {
+                canvas.setColor(Color.DARK_GRAY);
+
                 Point2f prev = lane.getShape().get(0);
                 for (Point2f point : lane.getShape()) {
                     paintLine(canvas,point,prev);
                     prev = point;
                 }
+                canvas.setColor(Color.blue);
                 for (Lane outgoingLane : lane.getOutgoingLanes()) {
                     Point2f point = outgoingLane.getShape().get(0);
                     paintLine(canvas,prev,point);

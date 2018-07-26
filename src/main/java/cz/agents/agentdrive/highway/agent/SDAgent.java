@@ -306,7 +306,7 @@ public class SDAgent extends Agent {
 
     private double safeDistance(CarManeuver man, double safetyReserve) {
         // TODO get the a0 from the car
-        double a0 = -4;
+        double a0 =  man.getAcceleration();
         double v0 = man.getVelocityOut();
         double v1 = 0;
         return safeDistance(a0, v0, v1, safetyReserve);
@@ -314,7 +314,7 @@ public class SDAgent extends Agent {
 
     private double safeDistance(CarManeuver manAhead, CarManeuver manBehind, double safetyReserve) {
         // TODO get the a0 from the car
-        double a0 = -4;
+        double a0 = manBehind.getAcceleration();
         double v0 = manBehind.getVelocityOut();
         double v1 = manAhead.getVelocityIn();
         double safeDist = safeDistance(a0, v0, v1, safetyReserve);
