@@ -1,6 +1,7 @@
 package cz.agents.agentdrive.highway.agent;
 
 import cz.agents.agentdrive.highway.environment.roadnet.LaneImpl;
+import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.agentdrive.highway.environment.RandomProvider;
@@ -17,6 +18,7 @@ import org.apache.log4j.Logger;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -44,7 +46,6 @@ public class SDAgent extends Agent {
 
     public Action agentReact() {
         //return man2Action(plan());
-        System.out.println("nav react " + navigator.getLane().getIndex());
 
         return maneuverTranslator.translate(plan(), navigator);
     }
@@ -62,14 +63,6 @@ public class SDAgent extends Agent {
         logger.setLevel(Level.DEBUG);
         maneuverTranslator = new ManeuverTranslator(id, navigator);
         num_of_lines = navigator.getLane().getParentEdge().getLanes().keySet().size();
-
-        for (LaneImpl l : navigator.getLane().getParentEdge().getLanes().values()) {
-            if (l.getInnerPoints().contains(this.getInitialPosition())){
-                System.out.println("found lane index " + l.getInnerPoints());
-            }
-         //   System.out.println(l.getIndex() + " " + l.getInnerPoints());
-        }
-
     }
 
     public void addSensor(final VehicleSensor sensor) {
@@ -84,12 +77,12 @@ public class SDAgent extends Agent {
         });
     }
 
-    public void predictNext(HighwaySituation situationPrediction, RoadObject car, long predictionEndTime) {
-        CarManeuver man = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car), (long) (car.getUpdateTime() * 1000));
-        if (!isCollision(man, situationPrediction)) {
-            situationPrediction.add(man);
-        }
-    }
+//    public void predictNext(HighwaySituation situationPrediction, RoadObject car, long predictionEndTime) {
+//        CarManeuver man = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car), (long) (car.getUpdateTime() * 1000));
+//        if (!isCollision(man, situationPrediction)) {
+//            situationPrediction.add(man);
+//        }
+//    }
 
     public HighwaySituation getHighwaySituation() {
         return currentHighwaySituation;
@@ -99,13 +92,12 @@ public class SDAgent extends Agent {
 
         CarManeuver maneuver = null;
         RoadObject currState = sensor.senseCurrentState();
+
         int myLaneIndex = navigator.getLane().getIndex();
         for (LaneImpl l : navigator.getLane().getParentEdge().getLanes().values()) {
             if (l.getInnerPoints().contains(new Point2f(currState.getPosition().x, currState.getPosition().y))){
-                System.out.println("found lane index " + l.getIndex());
                 myLaneIndex = l.getIndex();
             }
-            //   System.out.println(l.getIndex() + " " + l.getInnerPoints());
         }
         while (myLaneIndex < navigator.getLane().getIndex()){
             navigator.changeLaneRight();
@@ -113,7 +105,6 @@ public class SDAgent extends Agent {
         while (myLaneIndex > navigator.getLane().getIndex()){
             navigator.changeLaneLeft();
         }
-        System.out.println("nav in plan " + navigator.getLane().getIndex());
 
         // Simulator did not send update yet
         if (currState == null) {
@@ -126,7 +117,8 @@ public class SDAgent extends Agent {
 
         int lane = currState.getLaneIndex();
         double velocity = currState.getVelocity().length();
-        double distance = transGeoToDistance(currState.getPosition());
+        Point2f edgeBeginPoint =  navigator.getLane().getInnerPoints().get(0);
+        double distance = getDistance(currState, edgeBeginPoint); //transGeoToDistance(currState.getPosition());
         long updateTime = (long) (currState.getUpdateTime() * 1000);
 
         CarManeuver acc = new AccelerationManeuver(lane, velocity, distance, updateTime);
@@ -479,7 +471,7 @@ public class SDAgent extends Agent {
             logger.debug("LaneOut= " + laneOut);
             return false;
         }
-        if (laneOut >= navigator.getLane().getParentEdge().getLanes().keySet().size()) {
+        if (laneOut > navigator.getLane().getParentEdge().getLanes().keySet().size()) {
             logger.debug("laneOut = " + laneOut);
             return false;
         }
@@ -497,8 +489,13 @@ public class SDAgent extends Agent {
             situationPrediction.addAll(predictedManeuvers);
 
             CarManeuver man = predictedManeuvers.get(0);
+
+            Point2f edgeBeginPoint =  navigator.getLane().getInnerPoints().get(0);
+            Point2f otherEdgeBeginPoint = sensor.getRoadNetwork().getClosestLane(entry.getPosition()).getInnerPoints().get(0);
+            if (edgeBeginPoint != otherEdgeBeginPoint || entry.getId() == state.getId()) continue;
+
             double otherCarPosition = man.getPositionIn();
-            double thisCarPosition = getDistance(state);
+            double thisCarPosition = getDistance(state, edgeBeginPoint);
             int thisCarLane = state.getLaneIndex();
 
             logger.debug("Other car " + entry.getId() + ": Maneuver: " + man);
@@ -527,6 +524,10 @@ public class SDAgent extends Agent {
         return situationPrediction;
     }
 
+    private double getDistance(RoadObject state, Point2f edgeBeginPoint) {
+        return sensor.getRoadDescription().distance(new Point2d(state.getPosition().x, state.getPosition().y), edgeBeginPoint);
+    }
+
     public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject car, long from, long to) {
         // if has no plan -> predict TODO use more sofisticated prediction - not
         // here, on all the statespace
@@ -549,7 +550,7 @@ public class SDAgent extends Agent {
 //                        (long) (car.getUpdateTime() * 1000));
 //            }
 //        } else {
-        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car), (long) (car.getUpdateTime() * 1000));
+        lastManeuver = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car, sensor.getRoadNetwork().getClosestLane(car.getPosition()).getInnerPoints().get(0)), (long) (car.getUpdateTime() * 1000));
 //        }
         plan.add(lastManeuver);
         while (lastManeuver.getEndTime() <= to) {
@@ -563,5 +564,7 @@ public class SDAgent extends Agent {
     public CarManeuver getCurrentManeuver() {
         return currentManeuver;
     }
+
+
 
 }

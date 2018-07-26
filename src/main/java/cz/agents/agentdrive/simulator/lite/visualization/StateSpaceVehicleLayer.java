@@ -141,7 +141,7 @@ public class StateSpaceVehicleLayer extends CommonLayer {
             canvas.setTransform(centerOfToolWindow);
         }else{
             canvas.drawString("START THIS PLUGIN", posX + TEXT_OFFSET, posY + TEXT_OFFSET);
-            canvas.drawString("BY PRESSING 'p'", posX + TEXT_OFFSET, posY + TEXT_OFFSET + 20);
+            canvas.drawString("BY PRESSING 't'", posX + TEXT_OFFSET, posY + TEXT_OFFSET + 20);
         }
 
 
@@ -150,7 +150,7 @@ public class StateSpaceVehicleLayer extends CommonLayer {
 
 
     public static VisLayer create(HighwayStorage highwayStorage) {
-        KeyToggleLayer toggle = KeyToggleLayer.create("o");
+        KeyToggleLayer toggle = KeyToggleLayer.create("u");
         toggle.addSubLayer(new StateSpaceVehicleLayer(highwayStorage));
         return toggle;
     }
@@ -168,8 +168,8 @@ public class StateSpaceVehicleLayer extends CommonLayer {
             }
 
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyChar() == 'p') {
-                    System.out.println("BAMBUCA");
+                if (e.getKeyChar() == 't') {
+
                     indexOfCar = (int) ((indexOfCar + 1) % highwayStorage.getAgents().size());
                     LinkedList<Integer> list = new LinkedList<>(highwayStorage.getAgents().keySet());
                     if (list.isEmpty()){
@@ -190,7 +190,7 @@ public class StateSpaceVehicleLayer extends CommonLayer {
 
     @Override
     public String getLayerDescription() {
-        String description = "[Vis Zoom] The layer shows zoom detail at vehicle info in lower right corner, you can change selected vehicle by pressing 'p' to hide window press 'o' and to chage rotation press 'l'.";
+        String description = "[Vis Zoom] The layer shows zoom detail at vehicle info in lower right corner, you can change selected vehicle by pressing 't' to hide window press 'u' and to chage rotation press 'l'.";
         return buildLayersDescription(description);
     }
 

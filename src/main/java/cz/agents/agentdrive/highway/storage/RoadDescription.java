@@ -3,6 +3,7 @@ package cz.agents.agentdrive.highway.storage;
 import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
 
 import javax.vecmath.Point2d;
+import javax.vecmath.Point2f;
 import javax.vecmath.Point3d;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,10 @@ public class RoadDescription {
     public double distance(Point2d position) {
         //TODO only for y straight highway
         return Math.sqrt(Math.pow(position.y, 2) * Math.pow(position.x, 2));
+    }
+
+    public double distance(Point2d point2d, Point2f edgeBeginPoint) {
+        return Math.sqrt(Math.pow(point2d.x - edgeBeginPoint.x, 2) + Math.pow(point2d.y - edgeBeginPoint.y, 2));
     }
 
     public static class Line {

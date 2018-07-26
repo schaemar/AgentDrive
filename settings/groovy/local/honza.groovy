@@ -2,7 +2,7 @@ highway {
     
      agent = "SDAgent";
    //    agent = "RouteAgent";
-   //  agent = "GSDAgent";
+    // agent = "GSDAgent";
 
     // legacy
 //    net {
@@ -92,7 +92,7 @@ highway {
 
         numberOfCarsInSimulation = 3;
         sumoSimulation = true;
-      //  systemTime = true;
+        systemTime = true;
     }
 //legacy
 //    netLayer {
@@ -138,7 +138,7 @@ simulator {
     }
     net {
       //  folder = "nets/skoda-parking"
-        // folder = "nets/test_gsda0"
+      //   folder = "nets/test_gsda0"
          folder = "nets/test_bottleneck"
       //  folder = "nets/test_sda2"
       //  folder = "nets/artificialHighway"

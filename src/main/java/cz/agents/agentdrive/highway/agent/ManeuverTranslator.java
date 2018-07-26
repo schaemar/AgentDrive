@@ -50,19 +50,20 @@ public class ManeuverTranslator {
         if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
                 || (maneuver instanceof DeaccelerationManeuver)) {
             Point2f innerPoint = generateWaypointInLane(0, maneuver, me);
-            System.out.println("IP: " + me.getId() + " " + innerPoint);
             return point2Waypoint(innerPoint, maneuver);
         } else if (maneuver instanceof LaneLeftManeuver) {
-            Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() + 1*/ 1, maneuver, me);
+            Point2f innerPoint = generateWaypointInLane(1, maneuver, me);
             return point2Waypoint(innerPoint, maneuver);
         } else if (maneuver instanceof LaneRightManeuver) {
-            Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() - 1*/ -1, maneuver, me);
+            Point2f innerPoint = generateWaypointInLane( -1, maneuver, me);
             return point2Waypoint(innerPoint, maneuver);
         } else {
             return new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
                     maneuver.getVelocityOut(), maneuver.getLaneOut(), maneuver.getDuration());
         }
     }
+
+    @Deprecated
     public Action translate(CarManeuver maneuver) {
         if (maneuver == null) {
             Point2f initial = navigator.getInitialPosition();
@@ -81,6 +82,7 @@ public class ManeuverTranslator {
             return point2Waypoint(innerPoint, maneuver);
         } else if (maneuver instanceof LaneRightManeuver) {
             Point2f innerPoint = generateWaypointInLane(/*me.getLaneIndex() - 1*/ -1, maneuver, me);
+            System.out.println("IP: " + me.getId() + " " + innerPoint);
             return point2Waypoint(innerPoint, maneuver);
         } else {
             return new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
