@@ -168,7 +168,7 @@ public class SDAgent extends Agent {
                 } else if (isSafeMan(currState, dec, situationPrediction)) {
                     maneuver = dec;
                 } else {
-                    logger.info("Nothing is safe, shouldnt happen!");
+                    logger.info("Nothing is safe, shouldn't happen!");
                     maneuver = dec;
                 }
             }

@@ -128,7 +128,6 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                 } else {
                     vehicle.getVelocityController().updatePlan(plans.getPlan(carID));
                     vehicle.setWayPoints(plans.getPlan(carID));
-
                 }
             }
         }
@@ -181,7 +180,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                         if (wpAction.getSpeed() == -1) {
                             myPosition = wpAction.getPosition();
                             removeCar = true;
-                            //System.out.println("removed - speed = " + wpAction.getSpeed());
+                            System.out.println("removed - speed = " + wpAction.getSpeed());
                         }
                         if (wpAction.getSpeed() < 0.001) {
                             duration += 0.10f;
@@ -190,7 +189,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                             lastDuration = (float) (wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed()));
                             duration += wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed());
                         }
-                        // creating point between the waipoints if my duration is greater than the defined timestep
+                        // creating point between the waypoints if my duration is greater than the defined timestep
                         if (duration >= timestep) {
 
                             float remainingDuration = timestep - (duration - lastDuration);
@@ -201,7 +200,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                             Vector3f vec = new Vector3f(x, y, z);
                             vec.scale(ration);
 
-                            myPosition = new Point3f(vec.x + 0+lastPosition.x, vec.y + lastPosition.y, vec.z + lastPosition.z);
+                            myPosition = new Point3f(vec.x + 0 + lastPosition.x, vec.y + lastPosition.y, vec.z + lastPosition.z);
                             break;
                         }
                         lastPosition = wpAction.getPosition();
@@ -227,10 +226,11 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                     duration = 0;
                 }
             }
-            //  acceptPlans(plans);
-            //  plansOut = plans;
-
+             // acceptPlans(plans);
+            plansOut = plans;
+            //radarData = vehicleStorage.generateRadarData();
             currentState = radarData;
+
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
         }
     }

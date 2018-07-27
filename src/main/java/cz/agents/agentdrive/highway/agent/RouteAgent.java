@@ -146,7 +146,7 @@ public class RouteAgent extends Agent {
         int wpCount = (int) me.getVelocity().length() * 2 + 1; // how many waypoints before me will be calculated.
         points = new ArrayList<Point3f>();
         if(navigator.isMyLifeEnds()) {
-            actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
+            actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), 0));
             return actions;
         }
         navigator.setCheckpoint();

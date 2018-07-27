@@ -117,6 +117,10 @@ public class ManeuverTranslator {
             innerPoint = navigator.getRoutePoint();
             if (!pointCloseEnough(innerPoint, pos2D, vel2D)) {
                 navigator.advanceInRoute();
+                if (navigator.isMyLifeEnds()) {
+                    navigator.setMyLifeEnds(true);
+                    navigator.advanceInRoute();
+                }
             }
             i++;
         } while (i < TRY_COUNT);

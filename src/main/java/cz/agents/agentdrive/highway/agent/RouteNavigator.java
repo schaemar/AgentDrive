@@ -129,13 +129,14 @@ public class RouteNavigator {
             logger.error("not initialized");
             return;
         }
+
         if (pointPtr >= agentLane.getInnerPoints().size() - 1) {
             // We are at the end of the lane
             if (routePtr >= route.size() - 1) { // end of the plan
-                // routePtr = -1;
-                // pointPtr = -1;
-                //  agentLane = route.get(0).getLaneByIndex(0);
-                //  agentLane = null;
+//                 routePtr = -1;
+//                 pointPtr = -1;
+//                  agentLane = route.get(0).getLaneByIndex(0);
+//                  agentLane = null;
                 myLifeEnds = true;
             } else {
                 Lane nextLane = getNeighbourLane(); //check for neighbour lane
