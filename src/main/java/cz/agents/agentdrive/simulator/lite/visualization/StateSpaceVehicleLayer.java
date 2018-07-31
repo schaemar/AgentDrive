@@ -177,10 +177,11 @@ public class StateSpaceVehicleLayer extends CommonLayer {
     }
 
     public void drawManeuver(CarManeuver carManeuver, Graphics2D g2d, int x, int y){
-        g2d.drawString(Double.toString(carManeuver.getLaneOut()), x, y);
-        g2d.drawString(Boolean.toString(carManeuver.isSafeManeuver()), x, y  + g2d.getFontMetrics().getHeight());
-        g2d.drawString(String.format("%.3f", carManeuver.getPositionIn()), x, y + 2*g2d.getFontMetrics().getHeight());
-        g2d.drawString(String.format("%.3f", carManeuver.getPositionOut()), x, y + 3*g2d.getFontMetrics().getHeight());
+        g2d.drawString(Double.toString(carManeuver.getLaneIn()), x, y);
+        g2d.drawString(Double.toString(carManeuver.getLaneOut()), x, y  + g2d.getFontMetrics().getHeight());
+        g2d.drawString(Boolean.toString(carManeuver.isSafeManeuver()), x, y  + 2*g2d.getFontMetrics().getHeight());
+        g2d.drawString(String.format("%.3f", carManeuver.getPositionIn()), x, y + 3*g2d.getFontMetrics().getHeight());
+        g2d.drawString(String.format("%.3f", carManeuver.getPositionOut()), x, y + 4*g2d.getFontMetrics().getHeight());
     }
 
 

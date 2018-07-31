@@ -325,7 +325,7 @@ public class GSDAgent extends RouteAgent {
         for (int i = 0; i < navigator.getRoute().size(); i++) {
             if (navigator.getRoute().get(i) == navigator.getLane().getParentEdge()) {
                 edgeIndex = i;
-                System.out.println("EDGE INDEX IS " + i);
+                logger.debug("Index of an edge in a route is " + edgeIndex);
                 break;
             }
         }
@@ -336,7 +336,11 @@ public class GSDAgent extends RouteAgent {
         navigator.setActualPosition(myActualLanePosition);
 
         if (!navigator.getRoute().contains(myActualLanePosition.getEdge())) {
-            logger.warn("Agent is on a route it should not be!");
+            logger.warn("Agent is on a route it should not be!  ");
+            /*
+            This can happen when a car is crossing a junction and method getActualPosition return position
+            on a lane it's just crossing, but this lane is not connected to actual edge car is trying to get.
+             */
             myActualLanePosition = new ActualLanePosition(navigator.getRoute().get(edgeIndex + 1).getLaneByIndex(0), 0);
             navigator.setActualPosition(myActualLanePosition);
         }

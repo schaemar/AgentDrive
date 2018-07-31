@@ -49,6 +49,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
     private PlansOut plansOut = new PlansOut();
     private PlanCallback planCallback = new PlanCallbackImp();
     protected long timestep = Configurator.getParamInt("simulator.lite.timestep", 100);
+    private int counter = 0;
 
 
     /// Time between updates
@@ -81,16 +82,16 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                 // Start updating vehicles when the simulation starts
                 if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
                     logger.info("SIMULATION STARTED");
-                    //highwayEnvironment.getStorage().updateCars(currentState);
+                    //highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
 
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null);
                     getEventProcessor().addEvent(SimulatorEvent.UPDATE, null, null, null);
                     getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null);
-
                 } else if (event.isType(SimulatorEvent.COMMUNICATION_UPDATE)) {
                     //highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
                     //highwayEnvironment.getStorage().updateCars(currentState);
-                    getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null, COMM_STEP);
+//                    if (counter > 0)highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
+//                    getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null, Math.max(1, (long) (timestep * 50)));
                 } else if (event.isType(HighwayEventType.TIMESTEP)) {
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
                 }
@@ -161,7 +162,8 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
         //final HashSet<Integer> plannedVehicles = new HashSet<Integer>();
         @Override
         public void execute(PlansOut plans) {
-            Map<Integer, RoadObject> currStates = highwayEnvironment.getStorage().getPosCurr();//plans.getCurrStates();
+
+            Map<Integer, RoadObject> currStates = plans.getCurrStates();
             RadarData radarData = new RadarData();
             float duration = 0;
             float lastDuration = 0;
@@ -207,9 +209,9 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                     }
                 }
                 if (removeCar) {
-                    if (Configurator.getParamBool("highway.dashboard.sumoSimulation", true))
+                    if (Configurator.getParamBool("highway.dashboard.sumoSimulation", true)) {
                         this.addToPlannedVehiclesToRemove(carID);
-
+                    }
                     removeCar = false;
                 } else {
                     Vector3f vel = new Vector3f(state.getPosition());
@@ -226,11 +228,12 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                     duration = 0;
                 }
             }
-             // acceptPlans(plans);
+          //    acceptPlans(plans);
             plansOut = plans;
             //radarData = vehicleStorage.generateRadarData();
-            currentState = radarData;
+            //currentState = radarData;
 
+            counter++;
             highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
         }
     }

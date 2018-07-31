@@ -42,7 +42,7 @@ public class ManeuverTranslator {
         this.navigator = navigator;
         if (maneuver == null) {
             Point2f initial = navigator.getInitialPosition();
-            return new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), 0);
+            return new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), -1);
         }
 
         RoadObject me = sensor.senseCurrentState();
@@ -117,10 +117,10 @@ public class ManeuverTranslator {
             innerPoint = navigator.getRoutePoint();
             if (!pointCloseEnough(innerPoint, pos2D, vel2D)) {
                 navigator.advanceInRoute();
-                if (navigator.isMyLifeEnds()) {
-                    navigator.setMyLifeEnds(true);
-                    navigator.advanceInRoute();
-                }
+//                if (navigator.isMyLifeEnds()) {
+//                    navigator.setMyLifeEnds(true);
+//                    navigator.advanceInRoute();
+//                }
             }
             i++;
         } while (i < TRY_COUNT);

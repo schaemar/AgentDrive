@@ -15,6 +15,7 @@ import cz.agents.agentdrive.highway.storage.plan.WPAction;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import javax.print.attribute.standard.NumberUp;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -89,10 +90,18 @@ public class SDAgent extends Agent {
     }
 
     public CarManeuver plan() {
-
+//        System.out.println("plan for " + this.getName());
         CarManeuver maneuver = null;
-        RoadObject currState = sensor.senseCurrentState();
 
+        RoadObject currState = sensor.senseCurrentState();
+        if (currState == null) {
+            logger.debug("No plan for car " + this.getName());
+            return null;
+        }
+        if (navigator.getLane() == null) {
+            logger.debug("No plan for car " + this.getName());
+            return null;
+        }
         int myLaneIndex = navigator.getLane().getIndex();
         for (LaneImpl l : navigator.getLane().getParentEdge().getLanes().values()) {
             if (l.getInnerPoints().contains(new Point2f(currState.getPosition().x, currState.getPosition().y))){
@@ -119,6 +128,13 @@ public class SDAgent extends Agent {
         double velocity = currState.getVelocity().length();
         Point2f edgeBeginPoint =  navigator.getLane().getInnerPoints().get(0);
         double distance = getDistance(currState, edgeBeginPoint); //transGeoToDistance(currState.getPosition());
+        /* is at the end? */
+        if (navigator.getLane().getParentEdge().getId().equals(navigator.getRoute().get(navigator.getRoute().size() - 1).getId())){
+            if (0 == getDistance(currState, navigator.getLane().getInnerPoints().get(navigator.getLane().getInnerPoints().size() - 1))){
+                logger.debug("Car " + this.getName() + " reached its destination.");
+                return null;
+            }
+        }
         long updateTime = (long) (currState.getUpdateTime() * 1000);
 
         CarManeuver acc = new AccelerationManeuver(lane, velocity, distance, updateTime);
@@ -306,7 +322,7 @@ public class SDAgent extends Agent {
 
     private double safeDistance(CarManeuver man, double safetyReserve) {
         // TODO get the a0 from the car
-        double a0 =  man.getAcceleration();
+        double a0 =  -4;//man.getAcceleration();
         double v0 = man.getVelocityOut();
         double v1 = 0;
         return safeDistance(a0, v0, v1, safetyReserve);
@@ -314,7 +330,7 @@ public class SDAgent extends Agent {
 
     private double safeDistance(CarManeuver manAhead, CarManeuver manBehind, double safetyReserve) {
         // TODO get the a0 from the car
-        double a0 = manBehind.getAcceleration();
+        double a0 = -4;//manBehind.getAcceleration();
         double v0 = manBehind.getVelocityOut();
         double v1 = manAhead.getVelocityIn();
         double safeDist = safeDistance(a0, v0, v1, safetyReserve);
@@ -395,7 +411,6 @@ public class SDAgent extends Agent {
      * Cooperative method returns conflictTime, if a conflict is found else return -1
      */
     public long getTimeConflict(CarManeuver carManeuver, CarManeuver carManeuver2) {
-
         long car1Start = carManeuver.getStartTime();
         long car1End = carManeuver.getEndTime();
         long car2Start = carManeuver2.getStartTime();
@@ -471,7 +486,7 @@ public class SDAgent extends Agent {
             logger.debug("LaneOut= " + laneOut);
             return false;
         }
-        if (laneOut > navigator.getLane().getParentEdge().getLanes().keySet().size()) {
+        if (laneOut >= navigator.getLane().getParentEdge().getLanes().keySet().size()) {
             logger.debug("laneOut = " + laneOut);
             return false;
         }
@@ -492,7 +507,11 @@ public class SDAgent extends Agent {
 
             Point2f edgeBeginPoint =  navigator.getLane().getInnerPoints().get(0);
             Point2f otherEdgeBeginPoint = sensor.getRoadNetwork().getClosestLane(entry.getPosition()).getInnerPoints().get(0);
-            if (edgeBeginPoint != otherEdgeBeginPoint || entry.getId() == state.getId()) continue;
+            if(!navigator.getLane().getParentEdge().getId().equals(sensor.getRoadNetwork().getClosestLane(entry.getPosition()).getParentEdge().getId())){
+                //if cars are on different route dont check
+                continue;
+            }
+            //if (edgeBeginPoint != otherEdgeBeginPoint || entry.getId() == state.getId()) continue;
 
             double otherCarPosition = man.getPositionIn();
             double thisCarPosition = getDistance(state, edgeBeginPoint);
@@ -529,7 +548,7 @@ public class SDAgent extends Agent {
     }
 
     public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject car, long from, long to) {
-        // if has no plan -> predict TODO use more sofisticated prediction - not
+        // if has no plan -> predict TODO use more sophisticated prediction - not
         // here, on all the statespace
         ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();
         // TODO add a part of plan that is between from and to

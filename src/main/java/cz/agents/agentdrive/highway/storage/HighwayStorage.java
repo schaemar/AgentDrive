@@ -129,9 +129,9 @@ public class HighwayStorage extends EventBasedStorage {
             agent = new GSDAgent(id, highwayEnvironment.getRoadNetwork());
         } else if (agentClassName.equals("ADPPAgent")) {
             agent = new ADPPAgent(id, highwayEnvironment.getRoadNetwork());
-        }else{
+        } else {
             try {
-                throw new Exception("Agent class: "+agentClassName+" not supported!");
+                throw new Exception("Agent class: " + agentClassName + " not supported!");
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -186,7 +186,8 @@ public class HighwayStorage extends EventBasedStorage {
                 experimentsData.updateTimesAndGraphOfArrivals(object, id);
             }
         }
-        logger.debug("HighwayStorage updated vehicles: received " + object);
+        if (!object.getCars().isEmpty())
+            logger.debug("HighwayStorage updated vehicles: received " + object);
 
         for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet()) {
             experimentsData.updateDistances(object, entry);
@@ -203,6 +204,7 @@ public class HighwayStorage extends EventBasedStorage {
 
     public void removeAgent(Integer carID) {
         agents.remove(carID);
+        posCurr.remove(carID);
     }
 
     public void addForInsert(int id) {
@@ -297,10 +299,11 @@ public class HighwayStorage extends EventBasedStorage {
             float distanceToSecondCar = entry.getPosition().distance(statePosition);
             if (distanceToSecondCar < CHECKING_DISTANCE) {
                 if (distanceToSecondCar < SAFETY_RESERVE) {
-                   /* if(stateNavigator.getLane().getEdge() == agents.get(entry.getId()).getNavigator().getLane().getEdge() &&
-                            stateNavigator.getLane() != agents.get(entry.getId()).getNavigator().getLane()
-                            || stateNavigator.getLane().getEdge() != agents.get(entry.getId()).getNavigator().getLane().getEdge()) continue;
-                    else */
+                    //TODO
+//                   if(stateNavigator.getLane().getParentEdge() == agents.get(entry.getId()).getNavigator().getLane().getParentEdge() &&
+//                            stateNavigator.getLane() != agents.get(entry.getId()).getNavigator().getLane()
+//                            || stateNavigator.getLane().getParentEdge() != agents.get(entry.getId()).getNavigator().getLane().getParentEdge()) continue;
+//                    else
                     return false;
                 }
                 // else if(distanceToSecondCar < 3) return false;
