@@ -110,7 +110,7 @@ public class StateSpaceVehicleLayer extends CommonLayer {
             if (mainAgent.getHighwaySituation().getCarLeftMan() != null){
                 drawManeuver(mainAgent.getHighwaySituation().getCarLeftMan(),canvas, x, y);
             }
-            x = 3*WIDTH/3;
+            x = 2*WIDTH/3;
             y = HEIGHT /3 + canvas.getFontMetrics().getHeight();
             if (mainAgent.getHighwaySituation().getCarRightMan() != null){
                 drawManeuver(mainAgent.getHighwaySituation().getCarRightMan(),canvas, x, y);

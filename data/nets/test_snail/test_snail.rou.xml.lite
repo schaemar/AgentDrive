@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 07/31/18 14:21:07 by SUMO duarouter Version 0.32.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="test_snail\test_snail.net.xml"/>
+        <route-files value="test_snail\test_snail.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="test_snail\test_snail.rou.xml"/>
+        <alternatives-output value="test_snail\test_snail.rou.alt.xml"/>
+    </output>
+
+    <processing>
+        <ignore-errors value="true"/>
+        <routing-algorithm value="astar"/>
+    </processing>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <vehicle id="0" depart="5.00">
+        <route edges="7 8 9 10"/>
+    </vehicle>
+    <vehicle id="1" depart="7.00">
+        <route edges="7"/>
+    </vehicle>
+
+    <vehicle id="2" depart="9.00">
+        <route edges="7"/>
+    </vehicle>
+    <vehicle id="3" depart="11.00">
+        <route edges="7 8 9"/>
+    </vehicle>
+    <vehicle id="4" depart="13.00">
+        <route edges="7"/>
+    </vehicle>
+   
+    <vehicle id="5" depart="16.00">
+        <route edges="7"/>
+    </vehicle>
+   
+    <vehicle id="6" depart="22.00">
+        <route edges="7 8 9 10"/>
+    </vehicle>
+  
+    <vehicle id="7" depart="33.00">
+        <route edges="7 8 9 10"/>
+    </vehicle>
+    
+    <vehicle id="8" depart="37.00">
+        <route edges="7"/>
+    </vehicle>
+    <vehicle id="9" depart="38.00">
+        <route edges="7"/>
+    </vehicle>
+    
+    <vehicle id="10" depart="41.00">
+        <route edges="7"/>
+    </vehicle>
+    <vehicle id="11" depart="42.00">
+        <route edges="7"/>
+    </vehicle>
+    
+    <vehicle id="12" depart="45.00">
+        <route edges="7"/>
+    </vehicle>
+   
+</routes>

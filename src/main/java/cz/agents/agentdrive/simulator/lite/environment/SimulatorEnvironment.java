@@ -56,7 +56,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
     static public final long UPDATE_STEP = 20;
 
     /// Time between communication updates
-    static public final long COMM_STEP = 200;
+    static public final long COMM_STEP = 20;
 
     /**
      * Create the environment, the storage and register event handlers
@@ -86,12 +86,13 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
 
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null);
                     getEventProcessor().addEvent(SimulatorEvent.UPDATE, null, null, null);
-                    getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null);
+                    if (!Configurator.getParamBool("simulator.lite.perfectExecution", true))
+                        getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null);
                 } else if (event.isType(SimulatorEvent.COMMUNICATION_UPDATE)) {
                     //highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
                     //highwayEnvironment.getStorage().updateCars(currentState);
-//                    if (counter > 0)highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
-//                    getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null, Math.max(1, (long) (timestep * 50)));
+                    if (counter > 0) highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
+                    getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null, Math.max(1, (long) (timestep * COMM_STEP)));
                 } else if (event.isType(HighwayEventType.TIMESTEP)) {
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
                 }
@@ -165,78 +166,75 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
 
             Map<Integer, RoadObject> currStates = plans.getCurrStates();
             RadarData radarData = new RadarData();
-            float duration = 0;
-            float lastDuration = 0;
-            double timest = Configurator.getParamDouble("highway.SimulatorLocal.timestep", 1.0);
-            float timestep = (float) timest;
+            if (Configurator.getParamBool("simulator.lite.perfectExecution", true)) {
+                float duration = 0;
+                float lastDuration = 0;
+                double timest = Configurator.getParamDouble("highway.SimulatorLocal.timestep", 1.0);
+                float timestep = (float) timest;
 
-            boolean removeCar = false;
-            for (Integer carID : plans.getCarIds()) {
-                Collection<Action> plan = plans.getPlan(carID);
-                RoadObject state = currStates.get(carID);
-                Point3f lastPosition = state.getPosition();
-                Point3f myPosition = state.getPosition();
-                for (Action action : plan) {
-                    if (action.getClass().equals(WPAction.class)) {
-                        WPAction wpAction = (WPAction) action;
-                        if (wpAction.getSpeed() == -1) {
-                            myPosition = wpAction.getPosition();
-                            removeCar = true;
-                            System.out.println("removed - speed = " + wpAction.getSpeed());
-                        }
-                        if (wpAction.getSpeed() < 0.001) {
-                            duration += 0.10f;
-                        } else {
-                            myPosition = wpAction.getPosition();
-                            lastDuration = (float) (wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed()));
-                            duration += wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed());
-                        }
-                        // creating point between the waypoints if my duration is greater than the defined timestep
-                        if (duration >= timestep) {
+                boolean removeCar = false;
+                for (Integer carID : plans.getCarIds()) {
+                    Collection<Action> plan = plans.getPlan(carID);
+                    RoadObject state = currStates.get(carID);
+                    Point3f lastPosition = state.getPosition();
+                    Point3f myPosition = state.getPosition();
+                    for (Action action : plan) {
+                        if (action.getClass().equals(WPAction.class)) {
+                            WPAction wpAction = (WPAction) action;
+                            if (wpAction.getSpeed() == -1) {
+                                myPosition = wpAction.getPosition();
+                                removeCar = true;
+                                System.out.println("removed - speed = " + wpAction.getSpeed());
+                            }
+                            if (wpAction.getSpeed() < 0.001) {
+                                duration += 0.10f;
+                            } else {
+                                myPosition = wpAction.getPosition();
+                                lastDuration = (float) (wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed()));
+                                duration += wpAction.getPosition().distance(lastPosition) / (wpAction.getSpeed());
+                            }
+                            // creating point between the waypoints if my duration is greater than the defined timestep
+                            if (duration >= timestep) {
 
-                            float remainingDuration = timestep - (duration - lastDuration);
-                            float ration = remainingDuration / lastDuration;
-                            float x = myPosition.x - lastPosition.x;
-                            float y = myPosition.y - lastPosition.y;
-                            float z = myPosition.z - lastPosition.z;
-                            Vector3f vec = new Vector3f(x, y, z);
-                            vec.scale(ration);
+                                float remainingDuration = timestep - (duration - lastDuration);
+                                float ration = remainingDuration / lastDuration;
+                                float x = myPosition.x - lastPosition.x;
+                                float y = myPosition.y - lastPosition.y;
+                                float z = myPosition.z - lastPosition.z;
+                                Vector3f vec = new Vector3f(x, y, z);
+                                vec.scale(ration);
 
-                            myPosition = new Point3f(vec.x + 0 + lastPosition.x, vec.y + lastPosition.y, vec.z + lastPosition.z);
-                            break;
+                                myPosition = new Point3f(vec.x + 0 + lastPosition.x, vec.y + lastPosition.y, vec.z + lastPosition.z);
+                                break;
+                            }
+                            lastPosition = wpAction.getPosition();
                         }
-                        lastPosition = wpAction.getPosition();
+                    }
+                    if (removeCar) {
+                        if (Configurator.getParamBool("highway.dashboard.sumoSimulation", true)) {
+                            this.addToPlannedVehiclesToRemove(carID);
+                        }
+                        removeCar = false;
+                    } else {
+                        Vector3f vel = new Vector3f(state.getPosition());
+                        vel.negate();
+                        vel.add(myPosition);
+                        if (vel.length() < 0.0001) {
+                            vel = state.getVelocity();
+                            vel.normalize();
+                            vel.scale(0.0010f);
+                        }
+                        int lane = highwayEnvironment.getRoadNetwork().getClosestLane(myPosition).getIndex();
+                        state = new RoadObject(carID, highwayEnvironment.getEventProcessor().getCurrentTime(), lane, myPosition, vel);
+                        radarData.add(state);
+                        duration = 0;
                     }
                 }
-                if (removeCar) {
-                    if (Configurator.getParamBool("highway.dashboard.sumoSimulation", true)) {
-                        this.addToPlannedVehiclesToRemove(carID);
-                    }
-                    removeCar = false;
-                } else {
-                    Vector3f vel = new Vector3f(state.getPosition());
-                    vel.negate();
-                    vel.add(myPosition);
-                    if (vel.length() < 0.0001) {
-                        vel = state.getVelocity();
-                        vel.normalize();
-                        vel.scale(0.0010f);
-                    }
-                    int lane = highwayEnvironment.getRoadNetwork().getClosestLane(myPosition).getIndex();
-                    state = new RoadObject(carID, highwayEnvironment.getEventProcessor().getCurrentTime(), lane, myPosition, vel);
-                    radarData.add(state);
-                    duration = 0;
-                }
+                highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
+            } else {
+                acceptPlans(plans);
             }
-          //    acceptPlans(plans);
-            plansOut = plans;
-            //radarData = vehicleStorage.generateRadarData();
-            //currentState = radarData;
-
             counter++;
-            highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
         }
     }
-
-
 }

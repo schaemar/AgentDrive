@@ -1,16 +1,13 @@
 highway {
-    
-     agent = "SDAgent";
-   //    agent = "RouteAgent";
-    // agent = "GSDAgent";
 
-    // legacy
-//    net {
-//        folder = "nets/artificialHighway"
-//    }
+    agent = "SDAgent";
+    //      agent = "RouteAgent";
+   //   agent = "GSDAgent";
+
+
     safeDistanceAgent {
         safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
-        //narrowingModeActive =true;
+//        narrowingModeActive = true;
         distanceToActivateNM = 400;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
@@ -90,9 +87,9 @@ highway {
 ////        simulatorsToRun = ["OpenDS"];
 // //       simulatorsToRun = ["Empty"];
 
-        numberOfCarsInSimulation = 3;
+        numberOfCarsInSimulation = 25;
         sumoSimulation = true;
-        systemTime = true;
+        systemTime = false;
     }
 //legacy
 //    netLayer {
@@ -124,33 +121,34 @@ simulator {
         simulationDuration = -1;      // - 1 = infinity
         simulationSpeed = 1;
         timestep = 10; //ms
-
+        perfectExecution = false;
         vis {
             isOn = true;
             SimulationControlLayer = true;
             NetVisLayer = true;
             TrafficVisLayer = true;
             ZoomVehicleLayer = false;
-            AgentDriveVisLayer = true;
-            RoadObjectLayer = true;
+            AgentDriveVisLayer = false;
+            RoadObjectLayer = false;
             StateSpaceVehicleLayer = true;
         }
     }
     net {
-      //  folder = "nets/skoda-parking"
-      //   folder = "nets/test_gsda0"
-         folder = "nets/test_bottleneck"
-      //  folder = "nets/test_sda2"
-      //  folder = "nets/artificialHighway"
+        //  folder = "nets/skoda-parking"
+       //   folder = "nets/test_gsda0"
+//        folder = "nets/test_bottleneck"
+          folder = "nets/test_snail"
+        //  folder = "nets/test_sda1"
+        //  folder = "nets/artificialHighway"
         // folder = "nets/mlada-boleslav/"
-       //  folder = "nets/skoda-parking/"
+        //  folder = "nets/skoda-parking/"
         // folder = "nets/CharlesSquare";
         // folder = "nets/dresden/";
         // folder = "super-collision";
         // folder = "nets/x-junction/";
         // folder = "nets/pisek-all/"
         // folder = "nets/junction-big/";
-        // folder = "nets/highway-straight/";
+//        folder = "nets/highway-straight/";
         // folder = "nets/artificialX-junction";
         // folder = "nets/ulesika";
         // folder = "nets/nartest";
