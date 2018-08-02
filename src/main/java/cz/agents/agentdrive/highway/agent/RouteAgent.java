@@ -36,13 +36,13 @@ public class RouteAgent extends Agent {
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
         maneuverTranslator.setSensor(this.sensor);
-        this.sensor.registerReaction(new Reaction() {
-            public void react(Event event) {
-                if (event.getType().equals(HighwayEventType.UPDATED)) {
-                    actuator.act(agentReact());
-                }
-            }
-        });
+//        this.sensor.registerReaction(new Reaction() {
+//            public void react(Event event) {
+//                if (event.getType().equals(HighwayEventType.UPDATED)) {
+//                    actuator.act(agentReact());
+//                }
+//            }
+//        });
     }
 
     /**
@@ -51,7 +51,7 @@ public class RouteAgent extends Agent {
      *
      * @return
      */
-    protected List<Action> agentReact() {
+    public List<Action> agentReact() {
         maneuverTranslator.setSensor(sensor);
         maneuverTranslator.setNavigator(navigator);
         return maneuverTranslator.prepare();

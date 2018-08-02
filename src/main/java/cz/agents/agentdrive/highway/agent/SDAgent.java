@@ -66,7 +66,6 @@ public class SDAgent extends RouteAgent {
     }
 
 
-
     public void predictNext(HighwaySituation situationPrediction, RoadObject car, long predictionEndTime) {
         CarManeuver man = new StraightManeuver(car.getLaneIndex(), car.getVelocity().length(), getDistance(car), (long) (car.getUpdateTime() * 1000));
         if (!isCollision(man, situationPrediction)) {
@@ -344,7 +343,7 @@ public class SDAgent extends RouteAgent {
 
     public ArrayList<CarManeuver> getStatespace(RoadObject state) {
         Collection<RoadObject> cars = sensor.senseCars();
-        long planningStartTime = sensor.getEventProcessor().getCurrentTime();
+        long planningStartTime = sensor.getCurrentTime();
         ArrayList<CarManeuver> stateSpace = generateSS(state, cars, planningStartTime, planningStartTime + PLANNING_TIME);
         return stateSpace;
     }
@@ -477,7 +476,6 @@ public class SDAgent extends RouteAgent {
     }
 
 
-
     public HighwaySituation generateSS(RoadObject state, Collection<RoadObject> cars, long from, long to) {
 
         HighwaySituation situationPrediction = new HighwaySituation();
@@ -586,7 +584,7 @@ public class SDAgent extends RouteAgent {
     }
 
 
-    protected boolean checkCorrectRoute(){
+    protected boolean checkCorrectRoute() {
         if (!navigator.getRoute().contains(myActualLanePosition.getEdge())) {
             logger.warn("Agent is on a route it should not be!  ");
             /*
@@ -604,6 +602,7 @@ public class SDAgent extends RouteAgent {
         }
         return true;
     }
+
     public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject me, ActualLanePosition myActualLanePosition, RoadObject car, ActualLanePosition otherActualLanePosition, long from, long to, List<Edge> rem) {
 
         ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();

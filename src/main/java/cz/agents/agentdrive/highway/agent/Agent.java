@@ -1,5 +1,6 @@
 package cz.agents.agentdrive.highway.agent;
 
+import cz.agents.agentdrive.highway.storage.plan.Action;
 import cz.agents.alite.common.entity.Entity;
 import cz.agents.agentdrive.highway.environment.roadnet.Edge;
 import cz.agents.agentdrive.highway.environment.roadnet.RoadNetworkRouter;
@@ -11,7 +12,7 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 import java.util.List;
 
-public class Agent extends Entity {
+public abstract class Agent extends Entity {
 
     int id;
     private static final Logger logger = Logger.getLogger(Agent.class);
@@ -29,6 +30,7 @@ public class Agent extends Entity {
         logger.info("Agent " + id + " created");
     }
 
+    public abstract List<Action> agentReact();
 
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
@@ -54,5 +56,13 @@ public class Agent extends Entity {
 
     public void setNavigator(RouteNavigator navigator) {
         this.navigator = navigator;
+    }
+
+    public VehicleSensor getSensor() {
+        return sensor;
+    }
+
+    public VehicleActuator getActuator() {
+        return actuator;
     }
 }

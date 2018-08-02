@@ -1,5 +1,6 @@
 package cz.agents.agentdrive.highway.storage;
 
+import cz.agents.agentdrive.highway.environment.SimulatorHandlers.SimulatorHandler;
 import cz.agents.alite.common.event.Event;
 import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
@@ -46,7 +47,7 @@ public class HighwayStorage extends EventBasedStorage {
     private long STARTTIME;
 
     private static final double CHECKING_DISTANCE = Configurator.getParamDouble("highway.storage.checkingDistance", 500d);
-    ;
+
     private static final double SAFETY_RESERVE = Configurator.getParamDouble("highway.storage.safetyReserve", 10d);
     private static final double INSERT_SPEED = Configurator.getParamDouble("highway.storage.insertSpeed", 1d);
 
@@ -197,7 +198,25 @@ public class HighwayStorage extends EventBasedStorage {
                 posCurr.size() == 0 && vehiclesForInsert.isEmpty()) {
             getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
         }
-        getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
+
+        for (Agent a : this.getAgents().values()){
+            /* get actions that were originally send with NEW_PLAN event */
+            /* List<Action> actions = */
+            List<cz.agents.agentdrive.highway.storage.plan.Action> actions = a.getActuator().act(a.agentReact());
+            int id = actions.get(0).getCarId();
+            if (!getPosCurr().containsKey(id)) return;
+            for (SimulatorHandler handler : highwayEnvironment.getSimulatorHandlers()) {
+                if (handler.hasVehicle(id)) {
+                    handler.addActions(id, actions);
+                }
+                if (handler.isReady()) {
+                    getExperimentsData().calcPlanCalculation(System.currentTimeMillis());
+                    //numberOfPlanCalculations++;
+                    handler.sendPlans(getPosCurr());
+                }
+            }
+        }
+       // getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
         //   }
     }
 

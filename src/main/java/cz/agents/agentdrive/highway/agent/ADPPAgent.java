@@ -179,38 +179,38 @@ public class ADPPAgent extends Agent {
     public void addSensor(final VehicleSensor sensor) {
         this.sensor = sensor;
         priorityRelation = new TrafficRulesPriorityRelation(sensor);
-        this.sensor.registerReaction(new Reaction() {
-            @Override
-            public void react(Event event) {
-                if (event.getType().equals(HighwayEventType.UPDATED)) {
-                    finalPlans.clear();
-                    planSent = false;
-                    time = event.getTime() / 1000;
-//                    time = sensor.senseCurrentState().getUpdateTime() / 1000;
-                    if (shouldReplan()) {
-                        replan();
-                    } else if (trajectory != null && !replanTime()) {
-                        actuator.act(agentReact());
-                    }
-                } else if (event.getType().equals(HighwayEventType.TRAJECTORY_CHANGED)) {
-                    int key = (Integer) event.getContent();
-                    if (key == id && !planSent) {
-                        actuator.act(agentReact());
-                    }
-                } else if (event.getType().equals(HighwayEventType.NEW_PLAN)) {
-                    List<Action> actions = (List<Action>) event.getContent();
-                    int carId = actions.get(0).getCarId();
-                    finalPlans.add(carId);
-                    if (priorityRelation.higherPriority().contains(carId) && shouldReplan()) {
-                        replan();
-                    } else if (allHigherPriorityReady() && id != carId && !planSent) {
-                        actuator.act(agentReact());
-                    }
-                } else if (event.isType(HighwayEventType.TIMESTEP)) {
-                    timeParameter.setTime((int)event.getTime()* RegionsLayer.PRECISION/1000);
-                }
-            }
-        });
+//        this.sensor.registerReaction(new Reaction() {
+//            @Override
+//            public void react(Event event) {
+//                if (event.getType().equals(HighwayEventType.UPDATED)) {
+//                    finalPlans.clear();
+//                    planSent = false;
+//                    time = event.getTime() / 1000;
+////                    time = sensor.senseCurrentState().getUpdateTime() / 1000;
+//                    if (shouldReplan()) {
+//                        replan();
+//                    } else if (trajectory != null && !replanTime()) {
+//                        actuator.act(agentReact());
+//                    }
+//                } else if (event.getType().equals(HighwayEventType.TRAJECTORY_CHANGED)) {
+//                    int key = (Integer) event.getContent();
+//                    if (key == id && !planSent) {
+//                        actuator.act(agentReact());
+//                    }
+//                } else if (event.getType().equals(HighwayEventType.NEW_PLAN)) {
+//                    List<Action> actions = (List<Action>) event.getContent();
+//                    int carId = actions.get(0).getCarId();
+//                    finalPlans.add(carId);
+//                    if (priorityRelation.higherPriority().contains(carId) && shouldReplan()) {
+//                        replan();
+//                    } else if (allHigherPriorityReady() && id != carId && !planSent) {
+//                        actuator.act(agentReact());
+//                    }
+//                } else if (event.isType(HighwayEventType.TIMESTEP)) {
+//                    timeParameter.setTime((int)event.getTime()* RegionsLayer.PRECISION/1000);
+//                }
+//            }
+//        });
     }
 
     private boolean replanTime() {
@@ -243,8 +243,8 @@ public class ADPPAgent extends Agent {
     private void replan() {
         RoadObject me = sensor.senseCurrentState(); // my current state
         if (me == null || isGoal(new Point2d(me.getPosition().x, me.getPosition().y))) {
-            actuator.getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_UPDATED, null, null,
-                    new AbstractMap.SimpleEntry<Integer, Region>(this.id, null));
+//            actuator.getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_UPDATED, null, null,
+//                    new AbstractMap.SimpleEntry<Integer, Region>(this.id, null));
             return;
         }
         print("PLANNING");
@@ -277,7 +277,7 @@ public class ADPPAgent extends Agent {
 
     }
 
-    private List<Action> agentReact() {
+    public List<Action> agentReact() {
         RoadObject me = sensor.senseCurrentState(); // my current state
         LinkedList<Action> actions = new LinkedList<Action>(); // list of actions for the simulator
         planSent = true;
@@ -455,9 +455,15 @@ public class ADPPAgent extends Agent {
         }
 
         // Dispatch an event
-        actuator.getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_UPDATED, null, null,
-                new AbstractMap.SimpleEntry<Integer, Region>(this.id, region));
-//        trajectoryLayer = TrajectoryLayer.create(new TrajectoryLayer.TrajectoryProvider<Point>() {
+
+        /* */
+//        actuator.getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_UPDATED, null, null,
+//                new AbstractMap.SimpleEntry<Integer, Region>(this.id, region));
+
+
+
+
+        //        trajectoryLayer = TrajectoryLayer.create(new TrajectoryLayer.TrajectoryProvider<Point>() {
 //            @Override
 //            public tt.continous.Trajectory<Point> getTrajectory() {
 //                return trajectory;

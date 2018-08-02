@@ -1,38 +1,44 @@
 package cz.agents.agentdrive.highway.storage;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.function.Function;
-
-import cz.agents.alite.common.entity.Entity;
-import cz.agents.alite.common.event.Event;
-import cz.agents.alite.environment.eventbased.EventBasedSensor;
 import cz.agents.agentdrive.highway.agent.Agent;
 import cz.agents.agentdrive.highway.agent.Reaction;
 import cz.agents.agentdrive.highway.environment.HighwayEnvironment;
 import cz.agents.agentdrive.highway.environment.planning.euclid4d.Region;
 import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
 import cz.agents.agentdrive.highway.util.Utils;
+import cz.agents.alite.common.entity.Entity;
+import cz.agents.alite.common.event.Event;
 import org.apache.log4j.Logger;
 
-public class VehicleSensor {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+public class MyVehicleSensor {
 
     private static final Logger logger = Logger.getLogger(VehicleSensor.class);
     private HighwayStorage storage;
-    private Entity entity;
     private HighwayEnvironment highwayEnvironment;
 
-    public VehicleSensor(HighwayEnvironment environment, Entity relatedEntity,
-                         HighwayStorage storage) {
+    public MyVehicleSensor(HighwayEnvironment environment, Entity relatedEntity,
+                           HighwayStorage storage) {
         this.highwayEnvironment = environment;
-        this.entity = relatedEntity;
         this.storage = storage;
         id = Utils.name2ID(relatedEntity.getName());
     }
 
+    private Reaction reaction;
+    Consumer<Event> function;
     private int id;
 
+
+    public void handleEvent(Event event) {
+        if (function != null) {
+            function.accept(event);
+        }
+    }
 
     public int getId() {
         return id;
@@ -59,6 +65,10 @@ public class VehicleSensor {
         return ret;
     }
 
+    public void registerFunction(Consumer<Event> function) {
+        this.function = function;
+    }
+
     public RoadDescription getRoadDescription() {
         return storage.getRoadDescription();
     }
@@ -73,9 +83,6 @@ public class VehicleSensor {
 
     public RoadNetwork getRoadNetwork() {
         return highwayEnvironment.getRoadNetwork();
-    }
 
-    public long getCurrentTime() {
-        return highwayEnvironment.getEventProcessor().getCurrentTime();
     }
 }

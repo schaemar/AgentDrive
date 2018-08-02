@@ -9,13 +9,16 @@ import cz.agents.agentdrive.highway.util.Utils;
 import java.util.LinkedList;
 import java.util.List;
 
-public class VehicleActuator extends EventBasedAction {
+public class VehicleActuator {
 
     private HighwayStorage storage;
     private int id;
+    private Entity entity;
+    private HighwayEnvironment highwayEnvironment;
 
     public VehicleActuator(HighwayEnvironment environment, Entity relatedEntity, HighwayStorage storage) {
-        super(environment, relatedEntity);
+        this.highwayEnvironment = environment;
+        this.entity = relatedEntity;
         this.storage = storage;
         this.id = Utils.name2ID(relatedEntity.getName());
     }
@@ -26,8 +29,9 @@ public class VehicleActuator extends EventBasedAction {
         act(actions);
     }
 
-    public void act(List<Action> actions) {
+    public List<Action> act(List<Action> actions) {
         storage.act(id, actions);
-        getEventProcessor().addEvent(HighwayEventType.NEW_PLAN, null, null, actions);
+        return actions;
+        //getEventProcessor().addEvent(HighwayEventType.NEW_PLAN, null, null, actions);
     }
 }
