@@ -178,7 +178,7 @@ public class SimulatorCreator implements Creator {
             plannedVehiclesLocal.add(vehicleID);
         }
         final Set<Integer> plannedVehicles = plannedVehiclesLocal;
-      //  environment.getHighwayEnvironment().addSimulatorHandler(new LocalSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles)));
+        //environment.getHighwayEnvironment().addSimulatorHandler(new LocalSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles)));
         environment.getHighwayEnvironment().addSimulatorHandler(new ModuleSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles), environment.getPlanCallback()));
     }
 

@@ -21,7 +21,7 @@ import java.util.List;
  * {@link RoadNetwork}
  */
 @SuppressWarnings("JavadocReference")
-public class HighwayEnvironment extends EventBasedEnvironment implements EventHandler {
+public class HighwayEnvironment extends EventBasedEnvironment {
 
     private final Logger logger = Logger.getLogger(HighwayEnvironment.class);
 
@@ -43,8 +43,9 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
         storage = new HighwayStorage(this);
         logger.info("Initialized storage and RoadNetwork");
 
-        eventProcessor.addEventHandler(this);
+        // eventProcessor.addEventHandler(this);
     }
+
     public HighwayEnvironment(final EventProcessor eventProcessor, RoadNetwork roadNetwork) {
         super(eventProcessor);
         RandomProvider.init(this);
@@ -56,7 +57,7 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
         storage = new HighwayStorage(this);
         logger.info("Initialized storage and RoadNetwork");
 
-        eventProcessor.addEventHandler(this);
+        //  eventProcessor.addEventHandler(this);
     }
 
     public RoadNetwork getRoadNetwork() {
@@ -68,24 +69,24 @@ public class HighwayEnvironment extends EventBasedEnvironment implements EventHa
         return storage;
     }
 
-    @Override
+
     public void handleEvent(Event event) {
         if (event.isType(HighwayEventType.NEW_PLAN)) {
-            List<cz.agents.agentdrive.highway.storage.plan.Action> actions = (List<cz.agents.agentdrive.highway.storage.plan.Action>) event.getContent();
-            int id = actions.get(0).getCarId();
-            if (!getStorage().getPosCurr().containsKey(id)) return;
-            for (SimulatorHandler handler : simulatorHandlers) {
-                if (handler.hasVehicle(id)) {
-                    handler.addActions(id, actions);
-                }
-                if (handler.isReady()) {
-                    getStorage().getExperimentsData().calcPlanCalculation(System.currentTimeMillis());
-                    numberOfPlanCalculations++;
-                    handler.sendPlans(getStorage().getPosCurr());
-                }
-            }
+//            List<cz.agents.agentdrive.highway.storage.plan.Action> actions = (List<cz.agents.agentdrive.highway.storage.plan.Action>) event.getContent();
+//            int id = actions.get(0).getCarId();
+//            if (!getStorage().getPosCurr().containsKey(id)) return;
+//            for (SimulatorHandler handler : simulatorHandlers) {
+//                if (handler.hasVehicle(id)) {
+//                    handler.addActions(id, actions);
+//                }
+//                if (handler.isReady()) {
+//                    getStorage().getExperimentsData().calcPlanCalculation(System.currentTimeMillis());
+//                    numberOfPlanCalculations++;
+//                    handler.sendPlans(getStorage().getPosCurr());
+//                }
+//            }
         } else if (event.isType(HighwayEventType.UPDATED)) {
-            timeDifference = System.currentTimeMillis();
+            //timeDifference = System.currentTimeMillis();
         }
     }
 

@@ -21,7 +21,7 @@ public class GSDAgent extends SDAgent {
     private final static int ANGLE_TO_JUNCTION = 60;
 
     private final static int DISTANCE_TO_THE_JUNCTION = Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400);
-    private final static int CHECKING_DISTANCE = 500;
+
 
     private int numberOfCollisions = 0;
     private boolean junctionMode = false;
@@ -361,7 +361,4 @@ public class GSDAgent extends SDAgent {
         }
         return intersectionWaypoint;
     }
-
-
-
 }

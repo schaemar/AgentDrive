@@ -33,7 +33,7 @@ public class HighwayStorage extends EventBasedStorage {
 
 
     private HighwayEnvironment highwayEnvironment;
-
+    protected double acceleration = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.deacceleration", -6.0);
     private final RoadDescription roadDescription;
     private final RoadNetwork roadNetwork;
     private final Map<Integer, Agent> agents = new LinkedHashMap<Integer, Agent>();
@@ -199,12 +199,12 @@ public class HighwayStorage extends EventBasedStorage {
             getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
         }
 
-        for (Agent a : this.getAgents().values()){
+        for (Agent a : this.getAgents().values()) {
             /* get actions that were originally send with NEW_PLAN event */
             /* List<Action> actions = */
             List<cz.agents.agentdrive.highway.storage.plan.Action> actions = a.getActuator().act(a.agentReact());
-            int id = actions.get(0).getCarId();
-            if (!getPosCurr().containsKey(id)) return;
+            int id = Integer.parseInt(a.getName());//actions.get(0).getCarId();
+            if (!getPosCurr().containsKey(id)) continue;
             for (SimulatorHandler handler : highwayEnvironment.getSimulatorHandlers()) {
                 if (handler.hasVehicle(id)) {
                     handler.addActions(id, actions);
@@ -216,7 +216,7 @@ public class HighwayStorage extends EventBasedStorage {
                 }
             }
         }
-       // getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
+        // getEventProcessor().addEvent(HighwayEventType.UPDATED, null, null, null);
         //   }
     }
 
@@ -312,28 +312,32 @@ public class HighwayStorage extends EventBasedStorage {
     }
 
     public boolean isSafe(int stateId, Point3f statePosition, RouteNavigator stateNavigator) {
-
         for (Map.Entry<Integer, RoadObject> obj : posCurr.entrySet()) {
             RoadObject entry = obj.getValue();
             float distanceToSecondCar = entry.getPosition().distance(statePosition);
             if (distanceToSecondCar < CHECKING_DISTANCE) {
                 if (distanceToSecondCar < SAFETY_RESERVE) {
-                    //TODO
-//                   if(stateNavigator.getLane().getParentEdge() == agents.get(entry.getId()).getNavigator().getLane().getParentEdge() &&
-//                            stateNavigator.getLane() != agents.get(entry.getId()).getNavigator().getLane()
-//                            || stateNavigator.getLane().getParentEdge() != agents.get(entry.getId()).getNavigator().getLane().getParentEdge()) continue;
-//                    else
-                    return false;
+                    if (stateNavigator.getLane().getParentEdge() == agents.get(entry.getId()).getNavigator().getLane().getParentEdge() &&
+                            stateNavigator.getLane() != agents.get(entry.getId()).getNavigator().getLane()
+                            || stateNavigator.getLane().getParentEdge() != agents.get(entry.getId()).getNavigator().getLane().getParentEdge()){
+                        //continue
+                    }
+                    else {
+                        return false;
+                    }
                 }
-                // else if(distanceToSecondCar < 3) return false;
                 List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();
                 for (Edge e : followingEdgesInPlan) {
-                    if (stateNavigator.getLane().equals(e)) {
-                        if (agents.get(entry.getId()).getNavigator().getActualPointer() < stateNavigator.getActualPointer()
-                                && stateNavigator.getLane() == agents.get(entry.getId()).getNavigator().getLane()) {
-                            double safedist = safeDistance(-1, entry.getVelocity().length(), 0);
-                            if (safedist + SAFETY_RESERVE < distanceToSecondCar) return false;
-                        }
+                    if (stateNavigator.getLane().getParentEdge().equals(e)) {
+                        System.out.println(agents.get(entry.getId()).getNavigator().getActualPointer() + " < " + stateNavigator.getActualPointer());
+//                        if (agents.get(entry.getId()).getNavigator().getActualPointer() < stateNavigator.getActualPointer()
+//                                && stateNavigator.getLane() == agents.get(entry.getId()).getNavigator().getLane()) {
+                            double safedist = safeDistance(acceleration, entry.getVelocity().length(), INSERT_SPEED);
+                            if (safedist + SAFETY_RESERVE >= distanceToSecondCar){
+                                logger.warn("Vehicle could not be added to traffic at given time, because it was not safe. Vehicle will be added as soon as it is safe!");
+                                return false;
+                            }
+//                        }
                     }
                 }
             }

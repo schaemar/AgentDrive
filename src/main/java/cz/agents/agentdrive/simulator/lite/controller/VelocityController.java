@@ -12,7 +12,7 @@ import java.util.Collection;
  */
 public class VelocityController {
     private final static float DELTA_TIME = 1f;
-    private final static float MAX_ACCELERATION = 5f;
+    private final static float MAX_ACCELERATION = 4f;
     private final static float EPSILON = 0.1f;
     private float acceleration;
     private float desiredVelocity;
@@ -27,14 +27,13 @@ public class VelocityController {
      * Updates acceleration based on a plan
      */
     public void updatePlan(Collection<Action> plan) {
-        for (Action action: plan) {
+        for (Action action : plan) {
             if (action instanceof WPAction) {
-                if(((WPAction) action).getSpeed() == -1)
-                {
+                if (((WPAction) action).getSpeed() == -1) {
                     setAcceleration(vehicle.getVelocity());
                 }
                 WPAction wpAction = (WPAction) action;
-                setAcceleration((float)wpAction.getSpeed());
+                setAcceleration((float) wpAction.getSpeed());
             }
         }
     }
