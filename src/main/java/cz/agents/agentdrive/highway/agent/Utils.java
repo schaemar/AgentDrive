@@ -27,6 +27,8 @@ public class Utils {
     public static double getDistanceBetweenTwoRoadObjects(RoadObject me, ActualLanePosition myActualLanePosition, RoadObject other, ActualLanePosition otherActualLanePosition, List<Edge> rem) {
         // int nearestA = getNearestWaipointCloseEnough(me, myLane);
         // int nearestB = getNearestWaipointCloseEnough(other, otherLane);
+        boolean debug = false;
+        if (me.getId() == 17 && other.getId() == 30) debug = true;
         Lane myLane = myActualLanePosition.getLane();
         Lane otherLane = otherActualLanePosition.getLane();
         int nearestA = myActualLanePosition.getIndex();
@@ -58,24 +60,32 @@ public class Utils {
                 return 0;
         } else {
             // calculate distance to the vehicle on the edge that is on my plan.
-            int distC = 0;
+            double distC = 0;
             for (int i = nearestA + 1; i < myLane.getInnerPoints().size(); i++) {
+                if (debug) {
+                    System.out.println(myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i)));
+                }
                 distC += myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i));
             }
+            boolean foundEdge = false;
             for (int i = 0; i < rem.size(); i++) {
+
+
                 if (rem.get(i).equals(his)) {
-                    for (int d = 1; d <= nearestB; d++) {
+                    foundEdge = true;
+                    for (int d = 1; d < nearestB; d++) {
                         distC += otherLane.getInnerPoints().get(d - 1).distance(otherLane.getInnerPoints().get(d));
                     }
-                    break;
-                }
-                //TODO FIX MORE LANES LENGHT
-                LaneImpl tem = rem.get(i).getLaneByIndex(0);
-                for (int d = 1; d < tem.getInnerPoints().size(); d++) {
-                    distC += tem.getInnerPoints().get(d - 1).distance(tem.getInnerPoints().get(d));
-                }
 
+                    break;
+                } else {
+                    LaneImpl tem = rem.get(i).getLaneByIndex(0);
+                    for (int d = 1; d < tem.getInnerPoints().size(); d++) {
+                        distC += tem.getInnerPoints().get(d - 1).distance(tem.getInnerPoints().get(d));
+                    }
+                }
             }
+            if (!foundEdge) return Double.MIN_VALUE;
             return distC;
         }
     }
@@ -113,7 +123,7 @@ public class Utils {
      * @return null if no intersection point found or the point of intersection.
      */
     public static Point2f isColision(float p0_x, float p0_y, float p1_x, float p1_y,
-                               float p2_x, float p2_y, float p3_x, float p3_y) {
+                                     float p2_x, float p2_y, float p3_x, float p3_y) {
         float s1_x, s1_y, s2_x, s2_y;
         s1_x = p1_x - p0_x;
         s1_y = p1_y - p0_y;

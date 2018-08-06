@@ -12,6 +12,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import javax.vecmath.Point2f;
+import javax.vecmath.Point3f;
 import java.util.*;
 
 public class GSDAgent extends SDAgent {
@@ -145,10 +146,14 @@ public class GSDAgent extends SDAgent {
         int lastIndex = myActualLanePosition == null ? 0 : myActualLanePosition.getIndex();
         logger.debug("GenerateSS for " + state.getId());
         Collection<RoadObject> nearCars = new Vector<RoadObject>();
+        ActualLanePosition temp = myActualLanePosition;
         myActualLanePosition = roadNetwork.getActualPosition(state.getPosition());
+        if (!checkCorrectRoute()) {
+            myActualLanePosition = temp;
+        }
         navigator.setActualPosition(myActualLanePosition);
 
-        checkCorrectRoute();
+        //  checkCorrectRoute();
         //System.out.println(navigator.getRoute().contains());
         //  System.out.println(navigator.getLane().getInnerPoints());
         Lane myLane = myActualLanePosition.getLane();
@@ -244,16 +249,19 @@ public class GSDAgent extends SDAgent {
             if (!entryLane.getParentEdge().equals(myEdge)) { // This is for checking vehicles behind the junction.
                 List<Edge> remE = navigator.getFollowingEdgesInPlan();
                 for (Edge planned : remE) {
-                    if (planned.equals(entryLane.getParentEdge())) {
+                    if (planned.getId().equals(entryLane.getParentEdge().getId())) {
+                        if (Utils.getDistanceBetweenTwoRoadObjects(state, myActualLanePosition, entry, entryActualLanePosition, remE) < CHECKING_DISTANCE) {
+                            continue;
+                        }
                         predictedManeuvers = getPlannedManeuvers(state, myActualLanePosition, entry, entryActualLanePosition, from, to, remE);
                         situationPrediction.addAll(predictedManeuvers);
                         CarManeuver man = predictedManeuvers.get(0);
                         //TODO Improve this part to allow 2 lanes throw junction
-                        if ((Math.abs(state.getLaneIndex() - entry.getLaneIndex()) <= 1)) {
-                            situationPrediction.trySetCarAheadManeuver(man);
-                            situationPrediction.trySetCarLeftAheadMan(man);
-                            situationPrediction.trySetCarRightAheadMan(man);
-                        }
+//                        if ((Math.abs(state.getLaneIndex() - entry.getLaneIndex()) <= 1)) {
+                        situationPrediction.trySetCarAheadManeuver(man);
+                        situationPrediction.trySetCarLeftAheadMan(man);
+                        situationPrediction.trySetCarRightAheadMan(man);
+//                        }
                     }
                 }
                 continue;
@@ -315,7 +323,6 @@ public class GSDAgent extends SDAgent {
             i = myLane.getInnerPoints().size() - 1;
         return i;
     }
-
 
 
     /**
