@@ -24,7 +24,6 @@ public class GSDAgent extends SDAgent {
     private final static int DISTANCE_TO_THE_JUNCTION = Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400);
 
 
-    private int numberOfCollisions = 0;
     private boolean junctionMode = false;
 
     public GSDAgent(int id, RoadNetwork roadNetwork) {
@@ -169,8 +168,11 @@ public class GSDAgent extends SDAgent {
             if (distanceToSecondCar > CHECKING_DISTANCE || state.getPosition().equals(entry.getPosition())) {
                 continue;
             } else {
-                if (distanceToSecondCar < 2.24)
+                if (distanceToSecondCar < 2.24) {
+                    logger.info("Collision between " + state.getId() + " and " + entry.getId());
+
                     numberOfCollisions++;
+                }
                 nearCars.add(entry);
             }
         }
@@ -250,13 +252,12 @@ public class GSDAgent extends SDAgent {
                 List<Edge> remE = navigator.getFollowingEdgesInPlan();
                 for (Edge planned : remE) {
                     if (planned.getId().equals(entryLane.getParentEdge().getId())) {
-                        if (Utils.getDistanceBetweenTwoRoadObjects(state, myActualLanePosition, entry, entryActualLanePosition, remE) < CHECKING_DISTANCE) {
+                        if (Utils.getDistanceBetweenTwoRoadObjects(state, myActualLanePosition, entry, entryActualLanePosition, remE) > CHECKING_DISTANCE) {
                             continue;
                         }
                         predictedManeuvers = getPlannedManeuvers(state, myActualLanePosition, entry, entryActualLanePosition, from, to, remE);
-                        situationPrediction.addAll(predictedManeuvers);
+                      //  situationPrediction.addAll(predictedManeuvers);
                         CarManeuver man = predictedManeuvers.get(0);
-                        //TODO Improve this part to allow 2 lanes throw junction
 //                        if ((Math.abs(state.getLaneIndex() - entry.getLaneIndex()) <= 1)) {
                         situationPrediction.trySetCarAheadManeuver(man);
                         situationPrediction.trySetCarLeftAheadMan(man);
@@ -325,14 +326,7 @@ public class GSDAgent extends SDAgent {
     }
 
 
-    /**
-     * This method is for measuring number of collisons by HighwayStorage.
-     *
-     * @return number of vehicle's collisions
-     */
-    public int getNumberOfColisions() {
-        return numberOfCollisions;
-    }
+
 
     private float getDistanceToTheJunction(int nearest, Lane myLane, Point2f intersectionWaypoint) {
         float distance = 0;

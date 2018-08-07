@@ -126,7 +126,7 @@ public class SimulatorCreator implements Creator {
             VisManager.registerLayer(AgentDriveVisLayer.create(environment.getHighwayEnvironment().getStorage()));
         if (Configurator.getParamBool("simulator.lite.vis.RoadObjectLayer", false))
             VisManager.registerLayer(RoadObjectLayer.create(environment.getHighwayEnvironment().getStorage().getPosCurr(), environment.getHighwayEnvironment().getStorage().getActions()));
-        if(Configurator.getParamBool("simulator.lite.vis.StateSpaceVehicleLayer", false) && Objects.equals(Configurator.getParamString("highway.agent", null), "SDAgent"))
+        if (Configurator.getParamBool("simulator.lite.vis.StateSpaceVehicleLayer", false) && Objects.equals(Configurator.getParamString("highway.agent", null), "SDAgent"))
             VisManager.registerLayer(StateSpaceVehicleLayer.create(environment.getHighwayEnvironment().getStorage()));
     }
 
@@ -143,7 +143,6 @@ public class SimulatorCreator implements Creator {
         creator.create();
         //   creator.runSimulation();
     }
-
 
     private void initTraffic() {
         final XMLReader reader = new XMLReader(Configurator.getParamString("simulator.net.folder", "notDefined"));

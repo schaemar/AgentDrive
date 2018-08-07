@@ -109,7 +109,6 @@ public class LocalSimulatorHandler extends SimulatorHandler {
             }
         }
         //send radar-data to storage with duration delay
-        System.out.println(highwayEnvironment.getEventProcessor().getCurrentTime());
-        highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
+//        highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
     }
 }

@@ -9,7 +9,6 @@ import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.agentdrive.highway.agent.*;
 import cz.agents.agentdrive.highway.environment.HighwayEnvironment;
 import cz.agents.agentdrive.highway.environment.planning.euclid4d.Region;
-import cz.agents.agentdrive.highway.environment.planning.euclid4d.region.MovingCircle;
 import cz.agents.agentdrive.highway.environment.roadnet.Edge;
 import cz.agents.agentdrive.highway.environment.roadnet.Lane;
 import cz.agents.agentdrive.highway.environment.roadnet.RoadNetworkRouter;
@@ -25,7 +24,7 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 import java.util.*;
 
-public class HighwayStorage extends EventBasedStorage {
+public class HighwayStorage {
 
     private final Logger logger = Logger.getLogger(HighwayStorage.class);
 
@@ -42,8 +41,13 @@ public class HighwayStorage extends EventBasedStorage {
     private final Map<Integer, List<Action>> actions = new LinkedHashMap<Integer, List<Action>>();
     private final float SAVE_DISTANCE = 10;
     private final Map<Integer, Region> trajectories = new LinkedHashMap<Integer, Region>();
-    private Queue<Pair<Integer, Float>> vehiclesForInsert;
+    public Queue<Pair<Integer, Float>> vehiclesForInsert;
     private Comparator<Pair<Integer, Float>> comparator;
+
+    public void setSTARTTIME(long STARTTIME) {
+        this.STARTTIME = STARTTIME;
+    }
+
     private long STARTTIME;
 
     private static final double CHECKING_DISTANCE = Configurator.getParamDouble("highway.storage.checkingDistance", 500d);
@@ -53,10 +57,8 @@ public class HighwayStorage extends EventBasedStorage {
 
 
     public HighwayStorage(HighwayEnvironment environment) {
-        super(environment);
         this.highwayEnvironment = environment;
         experimentsData = new ExperimentsData(this);
-        environment.getEventProcessor().addEventHandler(this);
         roadNetwork = highwayEnvironment.getRoadNetwork();
         roadDescription = new RoadDescription(roadNetwork);
         comparator = new QueueComparator();
@@ -73,40 +75,6 @@ public class HighwayStorage extends EventBasedStorage {
         return STARTTIME;
     }
 
-    @Override
-    public void handleEvent(Event event) {
-
-        if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
-            if (Configurator.getParamBool("highway.dashboard.systemTime", false)) {
-                STARTTIME = System.currentTimeMillis();
-            } else {
-                STARTTIME = getEventProcessor().getCurrentTime();
-            }
-            updateCars(new RadarData());
-            logger.debug("HighwayStorage: handled simulation START");
-
-        } else if (event.isType(HighwayEventType.TIMESTEP)) {
-            if (!vehiclesForInsert.isEmpty() && posCurr.isEmpty()) updateCars(new RadarData());
-        } else if (event.isType(HighwayEventType.RADAR_DATA)) {
-            logger.debug("HighwayStorage: handled: RADAR_DATA");
-            RadarData radar_data = (RadarData) event.getContent();
-            updateCars(radar_data);
-
-        } else if (event.isType(HighwayEventType.TRAJECTORY_UPDATED)) {
-            Map.Entry<Integer, Region> agentTrajectory = (Map.Entry<Integer, Region>) event.getContent();
-            MovingCircle stored = (MovingCircle) trajectories.get(agentTrajectory.getKey());
-            MovingCircle inc = (MovingCircle) agentTrajectory.getValue();
-            trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
-            getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
-//            if (stored == null || !stored.getTrajectory().equals(inc.getTrajectory())) {
-//                trajectories.put(agentTrajectory.getKey(), agentTrajectory.getValue());
-//                logger.debug("Changed trajectory of agent: "+agentTrajectory.getKey());
-//                getEnvironment().getEventProcessor().addEvent(HighwayEventType.TRAJECTORY_CHANGED, null, null, agentTrajectory.getKey());
-//            }
-        } else if (event.isType(EventProcessorEventType.STOP)) {
-            experimentsData.simulationEnded();
-        }
-    }
 
     public void updateCar(RoadObject carState) {
         int carId = carState.getId();
@@ -174,7 +142,7 @@ public class HighwayStorage extends EventBasedStorage {
     public void updateCars(RadarData object) {
         //   if (!object.getCars().isEmpty()) {
 
-        experimentsData.updateNumberOfCars(object);
+        getExperimentsData().updateNumberOfCars(object);
 
         forRemoveFromPosscur = new TreeSet<Integer>(posCurr.keySet());
         for (RoadObject car : object.getCars()) {
@@ -184,19 +152,19 @@ public class HighwayStorage extends EventBasedStorage {
         if (!forRemoveFromPosscur.isEmpty()) {
             for (Integer id : forRemoveFromPosscur) {
                 addForInsert(id);
-                experimentsData.updateTimesAndGraphOfArrivals(object, id);
+                getExperimentsData().updateTimesAndGraphOfArrivals(object, id);
             }
         }
         if (!object.getCars().isEmpty())
             logger.debug("HighwayStorage updated vehicles: received " + object);
 
         for (Map.Entry<Integer, RoadObject> entry : posCurr.entrySet()) {
-            experimentsData.updateDistances(object, entry);
+            getExperimentsData().updateDistances(object, entry);
         }
         recreate(object);
         if (Configurator.getParamBool("highway.dashboard.sumoSimulation", true) &&
                 posCurr.size() == 0 && vehiclesForInsert.isEmpty()) {
-            getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
+            highwayEnvironment.getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null);
         }
 
         for (Agent a : this.getAgents().values()) {
@@ -252,7 +220,7 @@ public class HighwayStorage extends EventBasedStorage {
             if (Configurator.getParamBool("highway.dashboard.systemTime", false)) {
                 updateTime = (System.currentTimeMillis() - STARTTIME); //getEventProcessor().getCurrentTime();
             } else {
-                updateTime = getEventProcessor().getCurrentTime() - STARTTIME;
+                updateTime = highwayEnvironment.getEventProcessor().getCurrentTime() - STARTTIME;
             }
             if (vehicle.getValue() > updateTime / 1000 ||
                     (posCurr.size() >= Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", agents.size()))) {
@@ -269,9 +237,21 @@ public class HighwayStorage extends EventBasedStorage {
             initialVelocity.normalize();
             initialVelocity.scale((float) INSERT_SPEED);
 
+
+            Agent agent;
+            if (agents.containsKey(id)) {
+                agent = agents.get(id);
+            } else {
+                agent = createAgent(id);
+            }
+
+            RoadObject newRoadObject = new RoadObject(id, updateTime, agent.getNavigator().getLane().getIndex(), initialPosition, initialVelocity);
+            agent.getNavigator().setMyLifeEnds(false);
+
+
             boolean isSafe = false;
             while (true) {
-                if (isSafe(id, initialPosition, routeNavigator)) {
+                if (isSafe(newRoadObject, agent.getNavigator())) {
                     isSafe = true;
                     break;
                 } else if (routeNavigator.getLane().getLaneLeft() != null) {
@@ -279,24 +259,24 @@ public class HighwayStorage extends EventBasedStorage {
                     routeNavigator.changeLaneLeft();
                     initialPosition.setX(routeNavigator.next().x);
                     initialPosition.setY(routeNavigator.next().y);
+                    routeNavigator.setInitialPosition(new Point2f(initialPosition.x, initialPosition.y));
+                    agent.setNavigator(routeNavigator);
+                    agent.getNavigator().setMyLifeEnds(false);
+                    newRoadObject = new RoadObject(id, updateTime, agent.getNavigator().getLane().getIndex(), initialPosition, initialVelocity);
                 } else break;
             }
 
             if (/*it < numberOftryes*/isSafe) {
-                Agent agent;
-                if (agents.containsKey(id)) {
-                    agent = agents.get(id);
-                } else {
-                    agent = createAgent(id);
-                }
                 routeNavigator.setInitialPosition(new Point2f(initialPosition.x, initialPosition.y));
                 agent.setNavigator(routeNavigator);
-                RoadObject newRoadObject = new RoadObject(id, updateTime, agent.getNavigator().getLane().getIndex(), initialPosition, initialVelocity);
                 agent.getNavigator().setMyLifeEnds(false);
-                experimentsData.vehicleCreation(id);
+//                newRoadObject = new RoadObject(id, updateTime, agent.getNavigator().getLane().getIndex(), initialPosition, initialVelocity);
+                getExperimentsData().vehicleCreation(id);
                 updateCar(newRoadObject);
-            } else
+            } else {
                 notInsertedVehicles.add(vehicle);
+                removeAgent(newRoadObject.getId());
+            }
         }
         while (notInsertedVehicles.peek() != null) {
             vehiclesForInsert.add(notInsertedVehicles.poll());
@@ -311,33 +291,32 @@ public class HighwayStorage extends EventBasedStorage {
         return true;
     }
 
-    public boolean isSafe(int stateId, Point3f statePosition, RouteNavigator stateNavigator) {
+    public boolean isSafe(RoadObject newRoadObject, RouteNavigator stateNavigator) {
         for (Map.Entry<Integer, RoadObject> obj : posCurr.entrySet()) {
             RoadObject entry = obj.getValue();
-            float distanceToSecondCar = entry.getPosition().distance(statePosition);
+            double distanceToSecondCar = Utils.getDistanceBetweenTwoRoadObjects(newRoadObject, roadNetwork.getActualPosition(newRoadObject.getPosition()), entry, roadNetwork.getActualPosition(entry.getPosition()), agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan());//entry.getPosition().distance(newRoadObject.getPosition());
             if (distanceToSecondCar < CHECKING_DISTANCE) {
+                if (newRoadObject.getPosition().distance(entry.getPosition()) < SAFETY_RESERVE) return false;
                 if (distanceToSecondCar < SAFETY_RESERVE) {
                     if (stateNavigator.getLane().getParentEdge() == agents.get(entry.getId()).getNavigator().getLane().getParentEdge() &&
                             stateNavigator.getLane() != agents.get(entry.getId()).getNavigator().getLane()
-                            || stateNavigator.getLane().getParentEdge() != agents.get(entry.getId()).getNavigator().getLane().getParentEdge()){
+                            || stateNavigator.getLane().getParentEdge() != agents.get(entry.getId()).getNavigator().getLane().getParentEdge()
+                            && newRoadObject.getPosition().distance(entry.getPosition()) > SAFETY_RESERVE) {
                         //continue
-                    }
-                    else {
+                    } else {
                         return false;
                     }
                 }
                 List<Edge> followingEdgesInPlan = agents.get(entry.getId()).getNavigator().getFollowingEdgesInPlan();
                 for (Edge e : followingEdgesInPlan) {
                     if (stateNavigator.getLane().getParentEdge().equals(e)) {
-                        System.out.println(agents.get(entry.getId()).getNavigator().getActualPointer() + " < " + stateNavigator.getActualPointer());
 //                        if (agents.get(entry.getId()).getNavigator().getActualPointer() < stateNavigator.getActualPointer()
 //                                && stateNavigator.getLane() == agents.get(entry.getId()).getNavigator().getLane()) {
-                            double safedist = safeDistance(acceleration, entry.getVelocity().length(), INSERT_SPEED);
-                            if (safedist + SAFETY_RESERVE >= distanceToSecondCar){
-                                logger.warn("Vehicle could not be added to traffic at given time, because it was not safe. Vehicle will be added as soon as it is safe!");
-                                return false;
-                            }
-//                        }
+                        double safedist = safeDistance(acceleration, entry.getVelocity().length(), INSERT_SPEED);
+                        if (safedist + SAFETY_RESERVE >= distanceToSecondCar || newRoadObject.getPosition().distance(entry.getPosition()) < SAFETY_RESERVE) {
+                            logger.warn("Vehicle could not be added to traffic at given time, because it was not safe. Vehicle will be added as soon as it is safe!");
+                            return false;
+                        }
                     }
                 }
             }
@@ -365,4 +344,7 @@ public class HighwayStorage extends EventBasedStorage {
         }
     }
 
+    public HighwayEnvironment getHighwayEnvironment(){
+        return highwayEnvironment;
+    }
 }

@@ -22,6 +22,7 @@ import cz.agents.alite.common.event.Event;
 import cz.agents.alite.common.event.EventHandler;
 import cz.agents.alite.common.event.EventProcessor;
 
+import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.communication.Communicator;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
@@ -83,7 +84,13 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                 if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
                     logger.info("SIMULATION STARTED");
                     //highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
-
+                    if (Configurator.getParamBool("highway.dashboard.systemTime", false)) {
+                        highwayEnvironment.getStorage().setSTARTTIME(System.currentTimeMillis());
+                    } else {
+                        highwayEnvironment.getStorage().setSTARTTIME(getEventProcessor().getCurrentTime());
+                    }
+                    highwayEnvironment.getStorage().updateCars(new RadarData());
+                    logger.debug("HighwayStorage: handled simulation START");
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null);
                     getEventProcessor().addEvent(SimulatorEvent.UPDATE, null, null, null);
                     if (!Configurator.getParamBool("simulator.lite.perfectExecution", true))
@@ -94,7 +101,13 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                     if (counter > 0) highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
                     getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null, Math.max(1, (long) (timestep * COMM_STEP)));
                 } else if (event.isType(HighwayEventType.TIMESTEP)) {
+                    if (!highwayEnvironment.getStorage().vehiclesForInsert.isEmpty() && highwayEnvironment.getStorage().getPosCurr().isEmpty())
+                        highwayEnvironment.getStorage().updateCars(new RadarData());
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
+                } else if (event.isType(HighwayEventType.TIMESTEP)) {
+                    //if (!vehiclesForInsert.isEmpty() && posCurr.isEmpty()) updateCars(new RadarData());
+                } else if (event.isType(EventProcessorEventType.STOP)) {
+                    getHighwayEnvironment().getStorage().getExperimentsData().simulationEnded();
                 }
             }
         });
@@ -184,7 +197,6 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                             if (wpAction.getSpeed() == -1) {
                                 myPosition = wpAction.getPosition();
                                 removeCar = true;
-                                System.out.println("removed - speed = " + wpAction.getSpeed());
                             }
                             if (wpAction.getSpeed() < 0.001) {
                                 duration += 0.10f;
@@ -230,7 +242,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                         duration = 0;
                     }
                 }
-                highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
+//                highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
             } else {
                 acceptPlans(plans);
             }

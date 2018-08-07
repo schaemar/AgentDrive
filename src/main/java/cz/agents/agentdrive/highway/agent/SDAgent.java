@@ -31,6 +31,7 @@ public class SDAgent extends RouteAgent {
     protected final static int CHECKING_DISTANCE = 500;
     protected final static double LANE_SPEED_RATIO = Configurator.getParamDouble("highway.safeDistanceAgent.laneSpeedRatio", 0.1);
     private final static long PLANNING_TIME = 1000;
+    protected int numberOfCollisions = 0;
     protected int num_of_lines;
     protected ActualLanePosition myActualLanePosition;
     protected CarManeuver currentManeuver = null;
@@ -61,7 +62,6 @@ public class SDAgent extends RouteAgent {
         super(id);
         this.roadNetwork = roadNetwork;
         logger.setLevel(Level.DEBUG);
-        System.out.println("init max speed " + initialMaximalSpeed);
         num_of_lines = navigator.getLane().getParentEdge().getLanes().keySet().size();
     }
 
@@ -518,6 +518,7 @@ public class SDAgent extends RouteAgent {
         Point2f junctionwaypoint = myNearestJunction.getCenter();
         //boolean nearTheJunction = (convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
         //distance from the junction, should be determined by max allowed speed on the lane.
+        countCollisions(cars, state);
         for (RoadObject entry : cars) {
             Point2f intersectionWaypoint = junctionwaypoint;
             ArrayList<CarManeuver> predictedManeuvers;
@@ -599,6 +600,15 @@ public class SDAgent extends RouteAgent {
         return true;
     }
 
+    /**
+     * This method is for measuring number of collisons by HighwayStorage.
+     *
+     * @return number of vehicle's collisions
+     */
+    public int getNumberOfColisions() {
+        return numberOfCollisions;
+    }
+
     public ArrayList<CarManeuver> getPlannedManeuvers(RoadObject me, ActualLanePosition myActualLanePosition, RoadObject car, ActualLanePosition otherActualLanePosition, long from, long to, List<Edge> rem) {
 
         ArrayList<CarManeuver> plan = new ArrayList<CarManeuver>();
@@ -618,5 +628,18 @@ public class SDAgent extends RouteAgent {
         return currentManeuver;
     }
 
+    private void countCollisions(Collection<RoadObject> cars, RoadObject state){
+        for (RoadObject entry : cars) {
+            float distanceToSecondCar = entry.getPosition().distance(state.getPosition());
+            if (distanceToSecondCar > CHECKING_DISTANCE || state.getPosition().equals(entry.getPosition())) {
+                continue;
+            } else {
+                if (distanceToSecondCar < 2.24) {
+                    logger.info("Collision between " + state.getId() + " and " + entry.getId());
+                    numberOfCollisions++;
+                }
+            }
+        }
+    }
 
 }

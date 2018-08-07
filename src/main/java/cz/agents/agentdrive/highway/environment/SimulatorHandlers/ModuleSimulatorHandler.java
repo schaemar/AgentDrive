@@ -24,9 +24,9 @@ public class ModuleSimulatorHandler extends SimulatorHandler {
 
         Set<Integer> notPlanned = new HashSet<Integer>(vehicleStates.keySet());
         plannedVehicles.removeAll(planCallback.getPlannedVehiclesToRemove());
-//        for (Integer id : planCallback.getPlannedVehiclesToRemove()){
-//            highwayEnvironment.getStorage().removeAgent(id);
-//        }
+        for (Integer id : planCallback.getPlannedVehiclesToRemove()){
+            highwayEnvironment.getStorage().removeAgent(id);
+        }
         planCallback.getPlannedVehiclesToRemove().clear();
         notPlanned.removeAll(plannedVehicles);
        // planCallback.clearPlannedVehicles();

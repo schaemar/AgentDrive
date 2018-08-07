@@ -27,8 +27,6 @@ public class Utils {
     public static double getDistanceBetweenTwoRoadObjects(RoadObject me, ActualLanePosition myActualLanePosition, RoadObject other, ActualLanePosition otherActualLanePosition, List<Edge> rem) {
         // int nearestA = getNearestWaipointCloseEnough(me, myLane);
         // int nearestB = getNearestWaipointCloseEnough(other, otherLane);
-        boolean debug = false;
-        if (me.getId() == 17 && other.getId() == 30) debug = true;
         Lane myLane = myActualLanePosition.getLane();
         Lane otherLane = otherActualLanePosition.getLane();
         int nearestA = myActualLanePosition.getIndex();
@@ -62,15 +60,10 @@ public class Utils {
             // calculate distance to the vehicle on the edge that is on my plan.
             double distC = 0;
             for (int i = nearestA + 1; i < myLane.getInnerPoints().size(); i++) {
-                if (debug) {
-                    System.out.println(myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i)));
-                }
                 distC += myLane.getInnerPoints().get(i - 1).distance(myLane.getInnerPoints().get(i));
             }
             boolean foundEdge = false;
             for (int i = 0; i < rem.size(); i++) {
-
-
                 if (rem.get(i).equals(his)) {
                     foundEdge = true;
                     for (int d = 1; d < nearestB; d++) {
