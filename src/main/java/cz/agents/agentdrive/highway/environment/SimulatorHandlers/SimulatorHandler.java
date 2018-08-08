@@ -1,6 +1,7 @@
 package cz.agents.agentdrive.highway.environment.SimulatorHandlers;
 
 import cz.agents.agentdrive.highway.environment.HighwayEnvironment;
+import cz.agents.agentdrive.highway.storage.RadarData;
 import cz.agents.agentdrive.highway.storage.RoadObject;
 import cz.agents.agentdrive.highway.storage.plan.Action;
 import cz.agents.agentdrive.highway.storage.plan.PlansOut;
@@ -16,8 +17,9 @@ public abstract class SimulatorHandler {
     protected final Set<Integer> plannedVehicles;
     protected final HighwayEnvironment highwayEnvironment;
     protected PlansOut plans = new PlansOut();
+    protected RadarData newRadarData;
 
-    protected SimulatorHandler(HighwayEnvironment highwayEnvironment,Set<Integer> plannedVehicles) {
+    protected SimulatorHandler(HighwayEnvironment highwayEnvironment, Set<Integer> plannedVehicles) {
         this.plannedVehicles = plannedVehicles;
         this.highwayEnvironment = highwayEnvironment;
     }
@@ -45,4 +47,7 @@ public abstract class SimulatorHandler {
 
     public abstract void sendPlans(Map<Integer, RoadObject> vehicleStates);
 
+    public RadarData getNewRadarData() {
+        return newRadarData;
+    }
 }

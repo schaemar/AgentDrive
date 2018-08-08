@@ -98,9 +98,6 @@ public class GSDAgent extends SDAgent {
      */
 
     public boolean isPositionIntersect(CarManeuver a, CarManeuver b) {
-
-        // TODO compare maneuvers
-
         if (a.getPositionIn() > b.getPositionOut() || b.getPositionIn() > a.getPositionOut()) {
             return false;
         }
@@ -150,11 +147,13 @@ public class GSDAgent extends SDAgent {
         if (!checkCorrectRoute()) {
             myActualLanePosition = temp;
         }
+
+        if (myActualLanePosition == null) {
+            logger.info("Car " + getName() + " is set to correct initial position");
+            myActualLanePosition = new ActualLanePosition(navigator.getFollowingEdgesInPlan().get(0).getLaneByIndex(state.getLaneIndex()), 0);// roadNetwork.getActualPosition(state.getPosition());
+        }
         navigator.setActualPosition(myActualLanePosition);
 
-        //  checkCorrectRoute();
-        //System.out.println(navigator.getRoute().contains());
-        //  System.out.println(navigator.getLane().getInnerPoints());
         Lane myLane = myActualLanePosition.getLane();
         Edge myEdge = myActualLanePosition.getEdge();
 
@@ -256,7 +255,7 @@ public class GSDAgent extends SDAgent {
                             continue;
                         }
                         predictedManeuvers = getPlannedManeuvers(state, myActualLanePosition, entry, entryActualLanePosition, from, to, remE);
-                      //  situationPrediction.addAll(predictedManeuvers);
+                        //  situationPrediction.addAll(predictedManeuvers);
                         CarManeuver man = predictedManeuvers.get(0);
 //                        if ((Math.abs(state.getLaneIndex() - entry.getLaneIndex()) <= 1)) {
                         situationPrediction.trySetCarAheadManeuver(man);
@@ -324,8 +323,6 @@ public class GSDAgent extends SDAgent {
             i = myLane.getInnerPoints().size() - 1;
         return i;
     }
-
-
 
 
     private float getDistanceToTheJunction(int nearest, Lane myLane, Point2f intersectionWaypoint) {

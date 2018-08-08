@@ -98,6 +98,10 @@ public class Utils {
         return new Point2f(point.x, point.y);
     }
 
+    public static Point3f convertPoint2ftoPoint3f(Point2f point) {
+        return new Point3f(point.x, point.y, 0);
+    }
+
     public static Vector2f convertVector3ftoVector2f(Vector3f vec) {
         return new Vector2f(vec.x, vec.y);
     }

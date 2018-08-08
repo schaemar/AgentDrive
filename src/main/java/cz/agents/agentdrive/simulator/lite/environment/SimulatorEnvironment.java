@@ -52,21 +52,19 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
     protected long timestep = Configurator.getParamInt("simulator.lite.timestep", 100);
     private int counter = 0;
 
-
     /// Time between updates
     static public final long UPDATE_STEP = 20;
 
     /// Time between communication updates
     static public final long COMM_STEP = 20;
 
+    private static boolean perfectExecution = Configurator.getParamBool("simulator.lite.perfectExecution", true);
+
     /**
      * Create the environment, the storage and register event handlers
      */
     public SimulatorEnvironment(final EventProcessor eventProcessor) {
         super(eventProcessor);
-
-        //initTraffic();
-
         vehicleStorage = new VehicleStorage(this);
         XMLReader xmlReader = new XMLReader();
         roadNetwork = xmlReader.parseNetwork(Configurator.getParamString("simulator.net.folder", "nets/junction-big/"));
@@ -83,7 +81,6 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                 // Start updating vehicles when the simulation starts
                 if (event.isType(SimulationEventType.SIMULATION_STARTED)) {
                     logger.info("SIMULATION STARTED");
-                    //highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
                     if (Configurator.getParamBool("highway.dashboard.systemTime", false)) {
                         highwayEnvironment.getStorage().setSTARTTIME(System.currentTimeMillis());
                     } else {
@@ -93,21 +90,19 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                     logger.debug("HighwayStorage: handled simulation START");
                     getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null);
                     getEventProcessor().addEvent(SimulatorEvent.UPDATE, null, null, null);
-                    if (!Configurator.getParamBool("simulator.lite.perfectExecution", true))
-                        getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null);
+                    getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null);
                 } else if (event.isType(SimulatorEvent.COMMUNICATION_UPDATE)) {
-                    //highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
-                    //highwayEnvironment.getStorage().updateCars(currentState);
-                    if (counter > 0) highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
+                    if (highwayEnvironment.getStorage().getCounter() > 0 && !perfectExecution)
+                        highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
+                    if (highwayEnvironment.getStorage().getCounter() > 0 && perfectExecution) highwayEnvironment.getStorage().updateCars(highwayEnvironment.getStorage().getCurrentRadarData());
                     getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null, Math.max(1, (long) (timestep * COMM_STEP)));
                 } else if (event.isType(HighwayEventType.TIMESTEP)) {
                     if (!highwayEnvironment.getStorage().vehiclesForInsert.isEmpty() && highwayEnvironment.getStorage().getPosCurr().isEmpty())
                         highwayEnvironment.getStorage().updateCars(new RadarData());
-                    getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
-                } else if (event.isType(HighwayEventType.TIMESTEP)) {
-                    //if (!vehiclesForInsert.isEmpty() && posCurr.isEmpty()) updateCars(new RadarData());
-                } else if (event.isType(EventProcessorEventType.STOP)) {
-                    getHighwayEnvironment().getStorage().getExperimentsData().simulationEnded();
+                    if (HighwayStorage.isFinished)
+                        getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null, timestep);
+                    else
+                        getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
                 }
             }
         });
@@ -134,7 +129,6 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                         Point3f second = ((WPAction) iter.next()).getPosition();
                         Vector3f heading = new Vector3f(second.x - first.x, second.y - first.y, second.z - first.z);
                         heading.normalize();
-
                         vehicleStorage.addVehicle(new Car(carID, 0, action.getPosition(), heading, (float) action.getSpeed() /*30.0f*/));
                     } else {
 
@@ -153,7 +147,6 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
      */
     public void init() {
         getEventProcessor().addEventHandler(vehicleStorage);
-        // getEventProcessor().addEventHandler(highwayEnvironment);
     }
 
     public VehicleStorage getStorage() {
@@ -175,8 +168,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
     class PlanCallbackImp extends PlanCallback {
         //final HashSet<Integer> plannedVehicles = new HashSet<Integer>();
         @Override
-        public void execute(PlansOut plans) {
-
+        public RadarData execute(PlansOut plans) {
             Map<Integer, RoadObject> currStates = plans.getCurrStates();
             RadarData radarData = new RadarData();
             if (Configurator.getParamBool("simulator.lite.perfectExecution", true)) {
@@ -237,16 +229,17 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                             vel.scale(0.0010f);
                         }
                         int lane = highwayEnvironment.getRoadNetwork().getClosestLane(myPosition).getIndex();
-                        state = new RoadObject(carID, highwayEnvironment.getEventProcessor().getCurrentTime(), lane, myPosition, vel);
+                        state = new RoadObject(carID, highwayEnvironment.getCurrentTime(), lane, myPosition, vel);
                         radarData.add(state);
                         duration = 0;
                     }
                 }
-//                highwayEnvironment.getEventProcessor().addEvent(HighwayEventType.RADAR_DATA, highwayEnvironment.getStorage(), null, radarData, Math.max(1, (long) (timestep * 1000)));
+                currentState = radarData;
             } else {
                 acceptPlans(plans);
             }
             counter++;
+            return radarData;
         }
     }
 }

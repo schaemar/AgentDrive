@@ -40,7 +40,7 @@ public class ExperimentsData {
         if (Configurator.getParamBool("highway.dashboard.systemTime", false)) {
             ENDTIME = System.currentTimeMillis();
         } else {
-            ENDTIME = storage.getHighwayEnvironment().getEventProcessor().getCurrentTime();
+            ENDTIME = storage.getHighwayEnvironment().getCurrentTime();
         }
         int numberOfCollisons = calculateNumberOfCollisions() / 2;
         FileUtil.getInstance().writeToFile(speeds, 1);
@@ -93,7 +93,7 @@ public class ExperimentsData {
                 numberOfCarsInSimulation.add(new Pair<Float, Integer>((System.currentTimeMillis() - storage.getSTARTTIME()) / 1000f, object.getCars().size()));
             } else numberOfCarsInSimulation.add(new Pair<Float, Integer>(0f, object.getCars().size()));
         } else {
-            numberOfCarsInSimulation.add(new Pair<Float, Integer>(storage.getHighwayEnvironment().getEventProcessor().getCurrentTime() / 1000f, object.getCars().size()));
+            numberOfCarsInSimulation.add(new Pair<Float, Integer>(storage.getHighwayEnvironment().getCurrentTime() / 1000f, object.getCars().size()));
         }
     }
 
@@ -103,9 +103,9 @@ public class ExperimentsData {
             Pair<Float, Float> floatFloatPair = graphOfArrivals.get(id);
             graphOfArrivals.put(id, new Pair<Float, Float>(floatFloatPair.getKey(), (System.currentTimeMillis() - storage.getSTARTTIME()) / 1000f));
         } else {
-            timesOfArrival.add(storage.getHighwayEnvironment().getEventProcessor().getCurrentTime() / 1000f);
+            timesOfArrival.add(storage.getHighwayEnvironment().getCurrentTime() / 1000f);
             Pair<Float, Float> floatFloatPair = graphOfArrivals.get(id);
-            graphOfArrivals.put(id, new Pair<Float, Float>(floatFloatPair.getKey(), storage.getHighwayEnvironment().getEventProcessor().getCurrentTime() / 1000f));
+            graphOfArrivals.put(id, new Pair<Float, Float>(floatFloatPair.getKey(), storage.getHighwayEnvironment().getCurrentTime() / 1000f));
         }
     }
 
@@ -120,7 +120,7 @@ public class ExperimentsData {
         if (Configurator.getParamBool("highway.dashboard.systemTime", false)) {
             timeKey = (System.currentTimeMillis() - storage.getSTARTTIME());
         } else {
-            timeKey = storage.getHighwayEnvironment().getEventProcessor().getCurrentTime();
+            timeKey = storage.getHighwayEnvironment().getCurrentTime();
         }
         //FUNNEL
         //   Float distVal = entry.getValue().getPosition().distance(new Point3f(-1.75f, -600f, 0f));
@@ -159,12 +159,12 @@ public class ExperimentsData {
 
     public void vehicleCreation(int id) {
         if (Configurator.getParamBool("highway.dashboard.systemTime", false)) {
-            if (storage.getSTARTTIME() == 0l) {
+            if (storage.getSTARTTIME() == 0L) {
                 graphOfArrivals.put(id, new Pair<Float, Float>(0f, null));
             } else
                 graphOfArrivals.put(id, new Pair<Float, Float>((System.currentTimeMillis() - storage.getSTARTTIME()) / 1000f, null));
         } else {
-            graphOfArrivals.put(id, new Pair<Float, Float>(storage.getHighwayEnvironment().getEventProcessor().getCurrentTime() / 1000f, null));
+            graphOfArrivals.put(id, new Pair<Float, Float>(storage.getHighwayEnvironment().getCurrentTime() / 1000f, null));
         }
     }
 }

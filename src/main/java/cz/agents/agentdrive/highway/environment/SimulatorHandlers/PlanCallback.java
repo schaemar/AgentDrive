@@ -1,6 +1,7 @@
 package cz.agents.agentdrive.highway.environment.SimulatorHandlers;
 
 
+import cz.agents.agentdrive.highway.storage.RadarData;
 import cz.agents.agentdrive.highway.storage.plan.PlansOut;
 
 import java.util.HashSet;
@@ -12,7 +13,7 @@ import java.util.Set;
  */
 public abstract class PlanCallback extends Observable {
     private Set<Integer> plannedVehiclesToRemove = new HashSet<>();
-    public abstract void execute(PlansOut plans);
+    public abstract RadarData execute(PlansOut plans);
     public void addToPlannedVehiclesToRemove(Integer id){
         plannedVehiclesToRemove.add(id);
     }

@@ -78,7 +78,8 @@ public class SimulatorCreator implements Creator {
         environment = new SimulatorEnvironment(simulation);
         environment.init();
 
-        createVisualization();
+
+        if(Configurator.getParamBool("simulator.lite.vis.isOn", false)) createVisualization();
         runSimulation();
     }
 
@@ -98,7 +99,6 @@ public class SimulatorCreator implements Creator {
         });
 
         VisManager.init();
-
 
         // Overlay
         //VisManager.registerLayer(ColorLayer.create(Color.LIGHT_GRAY));
@@ -177,7 +177,8 @@ public class SimulatorCreator implements Creator {
             plannedVehiclesLocal.add(vehicleID);
         }
         final Set<Integer> plannedVehicles = plannedVehiclesLocal;
-        //environment.getHighwayEnvironment().addSimulatorHandler(new LocalSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles)));
+//        environment.getHighwayEnvironment().addSimulatorHandler(new LocalSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles)));
+
         environment.getHighwayEnvironment().addSimulatorHandler(new ModuleSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles), environment.getPlanCallback()));
     }
 

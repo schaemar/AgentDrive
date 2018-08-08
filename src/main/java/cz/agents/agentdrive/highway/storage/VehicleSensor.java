@@ -76,6 +76,6 @@ public class VehicleSensor {
     }
 
     public long getCurrentTime() {
-        return highwayEnvironment.getEventProcessor().getCurrentTime();
+        return highwayEnvironment.getCurrentTime();
     }
 }
