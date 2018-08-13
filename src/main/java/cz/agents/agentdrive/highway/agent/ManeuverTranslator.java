@@ -31,7 +31,7 @@ public class ManeuverTranslator {
     private static final double MAX_ANGLE = Math.PI / 3;
     private static final float EPSILON = 0.01f;
     public static final float INNER_POINTS_STEP_SIZE = Configurator.getParamDouble("highway.net.lane.stepSize", 1d).floatValue();
-    private final static double MAX_SPEED   = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0);
+    private final static double MAX_SPEED = Configurator.getParamDouble("highway.safeDistanceAgent.maneuvers.maximalSpeed", 70.0);
     private static final float CIRCLE_AROUND = 3.0f;  // Does not exactly correspond to the actual wayPoint distance, used to make circle around the car
 
 
@@ -51,22 +51,24 @@ public class ManeuverTranslator {
 
     public List<Action> prepare() {
         RoadObject me = sensor.senseCurrentState();
-        if(me == null){ return translate(null);}
-        else
-        {
+        if (me == null) {
+            return translate(null);
+        } else {
             findMyPosition(me);
-            return generateWaypointInLane(me,STRAIGHT, null);
+            return generateWaypointInLane(me, STRAIGHT, null);
         }
     }
+
     /**
      * Method used for translating manoeuvre.
+     *
      * @param maneuver translated manoeuvre.
      * @return list of actions.
      */
     public List<Action> translate(CarManeuver maneuver) {
         if (maneuver == null) {
             LinkedList<Action> actions = new LinkedList<Action>();
-            if(navigator.isMyLifeEnds()) {
+            if (navigator.isMyLifeEnds()) {
                 actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
                 return actions;
             }
@@ -83,11 +85,11 @@ public class ManeuverTranslator {
         // Check the type of maneuver
         if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
                 || (maneuver instanceof DeaccelerationManeuver)) {
-            return generateWaypointInLane(me,STRAIGHT, maneuver);
+            return generateWaypointInLane(me, STRAIGHT, maneuver);
         } else if (maneuver instanceof LaneLeftManeuver) {
-            return generateWaypointInLane(me,LEFT, maneuver);
+            return generateWaypointInLane(me, LEFT, maneuver);
         } else if (maneuver instanceof LaneRightManeuver) {
-            return generateWaypointInLane(me,RIGHT, maneuver);
+            return generateWaypointInLane(me, RIGHT, maneuver);
         } else {
             LinkedList<Action> actions = new LinkedList<Action>();
             ManeuverAction res = new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
@@ -96,36 +98,12 @@ public class ManeuverTranslator {
             return actions;
         }
     }
-    @Deprecated
-    public Action translate(CarManeuver maneuver, RouteNavigator navigator) {
-        this.navigator = navigator;
-        if (maneuver == null) {
-            Point2f initial = navigator.getInitialPosition();
-            return new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), -1);
-        }
-
-        RoadObject me = sensor.senseCurrentState();
-        // Check the type of maneuver
-        if ((maneuver instanceof StraightManeuver) || (maneuver instanceof AccelerationManeuver)
-                || (maneuver instanceof DeaccelerationManeuver)) {
-            Point2f innerPoint = generateWaypointInLane(0, maneuver, me);
-            return point2Waypoint(innerPoint, maneuver);
-        } else if (maneuver instanceof LaneLeftManeuver) {
-            Point2f innerPoint = generateWaypointInLane(1, maneuver, me);
-            return point2Waypoint(innerPoint, maneuver);
-        } else if (maneuver instanceof LaneRightManeuver) {
-            Point2f innerPoint = generateWaypointInLane( -1, maneuver, me);
-            return point2Waypoint(innerPoint, maneuver);
-        } else {
-            return new ManeuverAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
-                    maneuver.getVelocityOut(), maneuver.getLaneOut(), maneuver.getDuration());
-        }
-    }
 
     /**
      * This method is for translating manoeuvre into the waipoints plan
+     *
      * @param relativeLane this determines if the manoeuvre is lane-changing.
-     * @param maneuver translated manoeuvre.
+     * @param maneuver     translated manoeuvre.
      * @return List of waypoint actions.
      */
     private List<Action> generateWaypointInLane(RoadObject me, int relativeLane, CarManeuver maneuver) {
@@ -134,15 +112,15 @@ public class ManeuverTranslator {
         List<Point2f> wps = new LinkedList<Point2f>();
 
         Point2f initial = navigator.getInitialPosition();
-        Point2f current = new Point2f(me.getPosition().getX(),me.getPosition().getY());
+        Point2f current = new Point2f(me.getPosition().getX(), me.getPosition().getY());
 
-        if(initial.equals(current))
+        if (initial.equals(current))
             actions.add(new WPAction(id, 0d, new Point3f(initial.x, initial.y, 0), me.getVelocity().length()));
         ArrayList<Point3f> points;  // list of points on the way, used to be able to set speed to the action later
 
         int wpCount = (int) me.getVelocity().length() * 2 + 1; // how many waypoints before me will be calculated.
         points = new ArrayList<Point3f>();
-        if(navigator.isMyLifeEnds()) {
+        if (navigator.isMyLifeEnds()) {
             actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
             return actions;
         }
@@ -159,15 +137,12 @@ public class ManeuverTranslator {
         Point2f waypoint = navigator.getRoutePoint();
 
         double minSpeed = Float.MAX_VALUE; // minimal speed on the points before me
-        for (int i = 0; (maneuver !=null && i <= (maneuver.getPositionOut()/INNER_POINTS_STEP_SIZE)+1) || i < wpCount; i++) {
-            // move 3 waipoints ahead
-            int hotfix = 0;
-            while (navigator.isMyLifeEnds() == false && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND && hotfix < 20000) {
+        for (int i = 0; (maneuver != null && i <= (maneuver.getPositionOut() / INNER_POINTS_STEP_SIZE) + 1) || i < wpCount; i++) {
+            while (!navigator.isMyLifeEnds() && waypoint.distance(navigator.getRoutePoint()) < CIRCLE_AROUND) {
                 navigator.advanceInRoute();
-                //hotfix++;
             }
-            if(navigator.isMyLifeEnds()) {
-                if(i==0) {
+            if (navigator.isMyLifeEnds()) {
+                if (i == 0) {
                     actions.add(new WPAction(id, 0d, new Point3f(0, 0, 0), -1));
                     return actions;
                 }
@@ -198,7 +173,7 @@ public class ManeuverTranslator {
             minSpeed = (float) maneuver.getVelocityOut();
         }
         double speedChangeConst = (me.getVelocity().length() - minSpeed) / wpCount;
-        if(speedChangeConst < -0.6) speedChangeConst = -0.6;
+        if (speedChangeConst < -0.6) speedChangeConst = -0.6;
         for (int i = 0; i < wpCount; i++) // actual filling my outgoing actions
         {
             //scaling speed to the lowest
@@ -208,79 +183,6 @@ public class ManeuverTranslator {
         lastUpateTime = me.getUpdateTime();
         return actions;
 
-    }
-    @Deprecated
-    private Point2f generateWaypointInLane(int relativeLane, CarManeuver maneuver, RoadObject me) {
-       // RoadObject me = sensor.senseCurrentState();
-
-        Point3f p = me.getPosition();
-        Point2f pos2D = new Point2f(p.x, p.y);
-        Vector3f v = me.getVelocity();
-        Vector2f vel2D = new Vector2f(v.x, v.y);
-
-        // Translate the position according to the maneuver duration and vehicle speed
-        Vector2f v2 = new Vector2f(vel2D);
-        //v2.scale((float) maneuver.getDuration());
-        pos2D.add(v2);
-
-        // Get the closest route point the translated position
-        Point2f innerPoint = null;
-        // Change to right
-        if (relativeLane < 0) {
-            navigator.changeLaneRight();
-        } else if (relativeLane > 0) {
-            navigator.changeLaneLeft();
-        }else{
-
-        }
-        int i = 0;
-        do {
-            innerPoint = navigator.getRoutePoint();
-            if (!pointCloseEnough(innerPoint, pos2D, vel2D)) {
-                navigator.advanceInRoute();
-//                if (navigator.isMyLifeEnds()) {
-//                    navigator.setMyLifeEnds(true);
-//                    navigator.advanceInRoute();
-//                }
-            }else{
-
-            }
-
-            i++;
-        } while (i < TRY_COUNT);
-        if (innerPoint == null) {
-            return navigator.getInitialPosition();
-        } else {
-            return innerPoint;
-        }
-    }
-    private WPAction point2Waypoint(Point2f point, CarManeuver maneuver) {
-        return new WPAction(sensor.getId(), maneuver.getStartTime() / 1000.0,
-
-                new Point3f(point.x, point.y, sensor.senseCurrentState().getPosition().z),
-                maneuver.getVelocityOut());
-    }
-
-    /**
-     * This method determines whether the waypoint candidate is close enough (in radius) to the position
-     * in the direction given by velocity vector
-     *
-     * @param innerPoint Waypoint candidate
-     * @param position   Position
-     * @param velocity   Velocity vector
-     * @return
-     */
-    public boolean pointCloseEnough(Point2f innerPoint, Point2f position, Vector2f velocity) {
-        // Direction vector of waypoint candidate relative to position
-        Vector2f direction = new Vector2f();
-        direction.sub(innerPoint, position);
-
-        if (velocity.x == 0 && velocity.y == 0) {
-            return innerPoint.distance(position) < 3;
-        } else {
-            return velocity.angle(direction) < MAX_ANGLE &&
-                    distance(innerPoint, position, direction, velocity) < RADIUS;
-        }
     }
 
     /**
@@ -294,8 +196,7 @@ public class ManeuverTranslator {
         return d * d * Math.abs((float) Math.sin(direction.angle(velocity)) + EPSILON);
     }
 
-    public void findMyPosition(RoadObject me)
-    {
+    public void findMyPosition(RoadObject me) {
         Point2f position2D = new Point2f(me.getPosition().getX(), me.getPosition().getY());
 
         //try to advance navigator closer to the actual position
@@ -303,10 +204,10 @@ public class ManeuverTranslator {
         //how many waiponts ahead will be chcecked depending on the update time
         maxMove = (int) (((me.getUpdateTime() - lastUpateTime) * MAX_SPEED) / 1000) + 5;
         if (maxMove < TRY_COUNT) maxMove = TRY_COUNT;
-        if(Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) { //Simulator dependent code.
+        if (Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).isEmpty()) { //Simulator dependent code.
             //The difference is in switching between lanes or edges.
             String uniqueIndex = navigator.getUniqueLaneIndex();
-            while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
+            while (!navigator.isMyLifeEnds() && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
                 navigator.advanceInRoute();
             }
             if (!navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
@@ -322,21 +223,19 @@ public class ManeuverTranslator {
             if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND && navigator.getUniqueLaneIndex().equals(uniqueIndex)) {
                 navigator.resetToCheckpoint();
             } else {
-                while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                while (!navigator.isMyLifeEnds() && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                     navigator.advanceInRoute();
                 }
                 //    navigator.setCheckpoint();
             }
-        }
-        else
-        {
-            while (navigator.isMyLifeEnds() == false && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
+        } else {
+            while (!navigator.isMyLifeEnds() && maxMove-- > 0 && navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
                 navigator.advanceInRoute();
             }
             if (navigator.getRoutePoint().distance(position2D) > CIRCLE_AROUND) {
                 navigator.resetToCheckpoint();
             } else {
-                while (navigator.isMyLifeEnds() == false && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
+                while (!navigator.isMyLifeEnds() && navigator.getRoutePoint().distance(position2D) <= CIRCLE_AROUND) {
                     navigator.advanceInRoute();
                 }
                 //    navigator.setCheckpoint();

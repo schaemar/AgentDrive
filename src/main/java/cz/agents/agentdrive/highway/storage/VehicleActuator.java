@@ -32,6 +32,9 @@ public class VehicleActuator {
     public List<Action> act(List<Action> actions) {
         storage.act(id, actions);
         return actions;
-        //getEventProcessor().addEvent(HighwayEventType.NEW_PLAN, null, null, actions);
+    }
+
+    public String getNameOfRelatedEntity() {
+        return entity.getName();
     }
 }

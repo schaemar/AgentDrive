@@ -3,7 +3,6 @@ package cz.agents.agentdrive.highway.agent;
 import cz.agents.agentdrive.simulator.lite.visualization.AgentColors;
 import cz.agents.agentdrive.simulator.lite.visualization.RegionsLayer;
 import cz.agents.agentdrive.simulator.lite.visualization.TimeParameter;
-import cz.agents.alite.common.event.Event;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.vis.VisManager;
 import cz.agents.alite.vis.layer.VisLayer;
@@ -25,7 +24,6 @@ import cz.agents.agentdrive.highway.environment.planning.graph.*;
 import cz.agents.agentdrive.highway.environment.roadnet.Edge;
 import cz.agents.agentdrive.highway.environment.roadnet.LaneImpl;
 import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
-import cz.agents.agentdrive.highway.storage.HighwayEventType;
 import cz.agents.agentdrive.highway.storage.RoadObject;
 import cz.agents.agentdrive.highway.storage.VehicleSensor;
 import cz.agents.agentdrive.highway.storage.plan.Action;
@@ -57,6 +55,7 @@ import java.util.List;
  * <p>
  * Created by wmatex on 13.10.14.
  */
+@Deprecated
 public class ADPPAgent extends Agent {
     private static final int RADIUS = Configurator.getParamInt("highway.ADPPAgent.radius", 2);
     private static final double WAIT_PENALTY = Configurator.getParamDouble("highway.ADPPAgent.waitPenalty", 0.001);

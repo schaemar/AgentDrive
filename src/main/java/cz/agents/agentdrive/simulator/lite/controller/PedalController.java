@@ -1,6 +1,5 @@
 package cz.agents.agentdrive.simulator.lite.controller;
 
-import cz.agents.agentdrive.simulator.lite.controller.ControllerInterface;
 import cz.agents.agentdrive.simulator.lite.storage.vehicle.Vehicle;
 
 /**

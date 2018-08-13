@@ -1,11 +1,7 @@
 package cz.agents.agentdrive.highway.storage;
 
 import cz.agents.agentdrive.highway.environment.SimulatorHandlers.SimulatorHandler;
-import cz.agents.alite.common.event.Event;
-import cz.agents.alite.common.event.EventProcessorEventType;
 import cz.agents.alite.configurator.Configurator;
-import cz.agents.alite.environment.eventbased.EventBasedStorage;
-import cz.agents.alite.simulation.SimulationEventType;
 import cz.agents.agentdrive.highway.agent.*;
 import cz.agents.agentdrive.highway.environment.HighwayEnvironment;
 import cz.agents.agentdrive.highway.environment.planning.euclid4d.Region;
@@ -55,7 +51,7 @@ public class HighwayStorage {
     private static final double CHECKING_DISTANCE = Configurator.getParamDouble("highway.storage.checkingDistance", 500d);
 
     private static final double SAFETY_RESERVE = Configurator.getParamDouble("highway.storage.safetyReserve", 10d);
-    private static final double INSERT_SPEED = Configurator.getParamDouble("highway.storage.insertSpeed", 1d);
+    private static final double INSERT_SPEED = Configurator.getParamDouble("highway.storage.insertSpeed", 0.5d);
 
 
     public HighwayStorage(HighwayEnvironment environment) {
@@ -66,7 +62,6 @@ public class HighwayStorage {
         comparator = new QueueComparator();
         vehiclesForInsert = new PriorityQueue<Pair<Integer, Float>>(20, comparator);
         logger.setLevel(Level.DEBUG);
-        // number 20 is random, it is only needed to be java 1.7 compatible
     }
 
     public ExperimentsData getExperimentsData() {
@@ -84,7 +79,6 @@ public class HighwayStorage {
         int laneNum = lane.getIndex();
         carState.setLane(laneNum);
         logger.trace("Lane changed to:" + laneNum);
-        //tool for get the removed cars.
         posCurr.put(carId, carState);
 
     }

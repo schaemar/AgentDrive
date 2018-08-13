@@ -12,7 +12,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
 import java.util.*;
 
 public class GSDAgent extends SDAgent {
@@ -32,7 +31,9 @@ public class GSDAgent extends SDAgent {
 
     }
 
+    private boolean wrongEdge = false;
     public CarManeuver plan() {
+
         CarManeuver maneuver = null;
         RoadObject currState = sensor.senseCurrentState();
         // Simulator did not send update yet
@@ -43,11 +44,11 @@ public class GSDAgent extends SDAgent {
             return null;
         }
         logger.debug("Startnode: " + currState);
-        HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
+        HighwaySituation situationPrediction = (HighwaySituation) getStateSpace(currState);
         logger.debug("SS: " + situationPrediction);
         logger.debug("Situation: " + situationPrediction);
         logger.debug("Navigator: " + navigator.getRoutePoint());
-        //HighwaySituation situationPrediction = (HighwaySituation) getStatespace(currState);
+        //HighwaySituation situationPrediction = (HighwaySituation) getStateSpace(currState);
         int lane = currState.getLaneIndex();
         double velocity = currState.getVelocity().length();
         long updateTime = (long) (currState.getUpdateTime() * 1000);
@@ -57,6 +58,7 @@ public class GSDAgent extends SDAgent {
         CarManeuver left = new LaneLeftManeuver(lane, velocity, 0, updateTime);
         CarManeuver right = new LaneRightManeuver(lane, velocity, 0, updateTime);
         CarManeuver dec = new DeaccelerationManeuver(lane, velocity, 0, updateTime);
+        if (wrongEdge) return str;
         /*
         Order of maneuvers
         1. try to switch right
@@ -81,14 +83,7 @@ public class GSDAgent extends SDAgent {
         }
         currentManeuver = maneuver;
         logger.debug(maneuver);
-
-        /*if(currState.getId() == 2 && currState.getUpdateTime() > 20000) {
-            logger.info("Vehicle 2 now stops");
-            maneuver = dec;
-        }*/
-
         logger.info("Planned maneuver for carID " + currState.getId() + " " + maneuver);
-
         return maneuver;
     }
 
@@ -105,18 +100,12 @@ public class GSDAgent extends SDAgent {
                 || a.getLaneOut() == b.getLaneIn() || a.getLaneOut() == b.getLaneOut()) {
             return true;
         }
-
         return false;
-
     }
 
     public boolean isTimeIntersect(CarManeuver carManeuver, CarManeuver carManeuver2) {
         long ret = getTimeConflict(carManeuver, carManeuver2);
-        if (ret == -1)
-            return false;
-        else {
-            return true;
-        }
+        return ret != -1;
     }
 
 
@@ -130,7 +119,7 @@ public class GSDAgent extends SDAgent {
      * @return HighwaySituation
      */
     public HighwaySituation generateSS(RoadObject state, Collection<RoadObject> cars, long from, long to) {
-
+        wrongEdge = false;
         HighwaySituation situationPrediction = new HighwaySituation();
         for (int i = 0; i < navigator.getRoute().size(); i++) {
             if (navigator.getRoute().get(i) == navigator.getLane().getParentEdge()) {
@@ -139,13 +128,13 @@ public class GSDAgent extends SDAgent {
                 break;
             }
         }
-        int lastIndex = myActualLanePosition == null ? 0 : myActualLanePosition.getIndex();
         logger.debug("GenerateSS for " + state.getId());
         Collection<RoadObject> nearCars = new Vector<RoadObject>();
         ActualLanePosition temp = myActualLanePosition;
         myActualLanePosition = roadNetwork.getActualPosition(state.getPosition());
         if (!checkCorrectRoute()) {
-            myActualLanePosition = temp;
+           myActualLanePosition = temp;
+            wrongEdge = true;
         }
 
         if (myActualLanePosition == null) {
@@ -164,9 +153,7 @@ public class GSDAgent extends SDAgent {
         //removing too far cars and myself from the collection
         for (RoadObject entry : cars) {
             float distanceToSecondCar = entry.getPosition().distance(state.getPosition());
-            if (distanceToSecondCar > CHECKING_DISTANCE || state.getPosition().equals(entry.getPosition())) {
-                continue;
-            } else {
+            if (!(distanceToSecondCar > CHECKING_DISTANCE) && !state.getPosition().equals(entry.getPosition())) {
                 if (distanceToSecondCar < 2.24) {
                     logger.info("Collision between " + state.getId() + " and " + entry.getId());
 
@@ -176,15 +163,15 @@ public class GSDAgent extends SDAgent {
             }
         }
         // Main logic, first there is a check if there is a junction nearby. If so the junction mode is enabled. If not,
-        //vehicle is driven by standart Safe-distance agent
+        //vehicle is driven by standard Safe-distance agent
         Lane entryLane;
         ActualLanePosition entryActualLanePosition;
         Junction myNearestJunction = roadNetwork.getJunctions().get(myEdge.getTo());
-        Point2f junctionwaypoint = myNearestJunction.getCenter();
-        boolean nearTheJunction = (Utils.convertPoint3ftoPoint2f(state.getPosition()).distance(junctionwaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
+        Point2f junctionWaypoint = myNearestJunction.getCenter();
+        boolean nearTheJunction = (Utils.convertPoint3ftoPoint2f(state.getPosition()).distance(junctionWaypoint) < DISTANCE_TO_THE_JUNCTION && myNearestJunction.getIncLanes().size() > 1);
         //distance from the junction, should be determined by max allowed speed on the lane.
         for (RoadObject entry : nearCars) {
-            Point2f intersectionWaypoint = junctionwaypoint;
+            Point2f intersectionWaypoint = junctionWaypoint;
             ArrayList<CarManeuver> predictedManeuvers;
             entryActualLanePosition = roadNetwork.getActualPosition(entry.getPosition());
             entryLane = entryActualLanePosition.getLane();
@@ -195,7 +182,7 @@ public class GSDAgent extends SDAgent {
 
                     //This part of code requires the knowledge of the long-term plan of the other vehicle.
                     // It determines if the vehicles croses their paths at the junction.
-                    intersectionWaypoint = actualiseIntersectionWaypoint(entry, myLane, entryLane, junctionwaypoint);
+                    intersectionWaypoint = actualiseIntersectionWaypoint(entry, myLane, entryLane, junctionWaypoint);
                     if (intersectionWaypoint == null) continue;
                     // Transformation from the 2D space into the 1D space. Vehicles are virtually put on the one line
                     // to the junction by their distance to the junction.
@@ -214,7 +201,7 @@ public class GSDAgent extends SDAgent {
                     }
                 } else {
                     // other vehicle is heading to the same junction but the junction is not close.
-                    //this is the classical Safe-distance method, all five states can be set.
+                    // this is the classical Safe-distance method, all five states can be set.
                     junctionMode = false;
                     if (entryLane.getParentEdge().equals(myEdge)) {
 
@@ -255,75 +242,16 @@ public class GSDAgent extends SDAgent {
                             continue;
                         }
                         predictedManeuvers = getPlannedManeuvers(state, myActualLanePosition, entry, entryActualLanePosition, from, to, remE);
-                        //  situationPrediction.addAll(predictedManeuvers);
                         CarManeuver man = predictedManeuvers.get(0);
-//                        if ((Math.abs(state.getLaneIndex() - entry.getLaneIndex()) <= 1)) {
                         situationPrediction.trySetCarAheadManeuver(man);
                         situationPrediction.trySetCarLeftAheadMan(man);
                         situationPrediction.trySetCarRightAheadMan(man);
-//                        }
                     }
                 }
-                continue;
             }
         }
         return situationPrediction;
     }
-
-    /**
-     * Method for fining nearest waipoint on the Lane
-     *
-     * @param state  Vehicle's state
-     * @param myLane Vehicle's lane.
-     * @return index on the lane.
-     */
-    @Deprecated
-    private int getNearestWaipointIndex(RoadObject state, Lane myLane) {
-        int myIndexOnRoute = 0;
-        while (Utils.distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y)) > CIRCLE_AROUND_FOR_SEARCH) // Magical value
-        {
-            myIndexOnRoute++;
-            if (myLane.getInnerPoints().size() == myIndexOnRoute) {
-                myIndexOnRoute--;
-                break;
-            }
-        }
-        while (Utils.distanceP2P2(myLane.getInnerPoints().get(myIndexOnRoute), new Point2f(state.getPosition().x, state.getPosition().y)) <= CIRCLE_AROUND_FOR_SEARCH) {
-            myIndexOnRoute++;
-            if (myLane.getInnerPoints().size() == myIndexOnRoute) {
-                myIndexOnRoute--;
-                break;
-            }
-        }
-        if (myIndexOnRoute >= myLane.getInnerPoints().size())
-            myIndexOnRoute = myLane.getInnerPoints().size() - 1;
-        // logger.debug("nearest waipoint id " + myIndexOnRoute);
-        return myIndexOnRoute;
-    }
-
-    /**
-     * Method for finding nearest waypoint
-     *
-     * @param me     Road object of operating vehicle
-     * @param myLane vehicle's lane
-     * @return index on the lane.
-     */
-    public int getNearestWaypointCloseEnough(RoadObject me, Lane myLane) {
-        Point2f myPosition = Utils.convertPoint3ftoPoint2f(me.getPosition());
-        Point2f innerPoint = myLane.getInnerPoints().get(0);
-        int i = 0;
-        while ((!maneuverTranslator.pointCloseEnough(innerPoint, myPosition, Utils.convertVector3ftoVector2f(me.getVelocity())) && i < myLane.getInnerPoints().size())) {
-
-            innerPoint = myLane.getInnerPoints().get(i);
-            i++;
-
-        }
-        //TODO FIX THIS
-        if (i >= myLane.getInnerPoints().size())
-            i = myLane.getInnerPoints().size() - 1;
-        return i;
-    }
-
 
     private float getDistanceToTheJunction(int nearest, Lane myLane, Point2f intersectionWaypoint) {
         float distance = 0;
@@ -338,7 +266,7 @@ public class GSDAgent extends SDAgent {
         Point2f intersectionWaypoint = junctionWaypoint;
         Map<Integer, Agent> agents = sensor.getAgents();
         GSDAgent entryAgent = (GSDAgent) agents.get(entry.getId());
-        //calculation of optimised intersection point, if not found, other vehicle is ignored.
+        // calculation of optimised intersection point, if not found, other vehicle is ignored.
         if (!entryAgent.navigator.getFollowingEdgesInPlan().isEmpty() && !navigator.getFollowingEdgesInPlan().isEmpty()) {
             Edge entryNextEdge = entryAgent.navigator.getFollowingEdgesInPlan().iterator().next();
             Edge myNextEdge = navigator.getFollowingEdgesInPlan().iterator().next();

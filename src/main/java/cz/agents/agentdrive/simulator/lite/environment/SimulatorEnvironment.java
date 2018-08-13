@@ -1,13 +1,10 @@
 package cz.agents.agentdrive.simulator.lite.environment;
 
-import cz.agents.agentdrive.highway.agent.Agent;
 import cz.agents.agentdrive.highway.environment.HighwayEnvironment;
-import cz.agents.agentdrive.highway.environment.SimulatorHandlers.ModuleSimulatorHandler;
 import cz.agents.agentdrive.highway.environment.SimulatorHandlers.PlanCallback;
 import cz.agents.agentdrive.highway.environment.roadnet.RoadNetworkRouter;
 import cz.agents.agentdrive.highway.environment.roadnet.XMLReader;
 import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
-import cz.agents.agentdrive.highway.storage.HighwayEventType;
 import cz.agents.agentdrive.highway.storage.HighwayStorage;
 import cz.agents.agentdrive.highway.storage.RadarData;
 import cz.agents.agentdrive.highway.storage.RoadObject;
@@ -23,7 +20,6 @@ import cz.agents.alite.common.event.EventHandler;
 import cz.agents.alite.common.event.EventProcessor;
 
 import cz.agents.alite.common.event.EventProcessorEventType;
-import cz.agents.alite.communication.Communicator;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
 import cz.agents.alite.simulation.SimulationEventType;
@@ -32,7 +28,6 @@ import org.apache.log4j.Logger;
 
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -88,7 +83,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                     }
                     highwayEnvironment.getStorage().updateCars(new RadarData());
                     logger.debug("HighwayStorage: handled simulation START");
-                    getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null);
+                    getEventProcessor().addEvent(SimulatorEvent.TIMESTEP, null, null, null);
                     getEventProcessor().addEvent(SimulatorEvent.UPDATE, null, null, null);
                     getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null);
                 } else if (event.isType(SimulatorEvent.COMMUNICATION_UPDATE)) {
@@ -96,13 +91,13 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                         highwayEnvironment.getStorage().updateCars(vehicleStorage.generateRadarData());
                     if (highwayEnvironment.getStorage().getCounter() > 0 && perfectExecution) highwayEnvironment.getStorage().updateCars(highwayEnvironment.getStorage().getCurrentRadarData());
                     getEventProcessor().addEvent(SimulatorEvent.COMMUNICATION_UPDATE, null, null, null, Math.max(1, (long) (timestep * COMM_STEP)));
-                } else if (event.isType(HighwayEventType.TIMESTEP)) {
+                } else if (event.isType(SimulatorEvent.TIMESTEP)) {
                     if (!highwayEnvironment.getStorage().vehiclesForInsert.isEmpty() && highwayEnvironment.getStorage().getPosCurr().isEmpty())
                         highwayEnvironment.getStorage().updateCars(new RadarData());
                     if (HighwayStorage.isFinished)
                         getEventProcessor().addEvent(EventProcessorEventType.STOP, null, null, null, timestep);
                     else
-                        getEventProcessor().addEvent(HighwayEventType.TIMESTEP, null, null, null, timestep);
+                        getEventProcessor().addEvent(SimulatorEvent.TIMESTEP, null, null, null, timestep);
                 }
             }
         });
@@ -115,7 +110,6 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
 
             // This is the init plan
             if (((WPAction) plans.getPlan(carID).iterator().next()).getSpeed() == -1) {
-                LinkedList<Vehicle> allVehicles = vehicleStorage.getAllVehicles();
                 vehicleStorage.removeVehicle(carID);
             } else {
                 Vehicle vehicle = vehicleStorage.getVehicle(carID);
@@ -166,7 +160,6 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
     }
 
     class PlanCallbackImp extends PlanCallback {
-        //final HashSet<Integer> plannedVehicles = new HashSet<Integer>();
         @Override
         public RadarData execute(PlansOut plans) {
             Map<Integer, RoadObject> currStates = plans.getCurrStates();
@@ -236,7 +229,7 @@ public class SimulatorEnvironment extends EventBasedEnvironment {
                 }
                 currentState = radarData;
             } else {
-                acceptPlans(plans);
+                acceptPlans(plans); // let VehicleStorage apply plans from HighwayStorage
             }
             counter++;
             return radarData;

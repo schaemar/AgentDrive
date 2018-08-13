@@ -3,13 +3,9 @@ package cz.agents.agentdrive.highway.storage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.function.Function;
 
 import cz.agents.alite.common.entity.Entity;
-import cz.agents.alite.common.event.Event;
-import cz.agents.alite.environment.eventbased.EventBasedSensor;
 import cz.agents.agentdrive.highway.agent.Agent;
-import cz.agents.agentdrive.highway.agent.Reaction;
 import cz.agents.agentdrive.highway.environment.HighwayEnvironment;
 import cz.agents.agentdrive.highway.environment.planning.euclid4d.Region;
 import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
@@ -77,5 +73,9 @@ public class VehicleSensor {
 
     public long getCurrentTime() {
         return highwayEnvironment.getCurrentTime();
+    }
+
+    public String getRelatedEntityName() {
+        return entity.getName();
     }
 }

@@ -46,10 +46,10 @@
     <vehicle id="6" depart="30.00">
         <route edges="-south -north"/>
     </vehicle>
-    <vehicle id="7" depart="30.00">
+<!--    <vehicle id="7" depart="30.00">
         <route edges="north south"/>
     </vehicle>
-
+-->
      <vehicle id="8" depart="40.00">
         <route edges="west south"/>
     </vehicle>

@@ -1,108 +1,82 @@
 highway {
-    seed = 0;                          // random number generator seed
-    simulationDuration = -1;      // - 1 = infinity
-    simulationSpeed = 1.0;             //not relevant
-    timestep = 10; //ms               //not relevant
 
 //    agent = "SDAgent";
-    agent = "RouteAgent";
-//    agent = "ORCAAgent";
+//    agent = "RouteAgent";
+    agent = "GSDAgent";
 
-    net {
-        folder = "nets/junction-big/";
-//        folder = "nets/highway-straight/";
-    }
+
     safeDistanceAgent {
-        safetyReserveDistance = 20.0;     // [m] - safety distance offset (including vehicle length and separation gap)
-        narrowingModeActive = false;
-        distanceToActivateNM = 100.0;
+        safetyReserveDistance = 10.0;     // [m] - safety distance offset (including vehicle length and separation gap)
+        narrowingModeActive = true;
+        distanceToActivateNM = 500;
         // [m] - when distance to obstacle is smaller than this value NARROWING MODE is activated
 
         maneuvers {
             //maneuver is discratization unit
             //available maneuvers are Straight, Acceleration, Deacceleration, LaneLeft, LaneRight
             //parameters of maneuvers are following
-
-            laneChangeManeuverDuration = 1.0; // [s]
+            laneChangeManeuverDuration = 0.5; // [s]
             straightManeuverDuration = 0.5;     //[s]
             accelerationManeuverDuration = 0.3;   //[s]
             deaccelerationManueverDuration = 0.3;   //[s]
             acceleration = 4.0;                     //[m/s^2]
             deacceleration = -6.0;                  //[m/s^2]
-            maximalSpeed = 25.0;                    //[m/s]
-            maxSpeedVariance = 0.30                     //[%]
-        }
-
-    }
-    protobuf {
-        isOn = true;
-        uri = "socket://localhost:2222";//"socket://192.168.0.100:2222"; //"socket://147.32.83.240:2222";
-        protocol = "simplan";
-
-    }
-    rvo {
-        visibilityGraphRadius = 1000;
-        timestep = 1.0;
-
-        agent {
-            agentMaxSpeed = 15.0;
-            radiusConstant = 1.0;
-            timeHorizon = 100.0;
-            timeHorizonObst = 100.0;
-            orcaSpeedConstant = 1.0;
-            maxNeighbors = 100;
-        }
-
-
-
-        vis {
-            showInflatedObstacles = true;
-            timestep = 1;
-            maxtime = 100000;
+            maximalSpeed = 20.0;                    //[m/s]
+            maxSpeedVariance = 0.60;                     //[%]
         }
     }
-
-    vis {               //visualization
-        isOn = true;
+    storage {
+        insertSpeed = 0.5;  //[m/s]
+        checkingDistance = 500;
+        safetyReserve = 5;
     }
-
-    // Dashboard configuration
     dashboard {
-        simulators {
-            OpenDS {
-                launch = "out/artifacts/simulator_jar/run_simulator.sh felfest_demo.xml";
-            }
-            OpenDS2 {
-                launch = "out/artifacts/simulator_jar/run_simulator.sh felfest_demo2.xml";
-            }
-            SimulatorLite {
-                launch = "launchers/simulator-lite.sh"
-            }
-
-        }
-        // simulatorToRun is an array of simulators you wish to run,
-        // Set of simulators to run can be seen above, note that you need to create a script for each od the simlators.
-        //The path to the relevant scripts is to be specified above too.
-
-//        simulatorsToRun = []; //if no simulator, LocalSimulator is used - perfect execution of plans
-        simulatorsToRun = ["SimulatorLite"];
+        numberOfCarsInSimulation = 250;
+        sumoSimulation = true;
+        systemTime = false;
     }
 
+    SimulatorLocal {
+        timestep = 1;
+    }
+}
+simulator {
+    lite {
+        name = "Simulator-Lite";
+        seed = 0;                          // random number generator seed
+        simulationDuration = -1;      // - 1 = infinity
+        simulationSpeed = 1;
+        timestep = 20; //ms
+        perfectExecution = false;
+        vis {
+            isOn = true;
+            SimulationControlLayer = true;
+            NetVisLayer = true;
+            TrafficVisLayer = true;
+            ZoomVehicleLayer = false;
+            AgentDriveVisLayer = true;
+            RoadObjectLayer = true;
+            StateSpaceVehicleLayer = true;
+        }
+    }
+    net {
+        folder = "nets/test_gsda0";
+        lane {
+            stepSize = 0.2; // distance between waypoints
+        }
+    }
     netLayer {
         lane {
             view = true;
-            width = 2;
+            width = 1;
         }
         edge {
-            view = true;
-            width = 1;
+            view = false;
+            width = 10;
         }
         crossRoad {
             view = false;
             width = 1;
         }
-    }
-    SimulatorLocal{
-        timestep=1;
     }
 }

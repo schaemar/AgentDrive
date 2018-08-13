@@ -52,7 +52,6 @@ public class TrafficVisLayer extends AbstractLayer {
 
         double wheelWidth = CAR_WIDTH*REL_WHEEL_WIDTH;
         for (Vehicle vehicle: storage.getVehicles()) {
-            // TODO: set different colors for agents
             canvas.setColor(Color.BLUE);
             Point3f pos = vehicle.getPosition();
             double vehicleLen = vehicle.getAxeLength()+CAR_PADD;
@@ -75,7 +74,7 @@ public class TrafficVisLayer extends AbstractLayer {
             canvas.rotate(vehicleRotation);
 
             // Draw vehicle body
-            canvas.setColor(Color.RED);
+            canvas.setColor(AgentColors.getColorForAgent(vehicle.getId()));
             Rectangle2D body = new Rectangle2D.Double(-vehicleLen/2,  -CAR_WIDTH/2,
                     vehicleLen, CAR_WIDTH);
             canvas.fill(body);

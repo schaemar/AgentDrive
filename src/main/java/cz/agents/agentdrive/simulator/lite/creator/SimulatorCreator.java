@@ -37,8 +37,8 @@ public class SimulatorCreator implements Creator {
     private Simulation simulation;
     protected long timestep;
     private SimulatorEnvironment environment;
-    private static String CONFIG_FILE = "settings/groovy/config.groovy";
-    protected String DEFAULT_CONFIG_FILE = "settings/groovy/config.groovy";
+    private static String CONFIG_FILE = "settings/groovy/highway.groovy";
+    protected String DEFAULT_CONFIG_FILE = "settings/groovy/highway.groovy";
 
     private static String HIGHWAY_CONFIG_FILE;
     private static final Logger logger = Logger.getLogger(SimulatorCreator.class);
@@ -47,16 +47,14 @@ public class SimulatorCreator implements Creator {
     public void init(String[] args) {
         if (args.length > 1) {
             CONFIG_FILE = args[1];
+        }else{
+            CONFIG_FILE = DEFAULT_CONFIG_FILE;
         }
 
         // Configuration loading using alite's Configurator and ConfigReader
         ConfigReader configReader = new ConfigReader();
-        //configReader.loadAndMerge(DEFAULT_CONFIG_FILE);
         configReader.loadAndMerge(CONFIG_FILE);
-
         Configurator.init(configReader);
-
-
         String logfile = Configurator.getParamString("cz.highway.configurationFile", "settings/log4j/log4j.properties");
         PropertyConfigurator.configure(logfile);
 
@@ -77,7 +75,6 @@ public class SimulatorCreator implements Creator {
         simulation.setSimulationSpeed(simulationSpeed);
         environment = new SimulatorEnvironment(simulation);
         environment.init();
-
 
         if(Configurator.getParamBool("simulator.lite.vis.isOn", false)) createVisualization();
         runSimulation();
@@ -101,7 +98,6 @@ public class SimulatorCreator implements Creator {
         VisManager.init();
 
         // Overlay
-        //VisManager.registerLayer(ColorLayer.create(Color.LIGHT_GRAY));
         VisManager.registerLayer(ColorLayer.create(new Color(210, 255, 165)));
         VisManager.registerLayer(FpsLayer.create());
         try {
@@ -131,7 +127,6 @@ public class SimulatorCreator implements Creator {
     }
 
     public void runSimulation() {
-        //System.out.println(simulation.getEventCount());
         initTraffic();
         logger.info("Simulation is ready to run.");
         simulation.run();
@@ -141,7 +136,6 @@ public class SimulatorCreator implements Creator {
         SimulatorCreator creator = (SimulatorCreator) CreatorFactory.createCreator(args);
         creator.init(args);
         creator.create();
-        //   creator.runSimulation();
     }
 
     private void initTraffic() {
@@ -149,20 +143,15 @@ public class SimulatorCreator implements Creator {
         // All vehicle id's
         final Collection<Integer> vehicles = reader.getRoutes().keySet();
         final Map<Integer, Float> departures = reader.getDepartures();
-        // final int size = vehicles.size();
         final int size;
         if (!Configurator.getParamBool("highway.dashboard.sumoSimulation", true)) {
             size = Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", vehicles.size());
         } else {
             size = vehicles.size();
         }
-        final int simulatorCount = Configurator.getParamList("highway.dashboard.simulatorsToRun", String.class).size();
         final HighwayStorage storage = environment.getHighwayEnvironment().getStorage();
 
         Iterator<Integer> vehicleIt = vehicles.iterator();
-        PlansOut plans = new PlansOut();
-        //   RadarData update = ;
-        Map<Integer, Agent> agents = storage.getAgents();
         Set<Integer> plannedVehiclesLocal = new HashSet<Integer>();
         int sizeL = size;
         if (size > vehicles.size()) sizeL = vehicles.size();
@@ -177,10 +166,6 @@ public class SimulatorCreator implements Creator {
             plannedVehiclesLocal.add(vehicleID);
         }
         final Set<Integer> plannedVehicles = plannedVehiclesLocal;
-//        environment.getHighwayEnvironment().addSimulatorHandler(new LocalSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles)));
-
         environment.getHighwayEnvironment().addSimulatorHandler(new ModuleSimulatorHandler(environment.getHighwayEnvironment(), new HashSet<Integer>(plannedVehicles), environment.getPlanCallback()));
     }
-
-
 }

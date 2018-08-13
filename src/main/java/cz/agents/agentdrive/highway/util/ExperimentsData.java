@@ -3,7 +3,6 @@ package cz.agents.agentdrive.highway.util;
 import cz.agents.agentdrive.highway.agent.SDAgent;
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.agentdrive.highway.agent.Agent;
-import cz.agents.agentdrive.highway.agent.GSDAgent;
 import cz.agents.agentdrive.highway.storage.HighwayStorage;
 import cz.agents.agentdrive.highway.storage.RadarData;
 import cz.agents.agentdrive.highway.storage.RoadObject;
@@ -61,7 +60,7 @@ public class ExperimentsData {
         for (Map.Entry<Integer, Agent> entry : storage.getAgents().entrySet()) {
             Agent pair = entry.getValue();
             if (pair instanceof SDAgent) {
-                num += ((SDAgent) pair).getNumberOfColisions();
+                num += ((SDAgent) pair).getNumberOfCollisions();
             }
         }
         return num;

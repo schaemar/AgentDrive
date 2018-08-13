@@ -23,8 +23,6 @@ public class Car extends Vehicle {
         //update direction
         countSteeringAngle();
 
-        //updateLane();
-
         float x = getPosition().getX();
         float y = getPosition().getY();
         float z = getPosition().getZ();
@@ -54,7 +52,6 @@ public class Car extends Vehicle {
     }
 
     private void updateLane() {
-        //TODO: does this matter?
 //        Network network = null;
 //        Point2f position2D = new Point2f(getPosition().x, getPosition().y);
 //        Lane lane = network.getLane(position2D);

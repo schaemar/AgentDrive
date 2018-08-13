@@ -62,8 +62,6 @@ public class JAXBLoader {
             e.printStackTrace();
         }
         return net;
-
-
     }
 
 

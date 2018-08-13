@@ -14,7 +14,7 @@ import java.util.List;
 
 public abstract class Agent extends Entity {
 
-    int id;
+    protected int id;
     private static final Logger logger = Logger.getLogger(Agent.class);
 
     protected VehicleSensor sensor;

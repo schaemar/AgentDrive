@@ -164,7 +164,6 @@ public abstract class Vehicle {
         planController.setWayPoints(wayPoints);
     }
 
-
     /**
      * Update the vehicle position
      *

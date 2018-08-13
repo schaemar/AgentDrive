@@ -9,7 +9,6 @@ abstract public class CarManeuver {
 	protected int expectedLaneOut;
 	protected double velocityIn;
 	protected double velocityOut;
-	/*y */
 	protected double positionIn;
 	protected double positionOut; 
 

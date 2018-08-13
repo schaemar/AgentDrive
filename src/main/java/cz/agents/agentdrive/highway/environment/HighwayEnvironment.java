@@ -1,15 +1,11 @@
 package cz.agents.agentdrive.highway.environment;
 
-import cz.agents.alite.common.event.Event;
-import cz.agents.alite.common.event.EventHandler;
 import cz.agents.alite.common.event.EventProcessor;
 import cz.agents.alite.configurator.Configurator;
-import cz.agents.alite.environment.eventbased.EventBasedEnvironment;
 import cz.agents.agentdrive.highway.environment.SimulatorHandlers.SimulatorHandler;
 import cz.agents.agentdrive.highway.environment.roadnet.RoadNetworkRouter;
 import cz.agents.agentdrive.highway.environment.roadnet.XMLReader;
 import cz.agents.agentdrive.highway.environment.roadnet.network.RoadNetwork;
-import cz.agents.agentdrive.highway.storage.HighwayEventType;
 import cz.agents.agentdrive.highway.storage.HighwayStorage;
 import org.apache.log4j.Logger;
 
@@ -34,9 +30,6 @@ public class HighwayEnvironment {
     long timeDifference;
 
     public HighwayEnvironment(final EventProcessor eventProcessor) {
-//        super(eventProcessor);
-//        RandomProvider.init(this);
-        // Initialize Network from given xml
         ep = eventProcessor;
         XMLReader xmlReader = new XMLReader();
         roadNetwork = xmlReader.parseNetwork(Configurator.getParamString("simulator.net.folder", "nets/junction-big/"));
@@ -46,8 +39,6 @@ public class HighwayEnvironment {
     }
 
     public HighwayEnvironment(final EventProcessor eventProcessor, RoadNetwork roadNetwork) {
-//        super(eventProcessor);
-//        RandomProvider.init(this);
         ep = eventProcessor;
         this.roadNetwork = roadNetwork;
         RoadNetworkRouter.setRoadNet(roadNetwork);

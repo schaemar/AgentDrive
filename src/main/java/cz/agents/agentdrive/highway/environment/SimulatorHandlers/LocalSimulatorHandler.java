@@ -2,7 +2,6 @@ package cz.agents.agentdrive.highway.environment.SimulatorHandlers;
 
 import cz.agents.alite.configurator.Configurator;
 import cz.agents.agentdrive.highway.environment.HighwayEnvironment;
-import cz.agents.agentdrive.highway.storage.HighwayEventType;
 import cz.agents.agentdrive.highway.storage.RadarData;
 import cz.agents.agentdrive.highway.storage.RoadObject;
 import cz.agents.agentdrive.highway.storage.plan.Action;

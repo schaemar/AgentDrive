@@ -307,11 +307,6 @@ public class FileUtil {
             out.write("Maximum number of cars in simulation are: " + Configurator.getParamInt("highway.dashboard.numberOfCarsInSimulation", 40));
             out.newLine();
             out.write("Sumo simulation: " + Configurator.getParamBool("highway.dashboard.sumoSimulation", true));
-            if(!Configurator.getParamBool("highway.dashboard.sumoSimulation", true))
-            {
-                out.newLine();
-                out.write("Random routes: " + Configurator.getParamBool("highway.rvo.agent.randomRoutes", true));
-            }
             out.newLine();
             out.write("Distance to activate narowing mod: " + Configurator.getParamInt("highway.safeDistanceAgent.distanceToActivateNM", 400));
             out.newLine();

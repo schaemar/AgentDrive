@@ -52,7 +52,6 @@ public class RoadObject {
         this.lane = lane;
     }
 
-
     @Override
     public String toString() {
         return "RoadObject [id = " + id + ", updateTime=" + updateTime + ", lane=" + lane

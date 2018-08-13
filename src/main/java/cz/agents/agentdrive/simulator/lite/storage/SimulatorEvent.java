@@ -8,6 +8,7 @@ import cz.agents.alite.common.event.EventType;
  * Created by wmatex on 3.7.14.
  */
 public enum SimulatorEvent implements EventType{
+    TIMESTEP,
     UPDATE,               /// Update vehicle positions
     COMMUNICATION_UPDATE  /// Send and receive new data from coordination module
 }

@@ -46,7 +46,6 @@ public class VehicleStorage extends EventBasedStorage {
     public void addGhost(Ghost ghost) {
         ghosts.put(ghost.getId(), ghost);
     }
-    
     public Vehicle getVehicle(Integer idVehicle){
         return vehicles.get(idVehicle);
     }

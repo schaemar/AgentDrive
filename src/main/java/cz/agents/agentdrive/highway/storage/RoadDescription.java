@@ -15,7 +15,6 @@ public class RoadDescription {
     private final List<Line> lines = new ArrayList<Line>();
     private final List<RoadObject> obstacles = new ArrayList<RoadObject>();
 
-
     public RoadDescription(RoadNetwork roadNetwork) {
         this.roadNetwork = roadNetwork;
     }
@@ -25,10 +24,9 @@ public class RoadDescription {
     }
 
     private double distance(Point3d p1, Point3d p2) {
-        //TODO only for y straight highway
-//		double dx = (p1.x - p2.x);
-        return (p1.y - p2.y);
-//		return Math.sqrt(dx*dx + dy*dy);
+        double dx = p1.x - p2.x;
+        double dy = p1.y - p2.y;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
 
@@ -41,7 +39,6 @@ public class RoadDescription {
     }
 
     public double distance(Point2d position) {
-        //TODO only for y straight highway
         return Math.sqrt(Math.pow(position.y, 2) * Math.pow(position.x, 2));
     }
 

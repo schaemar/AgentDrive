@@ -68,11 +68,11 @@
     </vehicle>
     <vehicle id="16" depart="16.00">
         <route edges="7"/>
-    </vehicle>
+    </vehicle>-->
     <vehicle id="17" depart="17.00">
         <route edges="5 6"/>
     </vehicle>
-    <vehicle id="22" depart="22.00">
+   <vehicle id="22" depart="22.00">
         <route edges="7 8 9 10"/>
     </vehicle>
     <vehicle id="24" depart="24.00">
@@ -89,11 +89,11 @@
     </vehicle>
     <vehicle id="29" depart="29.00">
         <route edges="4 5 6 7"/>
-    </vehicle>
+    </vehicle>-->
     <vehicle id="30" depart="30.00">
         <route edges="6 7"/>
     </vehicle>
-    <vehicle id="31" depart="31.00">
+   <vehicle id="31" depart="31.00">
         <route edges="9"/>
     </vehicle>
     <vehicle id="33" depart="33.00">

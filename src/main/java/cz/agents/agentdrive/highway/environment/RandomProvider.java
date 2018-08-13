@@ -14,6 +14,7 @@ public final class RandomProvider {
 
     private final static Logger logger = Logger.getLogger(RandomProvider.class);
 
+    //TODO better random generator could be used
     private static Random random;
 
     public static void init() {

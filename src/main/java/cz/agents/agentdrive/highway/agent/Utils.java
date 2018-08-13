@@ -25,8 +25,6 @@ public class Utils {
      * @return distance
      */
     public static double getDistanceBetweenTwoRoadObjects(RoadObject me, ActualLanePosition myActualLanePosition, RoadObject other, ActualLanePosition otherActualLanePosition, List<Edge> rem) {
-        // int nearestA = getNearestWaipointCloseEnough(me, myLane);
-        // int nearestB = getNearestWaipointCloseEnough(other, otherLane);
         Lane myLane = myActualLanePosition.getLane();
         Lane otherLane = otherActualLanePosition.getLane();
         int nearestA = myActualLanePosition.getIndex();

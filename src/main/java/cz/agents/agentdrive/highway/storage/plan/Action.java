@@ -6,15 +6,12 @@ public abstract class Action {
 
     private final int carId;
     private final double timeStamp;
-  
-
-
+    
     public Action(int carId, double timeStamp) {
         this.carId = carId;
         this.timeStamp = timeStamp;
         
     }
-
  
     public int getCarId() {
         return carId;
